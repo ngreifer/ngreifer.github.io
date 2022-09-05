@@ -9,6 +9,7 @@ tags:
   - subgroup analysis
 slug: subgroup-analysis-psm
 bibliography: references.bib
+share: true
 ---
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE)
