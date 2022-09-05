@@ -2,21 +2,21 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>R | Noah Greifer</title>
-    <link>https://ngreifer.github.io/tag/r/</link>
-      <atom:link href="https://ngreifer.github.io/tag/r/index.xml" rel="self" type="application/rss+xml" />
+    <link>https://example.com/tag/r/</link>
+      <atom:link href="https://example.com/tag/r/index.xml" rel="self" type="application/rss+xml" />
     <description>R</description>
-    <generator>Wowchemy (https://wowchemy.com)</generator><language>en-us</language><lastBuildDate>Mon, 05 Sep 2022 00:00:00 +0000</lastBuildDate>
+    <generator>Wowchemy (https://wowchemy.com)</generator><language>en-us</language><lastBuildDate>Sun, 24 Jul 2022 00:00:00 +0000</lastBuildDate>
     <image>
-      <url>https://ngreifer.github.io/media/icon_hua2ec155b4296a9c9791d015323e16eb5_11927_512x512_fill_lanczos_center_3.png</url>
+      <url>https://example.com/media/icon_hua2ec155b4296a9c9791d015323e16eb5_11927_512x512_fill_lanczos_center_3.png</url>
       <title>R</title>
-      <link>https://ngreifer.github.io/tag/r/</link>
+      <link>https://example.com/tag/r/</link>
     </image>
     
     <item>
       <title>Subgroup Analysis After Propensity Score Matching Using R</title>
-      <link>https://ngreifer.github.io/blog/subgroup-analysis-psm/</link>
-      <pubDate>Mon, 05 Sep 2022 00:00:00 +0000</pubDate>
-      <guid>https://ngreifer.github.io/blog/subgroup-analysis-psm/</guid>
+      <link>https://example.com/blog/subgroup-analysis-psm/</link>
+      <pubDate>Sun, 24 Jul 2022 00:00:00 +0000</pubDate>
+      <guid>https://example.com/blog/subgroup-analysis-psm/</guid>
       <description>
 
 
