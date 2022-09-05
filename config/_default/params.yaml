@@ -38,6 +38,7 @@ header:
     show_day_night: true
     show_search: true
     highlight_active_link: true
+    font_size: L
 
 # Site footer
 

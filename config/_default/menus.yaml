@@ -17,9 +17,6 @@ main:
   #   url: '/contact'
   #   weight: 60
 
-appearance:
-  font_size: L
-
 # Link to a PDF of your resume/CV from the menu.
 # To enable, copy your resume/CV to `static/uploads/resume.pdf` and uncomment the lines below.
 #  - name: CV
