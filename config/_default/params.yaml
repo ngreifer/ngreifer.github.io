@@ -9,7 +9,7 @@ appearance:
   theme_day: minimal
   theme_night: minimal
   font: minimal
-  font_size: L
+  font_size: M
 
 # SEO
 
@@ -24,7 +24,7 @@ marketing:
     google_analytics: ''
     baidu_tongji: ''
   verification:
-    google: 'google-site-verification=bs6b7-kVXu8-rK1NF0EvxgRsE8vPgpyq5bGIPZ6Stbs'
+    google: 'bs6b7-kVXu8-rK1NF0EvxgRsE8vPgpyq5bGIPZ6Stbs'
     baidu: ''
 
 # Site header
@@ -70,7 +70,7 @@ features:
   privacy_pack:
     enable: false
   repository:
-    url: 'https://github.com/<username>/<repository>'
+    url: 'https://github.com/ngreifer/ngreifer.github.io'
     content_dir: content
     branch: master
   avatar:
