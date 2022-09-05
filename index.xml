@@ -2,21 +2,21 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Noah Greifer</title>
-    <link>https://example.com/</link>
-      <atom:link href="https://example.com/index.xml" rel="self" type="application/rss+xml" />
+    <link>https://ngreifer.github.io/</link>
+      <atom:link href="https://ngreifer.github.io/index.xml" rel="self" type="application/rss+xml" />
     <description>Noah Greifer</description>
     <generator>Wowchemy (https://wowchemy.com)</generator><language>en-us</language><lastBuildDate>Mon, 05 Sep 2022 00:00:00 +0000</lastBuildDate>
     <image>
-      <url>https://example.com/media/icon_hua2ec155b4296a9c9791d015323e16eb5_11927_512x512_fill_lanczos_center_3.png</url>
+      <url>https://ngreifer.github.io/media/icon_hua2ec155b4296a9c9791d015323e16eb5_11927_512x512_fill_lanczos_center_3.png</url>
       <title>Noah Greifer</title>
-      <link>https://example.com/</link>
+      <link>https://ngreifer.github.io/</link>
     </image>
     
     <item>
       <title>Subgroup Analysis After Propensity Score Matching Using R</title>
-      <link>https://example.com/blog/subgroup-analysis-psm/</link>
+      <link>https://ngreifer.github.io/blog/subgroup-analysis-psm/</link>
       <pubDate>Mon, 05 Sep 2022 00:00:00 +0000</pubDate>
-      <guid>https://example.com/blog/subgroup-analysis-psm/</guid>
+      <guid>https://ngreifer.github.io/blog/subgroup-analysis-psm/</guid>
       <description>
 
 
@@ -334,9 +334,9 @@ Greifer, Noah, and Elizabeth A Stuart. 2021. &lt;span&gt;“Matching &lt;span&gt
     
     <item>
       <title>Hello R Markdown</title>
-      <link>https://example.com/blog/2020-12-01-r-rmarkdown/</link>
+      <link>https://ngreifer.github.io/blog/2020-12-01-r-rmarkdown/</link>
       <pubDate>Tue, 01 Dec 2020 21:13:14 -0500</pubDate>
-      <guid>https://example.com/blog/2020-12-01-r-rmarkdown/</guid>
+      <guid>https://ngreifer.github.io/blog/2020-12-01-r-rmarkdown/</guid>
       <description>
 
 
@@ -373,7 +373,7 @@ pie(
   init.angle = -50, border = NA
 )&lt;/code&gt;&lt;/pre&gt;
 &lt;div class=&#34;figure&#34;&gt;&lt;span style=&#34;display:block;&#34; id=&#34;fig:pie&#34;&gt;&lt;/span&gt;
-&lt;img src=&#34;https://example.com/blog/2020-12-01-r-rmarkdown/index.en_files/figure-html/pie-1.png&#34; alt=&#34;A fancy pie chart.&#34; width=&#34;672&#34; /&gt;
+&lt;img src=&#34;https://ngreifer.github.io/blog/2020-12-01-r-rmarkdown/index.en_files/figure-html/pie-1.png&#34; alt=&#34;A fancy pie chart.&#34; width=&#34;672&#34; /&gt;
 &lt;p class=&#34;caption&#34;&gt;
 Figure 1: A fancy pie chart.
 &lt;/p&gt;
@@ -384,17 +384,17 @@ Figure 1: A fancy pie chart.
     
     <item>
       <title></title>
-      <link>https://example.com/admin/config.yml</link>
+      <link>https://ngreifer.github.io/admin/config.yml</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>https://example.com/admin/config.yml</guid>
+      <guid>https://ngreifer.github.io/admin/config.yml</guid>
       <description></description>
     </item>
     
     <item>
       <title>Software</title>
-      <link>https://example.com/software/</link>
+      <link>https://ngreifer.github.io/software/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>https://example.com/software/</guid>
+      <guid>https://ngreifer.github.io/software/</guid>
       <description>&lt;p&gt;This page documents the software packages I have worked on. if you have any questions about them, please submit your question to their GitHub issues page rather than emailing me. You are also welcome to ask a question on &lt;a href=&#34;https://stackoverflow.com/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;StackOverflow&lt;/a&gt; or &lt;a href=&#34;https://stats.stackexchange.com/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CrossValidated&lt;/a&gt;, which I check often.&lt;/p&gt;
 &lt;h2 id=&#34;r-packages&#34;&gt;R packages&lt;/h2&gt;
 &lt;p&gt;These packages are ones that I am a primary author on and have expertise on the methods implemented. I consider these packages to be &amp;ldquo;mine&amp;rdquo;, at least partly, in the sense that I can speak not only on the implementation but on the methods as well.&lt;/p&gt;
