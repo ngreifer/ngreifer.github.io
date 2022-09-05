@@ -25,7 +25,7 @@ These packages are ones that I am a primary author on and have expertise on the 
 * `MatchingFrontier`: Computation of the Balance-Sample Size Frontier in Matching Methods for Causal Inference
   - Gary King, Christopher Lucas, Richard Nielsen, and Noah Greifer | [website](https://iqss.github.io/MatchingFrontier) | [source](https://github.com/iqss/MatchingFrontier)
 * `fwb`: Fractional Weighted Bootstrap
-  - Noah Greifer | [CRAN](https://cran.r-project.org/package=optweight) | [website](https://ngreifer.github.io/fwb) | [source](https://github.com/ngreifer/fwb)
+  - Noah Greifer | [website](https://ngreifer.github.io/fwb) | [source](https://github.com/ngreifer/fwb)
 
 These packages are ones that I have developed as part of my job but which I don't consider "mine" in the sense that I am not the primary maintainer and I don't have expertise on the methods implemented. Please do not contact me about these packages.
 
