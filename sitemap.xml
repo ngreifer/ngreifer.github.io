@@ -4,29 +4,29 @@
   
   
   <url>
-    <loc>https://example.com/categories/</loc><lastmod>2022-07-24T17:10:30-04:00</lastmod><changefreq>weekly</changefreq></url>
+    <loc>https://example.com/tag/matching/</loc><lastmod>2022-09-05T00:00:00+00:00</lastmod><changefreq>weekly</changefreq></url>
   <url>
-    <loc>https://example.com/tag/matching/</loc><lastmod>2022-07-24T17:10:30-04:00</lastmod><changefreq>weekly</changefreq></url>
+    <loc>https://example.com/</loc><lastmod>2022-09-05T00:00:00+00:00</lastmod><changefreq>weekly</changefreq></url>
   <url>
-    <loc>https://example.com/</loc><lastmod>2022-07-24T17:10:30-04:00</lastmod><changefreq>weekly</changefreq></url>
+    <loc>https://example.com/blog/</loc><lastmod>2022-09-05T00:00:00+00:00</lastmod><changefreq>weekly</changefreq></url>
   <url>
-    <loc>https://example.com/blog/</loc><lastmod>2022-07-24T17:10:30-04:00</lastmod><changefreq>weekly</changefreq></url>
+    <loc>https://example.com/tag/propensity-scores/</loc><lastmod>2022-09-05T00:00:00+00:00</lastmod><changefreq>weekly</changefreq></url>
   <url>
-    <loc>https://example.com/tag/propensity-scores/</loc><lastmod>2022-07-24T17:10:30-04:00</lastmod><changefreq>weekly</changefreq></url>
+    <loc>https://example.com/tag/r/</loc><lastmod>2022-09-05T00:00:00+00:00</lastmod><changefreq>weekly</changefreq></url>
   <url>
-    <loc>https://example.com/tag/r/</loc><lastmod>2022-07-24T17:10:30-04:00</lastmod><changefreq>weekly</changefreq></url>
+    <loc>https://example.com/tag/subgroup-analysis/</loc><lastmod>2022-09-05T00:00:00+00:00</lastmod><changefreq>weekly</changefreq></url>
   <url>
-    <loc>https://example.com/category/r/</loc><lastmod>2022-07-24T17:10:30-04:00</lastmod><changefreq>weekly</changefreq></url>
+    <loc>https://example.com/blog/subgroup-analysis-psm/</loc><lastmod>2022-09-05T00:00:00+00:00</lastmod><changefreq>weekly</changefreq></url>
   <url>
-    <loc>https://example.com/tag/subgroup-analysis/</loc><lastmod>2022-07-24T17:10:30-04:00</lastmod><changefreq>weekly</changefreq></url>
+    <loc>https://example.com/tags/</loc><lastmod>2022-09-05T00:00:00+00:00</lastmod><changefreq>weekly</changefreq></url>
   <url>
-    <loc>https://example.com/blog/subgroup-analysis-psm/</loc><lastmod>2022-07-24T17:10:30-04:00</lastmod><changefreq>weekly</changefreq></url>
-  <url>
-    <loc>https://example.com/tags/</loc><lastmod>2022-07-24T17:10:30-04:00</lastmod><changefreq>weekly</changefreq></url>
+    <loc>https://example.com/categories/</loc><lastmod>2020-12-01T21:13:14-05:00</lastmod><changefreq>weekly</changefreq></url>
   <url>
     <loc>https://example.com/blog/2020-12-01-r-rmarkdown/</loc><lastmod>2020-12-01T21:13:14-05:00</lastmod><changefreq>weekly</changefreq></url>
   <url>
     <loc>https://example.com/tag/plot/</loc><lastmod>2020-12-01T21:13:14-05:00</lastmod><changefreq>weekly</changefreq></url>
+  <url>
+    <loc>https://example.com/category/r/</loc><lastmod>2020-12-01T21:13:14-05:00</lastmod><changefreq>weekly</changefreq></url>
   <url>
     <loc>https://example.com/tag/r-markdown/</loc><lastmod>2020-12-01T21:13:14-05:00</lastmod><changefreq>weekly</changefreq></url>
   <url>
