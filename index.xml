@@ -1,0 +1,569 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Noah Greifer</title>
+    <link>https://example.com/</link>
+      <atom:link href="https://example.com/index.xml" rel="self" type="application/rss+xml" />
+    <description>Noah Greifer</description>
+    <generator>Wowchemy (https://wowchemy.com)</generator><language>en-us</language><lastBuildDate>Sun, 24 Jul 2022 00:00:00 +0000</lastBuildDate>
+    <image>
+      <url>https://example.com/media/icon_hua2ec155b4296a9c9791d015323e16eb5_11927_512x512_fill_lanczos_center_3.png</url>
+      <title>Noah Greifer</title>
+      <link>https://example.com/</link>
+    </image>
+    
+    <item>
+      <title>Subgroup Analysis After Propensity Score Matching Using R</title>
+      <link>https://example.com/blog/subgroup-analysis-psm/</link>
+      <pubDate>Sun, 24 Jul 2022 00:00:00 +0000</pubDate>
+      <guid>https://example.com/blog/subgroup-analysis-psm/</guid>
+      <description>
+
+
+&lt;p&gt;Today I’m going to demonstrate performing a subgroup analysis after propensity score matching using R. Subgroup analysis, also known as moderation analysis or the analysis of effect modification, concerns the estimation of treatment effects within subgroups of a pre-treatment covariate. This post assumes you understand how to do propensity score matching. For a general introduction propensity score matching, I recommend &lt;span class=&#34;citation&#34;&gt;Austin (&lt;a href=&#34;#ref-austinIntroductionPropensityScore2011&#34; role=&#34;doc-biblioref&#34;&gt;2011&lt;/a&gt;)&lt;/span&gt; and the &lt;code&gt;MatchIt&lt;/code&gt; &lt;a href=&#34;https://kosukeimai.github.io/MatchIt/articles/MatchIt.html&#34;&gt;introductory vignette&lt;/a&gt;. If you understand inverse probability weighting but aren’t too familiar about matching, I recommend my article with Liz Stuart &lt;span class=&#34;citation&#34;&gt;(&lt;a href=&#34;#ref-greiferMatchingMethodsConfounder2021a&#34; role=&#34;doc-biblioref&#34;&gt;Greifer and Stuart 2021&lt;/a&gt;)&lt;/span&gt;. For an introduction to subgroup analysis with propensity scores, you can also check out &lt;span class=&#34;citation&#34;&gt;Green and Stuart (&lt;a href=&#34;#ref-greenExaminingModerationAnalyses2014&#34; role=&#34;doc-biblioref&#34;&gt;2014&lt;/a&gt;)&lt;/span&gt;. Here, I’ll mainly try to get to the point.&lt;/p&gt;
+&lt;p&gt;The dataset we’ll use today is the famous Lalonde dataset, investigating the effect of a job training program on earnings. We’ll use the version of this dataset that comes with the &lt;code&gt;MatchIt&lt;/code&gt; package.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;data(&amp;quot;lalonde&amp;quot;, package = &amp;quot;MatchIt&amp;quot;)
+head(lalonde)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##      treat age educ   race married nodegree re74 re75       re78
+## NSW1     1  37   11  black       1        1    0    0  9930.0460
+## NSW2     1  22    9 hispan       0        1    0    0  3595.8940
+## NSW3     1  30   12  black       0        0    0    0 24909.4500
+## NSW4     1  27   11  black       0        1    0    0  7506.1460
+## NSW5     1  33    8  black       0        1    0    0   289.7899
+## NSW6     1  22    9  black       0        1    0    0  4056.4940&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The treatment is &lt;code&gt;treat&lt;/code&gt;, the outcome in the original study was &lt;code&gt;re78&lt;/code&gt; (1978 earnings), and the other variables are pretreatment covariates that we want to adjust for using propensity score matching. In this example, I’ll actually be using a different outcome, &lt;code&gt;re78_0&lt;/code&gt;, which is whether the participant’s 1978 earnings were equal to 0 or not, because I want to demonstrate the procedure for a binary outcome. So, we hope the treatment effect is negative, i.e., the risk of 0 earnings decreases for those in the treatment.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;lalonde$re78_0 &amp;lt;- as.numeric(lalonde$re78 == 0)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Our moderator will be &lt;code&gt;race&lt;/code&gt;, a 3-category factor variable.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;with(lalonde, table(race))&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## race
+##  black hispan  white 
+##    243     72    299&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Our estimand will be the subgroup-specific and marginal average treatment effect on the treated (ATT), using the risk difference as our effect measure.&lt;/p&gt;
+&lt;div id=&#34;packages-youll-need&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Packages You’ll Need&lt;/h3&gt;
+&lt;p&gt;We’ll need a few R packages for this analysis. We’ll need &lt;code&gt;MatchIt&lt;/code&gt; and &lt;code&gt;optmatch&lt;/code&gt; for the matching, &lt;code&gt;cobalt&lt;/code&gt; for the balance assessment, &lt;code&gt;marginaleffects&lt;/code&gt; for estimating the treatment effect, and &lt;code&gt;sandwich&lt;/code&gt; for computing the standard errors. You can install those using the code below:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;install.packages(c(&amp;quot;MatchIt&amp;quot;, &amp;quot;cobalt&amp;quot;, &amp;quot;marginaleffects&amp;quot;, &amp;quot;sandwich&amp;quot;))&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Let’s get into it!&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;step-1-subgroup-matching&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Step 1: Subgroup Matching&lt;/h2&gt;
+&lt;p&gt;Our first step is to perform the matching. Although there are a few strategies of how to do matching for subgroup analysis, in general performing subgroup-specific matching tends to work best, though it requires a little extra work.&lt;/p&gt;
+&lt;p&gt;We’ll do this by splitting the dataset by &lt;code&gt;race&lt;/code&gt; and performing a separate matching analysis within each one.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;#Splitting the data
+lalonde_b &amp;lt;- subset(lalonde, race == &amp;quot;black&amp;quot;)
+lalonde_h &amp;lt;- subset(lalonde, race == &amp;quot;hispan&amp;quot;)
+lalonde_w &amp;lt;- subset(lalonde, race == &amp;quot;white&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Here we’ll use full matching because 1:1 matching without replacement, the most common but worst way to do propensity score matching, doesn’t work well in this dataset. The process described below works &lt;em&gt;exactly&lt;/em&gt; the same for 1:1 and most other kinds of matching as it does for full matching. We’ll estimate propensity score in each subgroup, here using probit regression, which happens to yield better balance than logistic regression.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(&amp;quot;MatchIt&amp;quot;)
+
+#Matching in race == &amp;quot;black&amp;quot;
+m.out_b &amp;lt;- matchit(treat ~ age + educ + married + nodegree + re74 + re75,
+                   data = lalonde_b, method = &amp;quot;full&amp;quot;, estimand = &amp;quot;ATT&amp;quot;,
+                   link = &amp;quot;probit&amp;quot;)
+
+#Matching in race == &amp;quot;hispan&amp;quot;
+m.out_h &amp;lt;- matchit(treat ~ age + educ + married + nodegree + re74 + re75,
+                   data = lalonde_h, method = &amp;quot;full&amp;quot;, estimand = &amp;quot;ATT&amp;quot;,
+                   link = &amp;quot;probit&amp;quot;)
+
+#Matching in race == &amp;quot;black&amp;quot;
+m.out_w &amp;lt;- matchit(treat ~ age + educ + married + nodegree + re74 + re75,
+                   data = lalonde_w, method = &amp;quot;full&amp;quot;, estimand = &amp;quot;ATT&amp;quot;,
+                   link = &amp;quot;probit&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div id=&#34;step-2-assessing-balance-within-subgroups&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Step 2: Assessing Balance within Subgroups&lt;/h2&gt;
+&lt;p&gt;We need to assess subgroup balance; we can do that using &lt;code&gt;summary()&lt;/code&gt; on each &lt;code&gt;matchit&lt;/code&gt; object, or we can use functions from &lt;code&gt;cobalt&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Below are examples of using &lt;code&gt;summary()&lt;/code&gt; and &lt;code&gt;cobalt::bal.tab()&lt;/code&gt; on one &lt;code&gt;matchit&lt;/code&gt; object at a time&lt;a href=&#34;#fn1&#34; class=&#34;footnote-ref&#34; id=&#34;fnref1&#34;&gt;&lt;sup&gt;1&lt;/sup&gt;&lt;/a&gt;:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;summary(m.out_b)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## 
+## Call:
+## matchit(formula = treat ~ age + educ + married + nodegree + re74 + 
+##     re75, data = lalonde_b, method = &amp;quot;full&amp;quot;, link = &amp;quot;probit&amp;quot;, 
+##     estimand = &amp;quot;ATT&amp;quot;)
+## 
+## Summary of Balance for All Data:
+##          Means Treated Means Control Std. Mean Diff. Var. Ratio eCDF Mean eCDF Max
+## distance        0.6587        0.6121          0.4851     0.7278    0.1134   0.1972
+## age            25.9808       26.0690         -0.0121     0.4511    0.0902   0.2378
+## educ           10.3141       10.0920          0.1079     0.5436    0.0336   0.0807
+## married         0.1859        0.2874         -0.2608          .    0.1015   0.1015
+## nodegree        0.7244        0.6437          0.1806          .    0.0807   0.0807
+## re74         2155.0132     3117.0584         -0.1881     0.9436    0.0890   0.2863
+## re75         1490.7221     1834.4220         -0.1043     1.0667    0.0480   0.1441
+## 
+## Summary of Balance for Matched Data:
+##          Means Treated Means Control Std. Mean Diff. Var. Ratio eCDF Mean eCDF Max Std. Pair Dist.
+## distance        0.6587        0.6579          0.0078     1.0457    0.0094   0.0705          0.0379
+## age            25.9808       27.3671         -0.1899     0.3647    0.1147   0.2276          1.4295
+## educ           10.3141       10.1746          0.0677     0.6920    0.0178   0.0485          1.0432
+## married         0.1859        0.1825          0.0088          .    0.0034   0.0034          0.6579
+## nodegree        0.7244        0.7259         -0.0033          .    0.0015   0.0015          0.7593
+## re74         2155.0132     2959.6631         -0.1574     0.7828    0.0525   0.2156          0.7246
+## re75         1490.7221     2158.7331         -0.2026     0.8901    0.0877   0.1983          0.8399
+## 
+## Sample Sizes:
+##               Control Treated
+## All             87.       156
+## Matched (ESS)   36.64     156
+## Matched         87.       156
+## Unmatched        0.         0
+## Discarded        0.         0&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(&amp;quot;cobalt&amp;quot;)
+bal.tab(m.out_b, un = TRUE, stats = c(&amp;quot;m&amp;quot;, &amp;quot;ks&amp;quot;))&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## Call
+##  matchit(formula = treat ~ age + educ + married + nodegree + re74 + 
+##     re75, data = lalonde_b, method = &amp;quot;full&amp;quot;, link = &amp;quot;probit&amp;quot;, 
+##     estimand = &amp;quot;ATT&amp;quot;)
+## 
+## Balance Measures
+##              Type Diff.Un  KS.Un Diff.Adj KS.Adj
+## distance Distance  0.4851 0.1972   0.0078 0.0705
+## age       Contin. -0.0121 0.2378  -0.1899 0.2276
+## educ      Contin.  0.1079 0.0807   0.0677 0.0485
+## married    Binary -0.1015 0.1015   0.0034 0.0034
+## nodegree   Binary  0.0807 0.0807  -0.0015 0.0015
+## re74      Contin. -0.1881 0.2863  -0.1574 0.2156
+## re75      Contin. -0.1043 0.1441  -0.2026 0.1983
+## 
+## Sample sizes
+##                      Control Treated
+## All                    87.       156
+## Matched (ESS)          36.64     156
+## Matched (Unweighted)   87.       156&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We can also get a clearer sense of balance overall using &lt;code&gt;bal.tab()&lt;/code&gt; by directly supplying the matching weights.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;#Initialize the weights
+fm_weights &amp;lt;- numeric(nrow(lalonde))
+
+#Assign the weights based on the subgroup
+fm_weights[lalonde$race == &amp;quot;black&amp;quot;] &amp;lt;- m.out_b$weights
+fm_weights[lalonde$race == &amp;quot;hispan&amp;quot;] &amp;lt;- m.out_h$weights
+fm_weights[lalonde$race == &amp;quot;white&amp;quot;] &amp;lt;- m.out_w$weights
+
+bal.tab(treat ~ age + educ + married + nodegree + re74 + re75,
+        data = lalonde, weights = fm_weights, cluster = &amp;quot;race&amp;quot;,
+        stats = c(&amp;quot;m&amp;quot;, &amp;quot;ks&amp;quot;), abs = TRUE, cluster.summary = TRUE)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## Balance by cluster
+## 
+##  - - - Cluster: black - - - 
+## Balance Measures
+##             Type Diff.Adj KS.Adj
+## age      Contin.   0.1899 0.2276
+## educ     Contin.   0.0677 0.0485
+## married   Binary   0.0034 0.0034
+## nodegree  Binary   0.0015 0.0015
+## re74     Contin.   0.1574 0.2156
+## re75     Contin.   0.2026 0.1983
+## 
+## Effective sample sizes
+##            Control Treated
+## Unadjusted   87.       156
+## Adjusted     36.64     156
+## 
+##  - - - Cluster: hispan - - - 
+## Balance Measures
+##             Type Diff.Adj KS.Adj
+## age      Contin.   0.2306 0.1848
+## educ     Contin.   0.2868 0.2783
+## married   Binary   0.0564 0.0564
+## nodegree  Binary   0.1089 0.1089
+## re74     Contin.   0.1028 0.3034
+## re75     Contin.   0.1422 0.2343
+## 
+## Effective sample sizes
+##            Control Treated
+## Unadjusted   61.        11
+## Adjusted     26.51      11
+## 
+##  - - - Cluster: white - - - 
+## Balance Measures
+##             Type Diff.Adj KS.Adj
+## age      Contin.   0.4541 0.2084
+## educ     Contin.   0.4598 0.1982
+## married   Binary   0.0180 0.0180
+## nodegree  Binary   0.1736 0.1736
+## re74     Contin.   0.2537 0.4014
+## re75     Contin.   0.0872 0.1476
+## 
+## Effective sample sizes
+##            Control Treated
+## Unadjusted   281.       18
+## Adjusted      50.4      18
+##  - - - - - - - - - - - - - - 
+## 
+## Balance summary across all clusters
+##             Type Mean.Diff.Adj Max.Diff.Adj Mean.KS.Adj Max.KS.Adj
+## age      Contin.        0.2916       0.4541      0.2069     0.2276
+## educ     Contin.        0.2714       0.4598      0.1750     0.2783
+## married   Binary        0.0259       0.0564      0.0259     0.0564
+## nodegree  Binary        0.0946       0.1736      0.0946     0.1736
+## re74     Contin.        0.1713       0.2537      0.3068     0.4014
+## re75     Contin.        0.1440       0.2026      0.1934     0.2343
+## 
+## Total effective sample sizes across clusters
+##            Control Treated
+## Unadjusted  429.       185
+## Adjusted    113.55     185&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Using the &lt;code&gt;cluster&lt;/code&gt; argument produces balance tables in each cluster and, because we specified &lt;code&gt;cluster.summary = TRUE&lt;/code&gt;, a balance table summarizing across clusters. To suppress display of the subgroup-specific balance tables (which may be useful if you have many subgroups), you can specify &lt;code&gt;which.cluster = .none&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;From this output, we can see that balance is actually pretty bad; the greatest standardized mean difference (SMD) across subgroups is around .46, which is way too big. In a realistic scenario, you would try different matching methods, maybe resort to weighting, until you found good balance across the subgroups. In order to validly interpret the subgroup-specific effects and test for moderation, you need to have balance in each subgroup, not just overall. We didn’t get good balance here, but to stay focused on the rest of the procedure, we’ll move forward as if we did.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;step-3-fitting-the-outcome-model&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Step 3: Fitting the Outcome Model&lt;/h2&gt;
+&lt;p&gt;Next, we’ll fit the outcome model. It’s important to remember that the outcome model is an intermediate step to estimating the treatment effect; no quantity estimated by the model needs to correspond to the treatment effect directly. We’ll be using a marginal effects procedure to estimate the treatment effects in the next section.&lt;/p&gt;
+&lt;p&gt;First, we’ll extract the matched datasets from the &lt;code&gt;matchit&lt;/code&gt; objects. We can’t just use the matching weights we extracted earlier because we need matched pair membership. We’ll use &lt;code&gt;match.data()&lt;/code&gt; from &lt;code&gt;MatchIt&lt;/code&gt; to extract the matched datasets.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;#Extract the matched datasets
+matched_data_b &amp;lt;- match.data(m.out_b)
+matched_data_h &amp;lt;- match.data(m.out_h)
+matched_data_w &amp;lt;- match.data(m.out_w)
+
+#Combine them using rbind()
+matched_data &amp;lt;- rbind(matched_data_b,
+                      matched_data_h,
+                      matched_data_w)
+
+str(matched_data)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## Classes &amp;#39;matchdata&amp;#39; and &amp;#39;data.frame&amp;#39;:    614 obs. of  13 variables:
+##  $ treat   : int  1 1 1 1 1 1 1 1 1 1 ...
+##  $ age     : int  37 30 27 33 22 23 32 22 19 21 ...
+##  $ educ    : int  11 12 11 8 9 12 11 16 9 13 ...
+##  $ race    : Factor w/ 3 levels &amp;quot;black&amp;quot;,&amp;quot;hispan&amp;quot;,..: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ married : int  1 0 0 0 0 0 0 0 0 0 ...
+##  $ nodegree: int  1 0 1 1 1 0 1 0 1 0 ...
+##  $ re74    : num  0 0 0 0 0 0 0 0 0 0 ...
+##  $ re75    : num  0 0 0 0 0 0 0 0 0 0 ...
+##  $ re78    : num  9930 24909 7506 290 4056 ...
+##  $ re78_0  : num  0 0 0 0 0 1 0 0 0 0 ...
+##  $ distance: num  0.685 0.634 0.778 0.694 0.686 ...
+##  $ weights : num  1 1 1 1 1 1 1 1 1 1 ...
+##  $ subclass: Factor w/ 104 levels &amp;quot;1_1&amp;quot;,&amp;quot;1_2&amp;quot;,&amp;quot;1_3&amp;quot;,..: 1 69 2 9 1 20 27 29 10 69 ...
+##  - attr(*, &amp;quot;distance&amp;quot;)= chr &amp;quot;distance&amp;quot;
+##  - attr(*, &amp;quot;weights&amp;quot;)= chr &amp;quot;weights&amp;quot;
+##  - attr(*, &amp;quot;subclass&amp;quot;)= chr &amp;quot;subclass&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Notice we have a &lt;code&gt;weights&lt;/code&gt; column and &lt;code&gt;subclass&lt;/code&gt; column; these contain the matching weights and pair membership.&lt;/p&gt;
+&lt;p&gt;Next, we can fit the outcome model. The choice of which model to fit should depend primarily on the best model for the outcome, though in some cases it can be useful to parameterize the model to get a quantity you want for free. We’ll focus on using a good basic model; because we have a binary outcome, we’ll use a logistic regression model.&lt;/p&gt;
+&lt;p&gt;It’s usually a good idea to include covariates in the outcome model. It’s also usually a good idea to allow the treatment to interact with the covariates in the outcome model. It’s also usually a good idea to fit separate models within each subgroup. Combining this all yields a pretty complicated model, which is why it will be so important to use a marginal effects procedure rather than trying to interpret the model’s coefficients. Here’s how we fit this model:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;fit &amp;lt;- glm(re78_0 ~ race * (treat * (age + educ + married + nodegree +
+                                       re74 + re75)),
+           data = matched_data, weights = weights,
+           family = quasibinomial)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We’re not even going to look at the output of this model, which has 42 parameters. If the model doesn’t fit in your dataset, you can remove interactions between the treatment and some covariates or remove the covariates altogether.&lt;/p&gt;
+&lt;p&gt;For a linear model, you can use &lt;code&gt;lm()&lt;/code&gt; and remove the &lt;code&gt;family&lt;/code&gt; argument. We used &lt;code&gt;family = quasibinomial&lt;/code&gt; because we want logistic regression for our binary outcome but we are using the matching weights, which otherwise create a warning when run.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;step-4-estimate-the-treatment-effects&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Step 4: Estimate the Treatment Effects&lt;/h2&gt;
+&lt;p&gt;Finally, we can estimate the treatment effects. To do so, we’ll use a marginal effects procedure as implemented in &lt;code&gt;marginaleffects&lt;/code&gt;. First, we’ll estimate the marginal effect overall, averaging across the subgroups. Again, we’re hoping for a negative treatment effect, which indicates the risk of having zero income decreased among those who received the treatment. Because we are estimating the ATT, we need to subset the data on which the marginal effects are computed to just the treated units, which we do using the &lt;code&gt;newdata&lt;/code&gt; argument (which can be omitted when the ATE is the target estimand). We also need to supply pair membership to ensure the standard errors are correctly computed, which we do by supplying the &lt;code&gt;subclass&lt;/code&gt; variable containing pair membership to the &lt;code&gt;vcov&lt;/code&gt; argument. In general, we need to supply the weights to the &lt;code&gt;wts&lt;/code&gt; argument of &lt;code&gt;comparisons()&lt;/code&gt; as well (though, in this case, because we are estimating the ATT and all weights are 1 for the treated group, it doesn’t make a difference).&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(&amp;quot;marginaleffects&amp;quot;)
+
+#Estimate the overall ATT
+comparisons(fit, variables = &amp;quot;treat&amp;quot;,
+            newdata = subset(matched_data, treat == 1),
+            vcov = ~subclass, wts = &amp;quot;weights&amp;quot;) |&amp;gt;
+  summary()&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##    Term Contrast  Effect Std. Error z value Pr(&amp;gt;|z|)    2.5 % 97.5 %
+## 1 treat    1 - 0 0.02305    0.04369  0.5275  0.59785 -0.06259 0.1087
+## 
+## Model type:  glm 
+## Prediction type:  response&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The estimated risk difference is 0.02305 with a high p-value and a confidence interval containing 0, indicating no evidence of an effect overall. (Note: this doesn’t mean there is no effect! The data are compatible with effects anywhere within the confidence interval, which includes negative and positive effects of a moderate size!)&lt;/p&gt;
+&lt;p&gt;New, let’s estimate the subgroup-specific effects:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;comparisons(fit, variables = &amp;quot;treat&amp;quot;,
+            newdata = subset(matched_data, treat == 1),
+            vcov = ~subclass, wts = &amp;quot;weights&amp;quot;,
+            by = &amp;quot;race&amp;quot;) |&amp;gt;
+  summary()&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##    Term          Contrast   race   Effect Std. Error z value Pr(&amp;gt;|z|)    2.5 %  97.5 %
+## 1 treat mean(1) - mean(0)  black  0.05871    0.05122   1.146 0.251709 -0.04168  0.1591
+## 2 treat mean(1) - mean(0) hispan -0.19461    0.07756  -2.509 0.012098 -0.34661 -0.0426
+## 3 treat mean(1) - mean(0)  white -0.15304    0.04834  -3.166 0.001545 -0.24777 -0.0583
+## 
+## Model type:  glm 
+## Prediction type:  response&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Here, we see that actually there are treatment effects within subgroups! In the subgroups &lt;code&gt;hispan&lt;/code&gt; and &lt;code&gt;white&lt;/code&gt;, we see moderately sized negative effects with small p-values and confidence intervals excluding 0, meaning there is evidence of treatment effects in these subgroups.&lt;/p&gt;
+&lt;p&gt;We can also test whether the treatment effects differ between groups using the &lt;code&gt;hypothesis&lt;/code&gt; argument of &lt;code&gt;comparisons()&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;comparisons(fit, variables = &amp;quot;treat&amp;quot;,
+            newdata = subset(matched_data, treat == 1),
+            vcov = ~subclass, wts = &amp;quot;weights&amp;quot;,
+            by = &amp;quot;race&amp;quot;, hypothesis = &amp;quot;pairwise&amp;quot;) |&amp;gt;
+  summary()&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##            Term   Effect Std. Error z value  Pr(&amp;gt;|z|)   2.5 %   97.5 %
+## 1 Row 2 - Row 1 -0.25332    0.09294 -2.7255 0.0064204 -0.4355 -0.07115
+## 2 Row 3 - Row 1 -0.21175    0.07043 -3.0066 0.0026422 -0.3498 -0.07371
+## 3 Row 3 - Row 2  0.04157    0.09139  0.4549 0.6491737 -0.1375  0.22068
+## 
+## Model type:  glm 
+## Prediction type:  response&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We can see evidence that the treatment effect differs between the &lt;code&gt;black&lt;/code&gt; (&lt;code&gt;Row 1&lt;/code&gt;) and &lt;code&gt;hispan&lt;/code&gt; (&lt;code&gt;Row 2&lt;/code&gt;) groups, and between the &lt;code&gt;black&lt;/code&gt; and &lt;code&gt;white&lt;/code&gt; (&lt;code&gt;Row 3&lt;/code&gt;) groups. With many subgroups, it might be useful to adjust your p-values for multiple comparisons, which we can do using &lt;code&gt;p.adjust()&lt;/code&gt;, e.g.,&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;p.adjust(comp$p.value, method = &amp;quot;holm&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;if &lt;code&gt;comp&lt;/code&gt; contained the &lt;code&gt;comparisons() |&amp;gt; summary()&lt;/code&gt; output above.&lt;/p&gt;
+&lt;p&gt;Congratulations! You’ve done a subgroup analysis!&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;step-5-reporting-your-results&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Step 5: Reporting Your Results&lt;/h2&gt;
+&lt;p&gt;A lot needs to be said when reporting your results to ensure your analysis is replicable and can be correctly interpreted by your audience. The key things to report are the following:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;The method of estimating the propensity score and performing the matching (noting that these were done within subgroups), including the estimand targeted and whether that estimand was respected by the procedure (using, e.g., a caliper changes the estimand from the one you specify). This should also include the packages used and, even better, the functions used. If you’re using &lt;code&gt;MatchIt&lt;/code&gt;, the documentation should also tell you which papers to cite.&lt;/li&gt;
+&lt;li&gt;A quick summary of other methods you might have tried and why you went with the one you went with (i.e., because it yielded better balance, a greater effective sample size, etc.).&lt;/li&gt;
+&lt;li&gt;Covariate balance, measured broadly; this can include a balance table, a balance plot (like one produced by &lt;code&gt;cobalt::love.plot()&lt;/code&gt;), or a summary of balance (like providing the largest SMD and KS statistic observed across subgroups). Make sure your description of balance reflects the subgroups, e.g., by having separate tables or plots for each subgroup or clarifying that the statistics presented are averages or the worst case across subgroups.&lt;/li&gt;
+&lt;li&gt;The outcome model you used, especially specifying the form of the model used and how/whether covariates entered the model. Also mention the method used to compute the standard errors (e.g., cluster-robust standard errors with pair membership as the clustering variable).&lt;/li&gt;
+&lt;li&gt;Details of the marginal effects procedure used, including the package used.&lt;/li&gt;
+&lt;li&gt;The treatment effect estimates along with their p-values and confidence intervals, both overall and within subgroups.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div id=&#34;references&#34; class=&#34;section level2 unnumbered&#34;&gt;
+&lt;h2&gt;References&lt;/h2&gt;
+&lt;div id=&#34;refs&#34; class=&#34;references csl-bib-body hanging-indent&#34;&gt;
+&lt;div id=&#34;ref-austinIntroductionPropensityScore2011&#34; class=&#34;csl-entry&#34;&gt;
+Austin, Peter C. 2011. &lt;span&gt;“An Introduction to Propensity Score Methods for Reducing the Effects of Confounding in Observational Studies.”&lt;/span&gt; &lt;em&gt;Multivariate Behavioral Research&lt;/em&gt; 46 (3): 399–424. &lt;a href=&#34;https://doi.org/10.1080/00273171.2011.568786&#34;&gt;https://doi.org/10.1080/00273171.2011.568786&lt;/a&gt;.
+&lt;/div&gt;
+&lt;div id=&#34;ref-greenExaminingModerationAnalyses2014&#34; class=&#34;csl-entry&#34;&gt;
+Green, Kerry M., and Elizabeth A. Stuart. 2014. &lt;span&gt;“Examining Moderation Analyses in Propensity Score Methods: &lt;span&gt;Application&lt;/span&gt; to Depression and Substance Use.”&lt;/span&gt; &lt;em&gt;Journal of Consulting and Clinical Psychology&lt;/em&gt;, Advances in &lt;span&gt;Data Analytic Methods&lt;/span&gt;, 82 (5): 773–83. &lt;a href=&#34;https://doi.org/10.1037/a0036515&#34;&gt;https://doi.org/10.1037/a0036515&lt;/a&gt;.
+&lt;/div&gt;
+&lt;div id=&#34;ref-greiferMatchingMethodsConfounder2021a&#34; class=&#34;csl-entry&#34;&gt;
+Greifer, Noah, and Elizabeth A Stuart. 2021. &lt;span&gt;“Matching &lt;span&gt;Methods&lt;/span&gt; for &lt;span&gt;Confounder Adjustment&lt;/span&gt;: &lt;span&gt;An Addition&lt;/span&gt; to the &lt;span&gt;Epidemiologist&lt;/span&gt;’s &lt;span&gt;Toolbox&lt;/span&gt;.”&lt;/span&gt; &lt;em&gt;Epidemiologic Reviews&lt;/em&gt;, June, mxab003. &lt;a href=&#34;https://doi.org/10.1093/epirev/mxab003&#34;&gt;https://doi.org/10.1093/epirev/mxab003&lt;/a&gt;.
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&#34;footnotes footnotes-end-of-document&#34;&gt;
+&lt;hr /&gt;
+&lt;ol&gt;
+&lt;li id=&#34;fn1&#34;&gt;&lt;p&gt;You might notices the mean differences for binary variables differ between the two outputs; that’s because &lt;code&gt;summary()&lt;/code&gt; standardizes the mean differences whereas &lt;code&gt;bal.tab()&lt;/code&gt; does not for binary variables. If you want standardized mean differences for binary variables from &lt;code&gt;bal.tab()&lt;/code&gt;, just add the argument &lt;code&gt;binary = &#34;std&#34;&lt;/code&gt;.&lt;a href=&#34;#fnref1&#34; class=&#34;footnote-back&#34;&gt;↩︎&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Dealing with the &#34;Packages in Suggests should be used conditionally&#34; email</title>
+      <link>https://example.com/blog/test-post/</link>
+      <pubDate>Sun, 26 Jun 2022 00:00:00 +0000</pubDate>
+      <guid>https://example.com/blog/test-post/</guid>
+      <description>
+
+
+&lt;p&gt;As an R package developer, you may one day receive a dreaded email from Prof. Brian Ripley at CRAN that looks something like this:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Dear maintainer,&lt;/p&gt;
+&lt;p&gt;Please see the problems shown on &lt;a href=&#34;https://cran.r-project.org/web/checks/check_results_WeightIt.html&#34; class=&#34;uri&#34;&gt;https://cran.r-project.org/web/checks/check_results_WeightIt.html&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Please correct before 2022-06-23 to safely retain your package on CRAN.&lt;/p&gt;
+&lt;p&gt;Packages in Suggests should be used conditionally: see ‘Writing R Extensions’.
+This needs to be corrected even if the missing package(s) become available.
+It can be tested by checking with &lt;em&gt;R_CHECK_DEPENDS_ONLY&lt;/em&gt;=true.&lt;/p&gt;
+&lt;p&gt;The CRAN Team&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;The key message of this email is, “if you don’t fix these problems, your package will be taken down from CRAN in two weeks,” which is pretty scary, especially if this is your first R package. Although there are many reasons why you might get an email like this, in this post I want to address the specific problem identified by the sentence “Packages in Suggests should be used conditionally”.&lt;/p&gt;
+&lt;p&gt;When writing an R package, the DESCRIPTION file contains metadata bout your package, including its name, a description of the package, and several lists of other packages that your package depends on in some way. There are 4 ways for your package to depend on another package, depending on how your package uses other package’s functions, which are named in the DESCRIPTION file: &lt;code&gt;Depends&lt;/code&gt;, &lt;code&gt;Imports&lt;/code&gt;, &lt;code&gt;Suggests&lt;/code&gt;, and &lt;code&gt;Enhances.&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;Packages listed in &lt;code&gt;Depends&lt;/code&gt; are installed when a user installs your package and are attached when a user loads your package (e.g., using &lt;code&gt;library()&lt;/code&gt;). Packages listed in &lt;code&gt;Imports&lt;/code&gt; are installed when a user installs your package and are loaded when a user loads your package. Packages in &lt;code&gt;Suggests&lt;/code&gt; are not installed when a user installs your package but are loaded by CRAN when performing CRAN checks. (I’ll skip &lt;code&gt;Enhances&lt;/code&gt; because it basically is the same as &lt;code&gt;Suggests&lt;/code&gt;.)&lt;/p&gt;
+&lt;p&gt;You probably shouldn’t use &lt;code&gt;Depends&lt;/code&gt;, but &lt;code&gt;Imports&lt;/code&gt; contains the packages that are necessary for your package to run. For example, my package &lt;code&gt;WeightIt&lt;/code&gt; needs &lt;code&gt;ggplot2&lt;/code&gt; for some of its core functionality (plotting the distribution of estimated weights), so &lt;code&gt;ggplot2&lt;/code&gt; is in &lt;code&gt;Imports&lt;/code&gt;. The packages in &lt;code&gt;Suggests&lt;/code&gt;, though are not necessary for the core functionality of your package. They may be only used in examples in the documentation, in the package vignettes, or in methods that are not central to your package’s operation. For example, &lt;code&gt;WeightIt&lt;/code&gt; has &lt;code&gt;gbm&lt;/code&gt; in &lt;code&gt;Suggests&lt;/code&gt; because &lt;code&gt;gbm&lt;/code&gt; is used in one of the documentation examples and is used when a user requests generalized boosted modeling to be used to estimate proepsnty scores, but GBM is not the only method a user can select and not the default method. That means the user doesn’t have to have &lt;code&gt;gbm&lt;/code&gt; installed to use any of &lt;code&gt;WeightIt&lt;/code&gt;’s core functionality; the package is truly optional. This is what CRAN expects from packages listed in &lt;code&gt;Suggests&lt;/code&gt;, anyway. Your package should be able to be built and checked without the packages in &lt;code&gt;Suggested&lt;/code&gt; installed.&lt;/p&gt;
+&lt;p&gt;When you receive an email like the one above, this means that the packages you included in &lt;code&gt;Suggests&lt;/code&gt; are not being used as intended. For example, if in order to build the documentation, a package needs to be installed, including it in &lt;code&gt;Suggests&lt;/code&gt; is inappropriate, and it perhaps belongs in &lt;code&gt;Imports&lt;/code&gt;. You may receive this email when a package in &lt;code&gt;Suggests&lt;/code&gt; is removed from CRAN for some reason (e.g., it fails certain checks or violates a new policy, and the authors didn’t fix it in time). Because the package is not on CRAN, when your package is built, the package is not available, which will cause an error in the check when the functionality in yoru package that depends on that package is activated.&lt;/p&gt;
+&lt;p&gt;ANy package in &lt;code&gt;Suggests&lt;/code&gt; must be “used conditinally”; this means that if the package is not available, your package can still be built. In this post, I’m going to show you how to ensure the packages in &lt;code&gt;SUggests&lt;/code&gt; are used conditionally to satisfy CRAN’s requirememnts and prevent your packagefrom being booted off CRAN. I will focus on making your documentation and vignettes satisfy this requirement, which invovles using some somewhat obtuse code that I had to do a bit of research to discover. There may be more elgant solutions, but I have found these work for my packages. (It’s important to note that I am nto a Roxygen user; I write all my documentation manually in .Rd files.)&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Welcome to Wowchemy, the website builder for Hugo</title>
+      <link>https://example.com/blog/getting-started/</link>
+      <pubDate>Sun, 13 Dec 2020 00:00:00 +0000</pubDate>
+      <guid>https://example.com/blog/getting-started/</guid>
+      <description>&lt;h2 id=&#34;overview&#34;&gt;Overview&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;The Wowchemy website builder for Hugo, along with its starter templates, is designed for professional creators, educators, and teams/organizations - although it can be used to create any kind of site&lt;/li&gt;
+&lt;li&gt;The template can be modified and customised to suit your needs. It&amp;rsquo;s a good platform for anyone looking to take control of their data and online identity whilst having the convenience to start off with a &lt;strong&gt;no-code solution (write in Markdown and customize with YAML parameters)&lt;/strong&gt; and having &lt;strong&gt;flexibility to later add even deeper personalization with HTML and CSS&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;You can work with all your favourite tools and apps with hundreds of plugins and integrations to speed up your workflows, interact with your readers, and much more&lt;/li&gt;
+&lt;/ol&gt;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+&lt;figure  id=&#34;figure-the-template-is-mobile-first-with-a-responsive-design-to-ensure-that-your-site-looks-stunning-on-every-device&#34;&gt;
+  &lt;div class=&#34;d-flex justify-content-center&#34;&gt;
+    &lt;div class=&#34;w-100&#34; &gt;&lt;img src=&#34;https://raw.githubusercontent.com/wowchemy/wowchemy-hugo-modules/master/academic.png&#34; alt=&#34;The template is mobile first with a responsive design to ensure that your site looks stunning on every device.&#34; loading=&#34;lazy&#34; data-zoomable /&gt;&lt;/div&gt;
+  &lt;/div&gt;&lt;figcaption&gt;
+      The template is mobile first with a responsive design to ensure that your site looks stunning on every device.
+    &lt;/figcaption&gt;&lt;/figure&gt;
+&lt;h2 id=&#34;get-started&#34;&gt;Get Started&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;👉 &lt;a href=&#34;https://wowchemy.com/templates/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;&lt;strong&gt;Create a new site&lt;/strong&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;📚 &lt;a href=&#34;https://wowchemy.com/docs/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;&lt;strong&gt;Personalize your site&lt;/strong&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;💬 &lt;a href=&#34;https://discord.gg/z8wNYzb&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Chat with the &lt;strong&gt;Wowchemy community&lt;/strong&gt;&lt;/a&gt; or &lt;a href=&#34;https://discourse.gohugo.io&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;&lt;strong&gt;Hugo community&lt;/strong&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;🐦 Twitter: &lt;a href=&#34;https://twitter.com/wowchemy&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;@wowchemy&lt;/a&gt; &lt;a href=&#34;https://twitter.com/GeorgeCushen&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;@GeorgeCushen&lt;/a&gt; &lt;a href=&#34;https://twitter.com/search?q=%23MadeWithWowchemy&amp;amp;src=typed_query&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;#MadeWithWowchemy&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;💡 &lt;a href=&#34;https://github.com/wowchemy/wowchemy-hugo-modules/issues&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Request a &lt;strong&gt;feature&lt;/strong&gt; or report a &lt;strong&gt;bug&lt;/strong&gt; for &lt;em&gt;Wowchemy&lt;/em&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;⬆️ &lt;strong&gt;Updating Wowchemy?&lt;/strong&gt; View the &lt;a href=&#34;https://wowchemy.com/docs/hugo-tutorials/update/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Update Tutorial&lt;/a&gt; and &lt;a href=&#34;https://wowchemy.com/updates/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Release Notes&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;crowd-funded-open-source-software&#34;&gt;Crowd-funded open-source software&lt;/h2&gt;
+&lt;p&gt;To help us develop this template and software sustainably under the MIT license, we ask all individuals and businesses that use it to help support its ongoing maintenance and development via sponsorship.&lt;/p&gt;
+&lt;h3 id=&#34;-click-here-to-become-a-sponsor-and-help-support-wowchemys-future-httpswowchemycomplans&#34;&gt;&lt;a href=&#34;https://wowchemy.com/plans/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;❤️ Click here to become a sponsor and help support Wowchemy&amp;rsquo;s future ❤️&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;As a token of appreciation for sponsoring, you can &lt;strong&gt;unlock &lt;a href=&#34;https://wowchemy.com/plans/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;these&lt;/a&gt; awesome rewards and extra features 🦄✨&lt;/strong&gt;&lt;/p&gt;
+&lt;h2 id=&#34;ecosystem&#34;&gt;Ecosystem&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&lt;a href=&#34;https://github.com/wowchemy/hugo-academic-cli&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Hugo Academic CLI&lt;/a&gt;:&lt;/strong&gt; Automatically import publications from BibTeX&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;inspiration&#34;&gt;Inspiration&lt;/h2&gt;
+&lt;p&gt;&lt;a href=&#34;https://academic-demo.netlify.com/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Check out the latest &lt;strong&gt;demo&lt;/strong&gt;&lt;/a&gt; of what you&amp;rsquo;ll get in less than 10 minutes, or &lt;a href=&#34;https://wowchemy.com/user-stories/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;view the &lt;strong&gt;showcase&lt;/strong&gt;&lt;/a&gt; of personal, project, and business sites.&lt;/p&gt;
+&lt;h2 id=&#34;features&#34;&gt;Features&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Page builder&lt;/strong&gt; - Create &lt;em&gt;anything&lt;/em&gt; with &lt;a href=&#34;https://wowchemy.com/docs/page-builder/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;&lt;strong&gt;widgets&lt;/strong&gt;&lt;/a&gt; and &lt;a href=&#34;https://wowchemy.com/docs/content/writing-markdown-latex/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;&lt;strong&gt;elements&lt;/strong&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Edit any type of content&lt;/strong&gt; - Blog posts, publications, talks, slides, projects, and more!&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Create content&lt;/strong&gt; in &lt;a href=&#34;https://wowchemy.com/docs/content/writing-markdown-latex/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;&lt;strong&gt;Markdown&lt;/strong&gt;&lt;/a&gt;, &lt;a href=&#34;https://wowchemy.com/docs/import/jupyter/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;&lt;strong&gt;Jupyter&lt;/strong&gt;&lt;/a&gt;, or &lt;a href=&#34;https://wowchemy.com/docs/install-locally/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;&lt;strong&gt;RStudio&lt;/strong&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Plugin System&lt;/strong&gt; - Fully customizable &lt;a href=&#34;https://wowchemy.com/docs/customization/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;&lt;strong&gt;color&lt;/strong&gt; and &lt;strong&gt;font themes&lt;/strong&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Display Code and Math&lt;/strong&gt; - Code highlighting and &lt;a href=&#34;https://en.wikibooks.org/wiki/LaTeX/Mathematics&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;LaTeX math&lt;/a&gt; supported&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Integrations&lt;/strong&gt; - &lt;a href=&#34;https://analytics.google.com&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Google Analytics&lt;/a&gt;, &lt;a href=&#34;https://disqus.com&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Disqus commenting&lt;/a&gt;, Maps, Contact Forms, and more!&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Beautiful Site&lt;/strong&gt; - Simple and refreshing one page design&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Industry-Leading SEO&lt;/strong&gt; - Help get your website found on search engines and social media&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Media Galleries&lt;/strong&gt; - Display your images and videos with captions in a customizable gallery&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Mobile Friendly&lt;/strong&gt; - Look amazing on every screen with a mobile friendly version of your site&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Multi-language&lt;/strong&gt; - 34+ language packs including English, 中文, and Português&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Multi-user&lt;/strong&gt; - Each author gets their own profile page&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Privacy Pack&lt;/strong&gt; - Assists with GDPR&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Stand Out&lt;/strong&gt; - Bring your site to life with animation, parallax backgrounds, and scroll effects&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;One-Click Deployment&lt;/strong&gt; - No servers. No databases. Only files.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;themes&#34;&gt;Themes&lt;/h2&gt;
+&lt;p&gt;Wowchemy and its templates come with &lt;strong&gt;automatic day (light) and night (dark) mode&lt;/strong&gt; built-in. Alternatively, visitors can choose their preferred mode - click the moon icon in the top right of the &lt;a href=&#34;https://academic-demo.netlify.com/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Demo&lt;/a&gt; to see it in action! Day/night mode can also be disabled by the site admin in &lt;code&gt;params.toml&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://wowchemy.com/docs/customization&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Choose a stunning &lt;strong&gt;theme&lt;/strong&gt; and &lt;strong&gt;font&lt;/strong&gt;&lt;/a&gt; for your site. Themes are fully customizable.&lt;/p&gt;
+&lt;h2 id=&#34;license&#34;&gt;License&lt;/h2&gt;
+&lt;p&gt;Copyright 2016-present &lt;a href=&#34;https://georgecushen.com&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;George Cushen&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Released under the &lt;a href=&#34;https://github.com/wowchemy/wowchemy-hugo-modules/blob/master/LICENSE.md&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;MIT&lt;/a&gt; license.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Hello R Markdown</title>
+      <link>https://example.com/blog/2020-12-01-r-rmarkdown/</link>
+      <pubDate>Tue, 01 Dec 2020 21:13:14 -0500</pubDate>
+      <guid>https://example.com/blog/2020-12-01-r-rmarkdown/</guid>
+      <description>
+
+
+&lt;div id=&#34;r-markdown&#34; class=&#34;section level1&#34;&gt;
+&lt;h1&gt;R Markdown&lt;/h1&gt;
+&lt;p&gt;This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see &lt;a href=&#34;http://rmarkdown.rstudio.com&#34; class=&#34;uri&#34;&gt;http://rmarkdown.rstudio.com&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;You can embed an R code chunk like this:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;summary(cars)
+##      speed           dist       
+##  Min.   : 4.0   Min.   :  2.00  
+##  1st Qu.:12.0   1st Qu.: 26.00  
+##  Median :15.0   Median : 36.00  
+##  Mean   :15.4   Mean   : 42.98  
+##  3rd Qu.:19.0   3rd Qu.: 56.00  
+##  Max.   :25.0   Max.   :120.00
+fit &amp;lt;- lm(dist ~ speed, data = cars)
+fit
+## 
+## Call:
+## lm(formula = dist ~ speed, data = cars)
+## 
+## Coefficients:
+## (Intercept)        speed  
+##     -17.579        3.932&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div id=&#34;including-plots&#34; class=&#34;section level1&#34;&gt;
+&lt;h1&gt;Including Plots&lt;/h1&gt;
+&lt;p&gt;You can also embed plots. See Figure &lt;a href=&#34;#fig:pie&#34;&gt;1&lt;/a&gt; for example:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;par(mar = c(0, 1, 0, 1))
+pie(
+  c(280, 60, 20),
+  c(&amp;#39;Sky&amp;#39;, &amp;#39;Sunny side of pyramid&amp;#39;, &amp;#39;Shady side of pyramid&amp;#39;),
+  col = c(&amp;#39;#0292D8&amp;#39;, &amp;#39;#F7EA39&amp;#39;, &amp;#39;#C4B632&amp;#39;),
+  init.angle = -50, border = NA
+)&lt;/code&gt;&lt;/pre&gt;
+&lt;div class=&#34;figure&#34;&gt;&lt;span style=&#34;display:block;&#34; id=&#34;fig:pie&#34;&gt;&lt;/span&gt;
+&lt;img src=&#34;https://example.com/blog/2020-12-01-r-rmarkdown/index.en_files/figure-html/pie-1.png&#34; alt=&#34;A fancy pie chart.&#34; width=&#34;672&#34; /&gt;
+&lt;p class=&#34;caption&#34;&gt;
+Figure 1: A fancy pie chart.
+&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title></title>
+      <link>https://example.com/admin/config.yml</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>https://example.com/admin/config.yml</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Software</title>
+      <link>https://example.com/software/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>https://example.com/software/</guid>
+      <description>&lt;p&gt;This page documents the software packages I have worked on. if you have any questions about them, please submit your question to their GitHub issues page rather than emailing me. You are also welcome to ask a question on &lt;a href=&#34;https://stackoverflow.com/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;StackOverflow&lt;/a&gt; or &lt;a href=&#34;https://stats.stackexchange.com/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CrossValidated&lt;/a&gt;, which I check often.&lt;/p&gt;
+&lt;h2 id=&#34;r-packages&#34;&gt;R packages&lt;/h2&gt;
+&lt;p&gt;These packages are ones that I am a primary author on and have expertise on the methods implemented. I consider these packages to be &amp;ldquo;mine&amp;rdquo;, at least partly, in the sense that I can speak not only on the implementation but on the methods as well.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;cobalt&lt;/code&gt;: Covariate Balance Tables and Plots
+&lt;ul&gt;
+&lt;li&gt;Noah Greifer | &lt;a href=&#34;https://ngreifer.github.io/cobalt&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;website&lt;/a&gt; | &lt;a href=&#34;https://cran.r-project.org/package=cobalt&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CRAN&lt;/a&gt; | &lt;a href=&#34;https://github.com/ngreifer/cobalt&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;source&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;WeightIt&lt;/code&gt;: Weighting for Covariate Balance in Observational Studies
+&lt;ul&gt;
+&lt;li&gt;Noah Greifer | &lt;a href=&#34;https://ngreifer.github.io/WeightIt&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;website&lt;/a&gt; | &lt;a href=&#34;https://cran.r-project.org/package=WeightIt&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CRAN&lt;/a&gt; | &lt;a href=&#34;https://github.com/ngreifer/WeightIt&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;source&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;MatchIt&lt;/code&gt;: Nonparametric Preprocessing for Parametric Causal Inference
+&lt;ul&gt;
+&lt;li&gt;Daniel Ho, Kosuke Imai, Gary King, Elizabeth Stuart, and Noah Greifer | &lt;a href=&#34;https://kosukeimai.github.io/MatchIt&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;website&lt;/a&gt; | &lt;a href=&#34;https://cran.r-project.org/package=MatchIt&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CRAN&lt;/a&gt; | &lt;a href=&#34;https://github.com/kosukeimai/MatchIt&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;source&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;MatchThem&lt;/code&gt;: Matching and Weighting Multiply Imputed Datasets
+&lt;ul&gt;
+&lt;li&gt;Farhad Pishgar and Noah Greifer | &lt;a href=&#34;https://cran.r-project.org/package=MatchThem&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CRAN&lt;/a&gt; | &lt;a href=&#34;https://github.com/FarhadPishgar/MatchThem&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;source&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;optweight&lt;/code&gt;: Targeted Stable Balancing Weights Using Optimization
+&lt;ul&gt;
+&lt;li&gt;Noah Greifer | &lt;a href=&#34;https://cran.r-project.org/package=optweight&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CRAN&lt;/a&gt; | &lt;a href=&#34;https://github.com/ngreifer/optweight&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;source&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;MatchingFrontier&lt;/code&gt;: Computation of the Balance-Sample Size Frontier in Matching Methods for Causal Inference
+&lt;ul&gt;
+&lt;li&gt;Gary King, Christopher Lucas, Richard Nielsen, and Noah Greifer | &lt;a href=&#34;https://iqss.github.io/MatchingFrontier&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;website&lt;/a&gt; | &lt;a href=&#34;https://github.com/iqss/MatchingFrontier&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;source&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;fwb&lt;/code&gt;: Fractional Weighted Bootstrap
+&lt;ul&gt;
+&lt;li&gt;Noah Greifer | &lt;a href=&#34;https://cran.r-project.org/package=optweight&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CRAN&lt;/a&gt; | &lt;a href=&#34;https://ngreifer.github.io/fwb&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;website&lt;/a&gt; | &lt;a href=&#34;https://github.com/ngreifer/fwb&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;source&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;These packages are ones that I have developed as part of my job but which I don&amp;rsquo;t consider &amp;ldquo;mine&amp;rdquo; in the sense that I am not the primary maintainer and I don&amp;rsquo;t have expertise on the methods implemented. Please do not contact me about these packages.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;code&gt;netlit&lt;/code&gt;: Augment a literature review with network analysis statistics&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Devin Judge-Lord and Noah Greifer | &lt;a href=&#34;https://judgelord.github.io/netlit&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;website&lt;/a&gt; | &lt;a href=&#34;https://github.com/judgelord/netlit&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;source&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;code&gt;EvoPhylo&lt;/code&gt;: Pre- And Postprocessing of Morphological Data from Relaxed Clock Bayesian Phylogenetics&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Tiago Simões, Noah Greifer, and Stephanie Pierce | &lt;a href=&#34;https://tiago-simoes.github.io/EvoPhylo/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;website&lt;/a&gt; | &lt;a href=&#34;https://cran.r-project.org/package=EvoPhylo&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CRAN&lt;/a&gt; | &lt;a href=&#34;https://github.com/tiago-simoes/EvoPhylo&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;source&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;code&gt;Morphoscape&lt;/code&gt;: Computation and Visualization of Adaptive Landscapes&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Blake Dickson, Stephanie Pierce, and Noah Greifer | &lt;a href=&#34;https://blakedickson.github.io/Morphoscape/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;website&lt;/a&gt; | &lt;a href=&#34;https://cran.r-project.org/package=Morphoscape&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CRAN&lt;/a&gt; | &lt;a href=&#34;https://github.com/blakedickson/Morphoscape&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;source&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>
