@@ -1,0 +1,220 @@
+---
+title: Subgroup Analysis After Propensity Score Matching Using R
+author: Noah Greifer
+date: '2022-07-24'
+slug: subgroup-analysis-psm
+categories:
+  - R
+tags: ["R", "propensity-scores", "matching", "subgroup analysis"]
+subtitle: ''
+summary: ''
+lastmod: '2022-07-24T17:10:30-04:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+bibliography: references.bib
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE)
+options(width = 200)
+```
+
+Today I'm going to demonstrate performing a subgroup analysis after propensity score matching using R. Subgroup analysis, also known as moderation analysis or the analysis of effect modification, concerns the estimation of treatment effects within subgroups of a pre-treatment covariate. This post assumes you understand how to do propensity score matching. For a general introduction propensity score matching, I recommend @austinIntroductionPropensityScore2011 and the `MatchIt` [introductory vignette](https://kosukeimai.github.io/MatchIt/articles/MatchIt.html). If you understand inverse probability weighting but aren't too familiar about matching, I recommend my article with Liz Stuart [@greiferMatchingMethodsConfounder2021a]. For an introduction to subgroup analysis with propensity scores, you can also check out @greenExaminingModerationAnalyses2014. Here, I'll mainly try to get to the point.
+
+The dataset we'll use today is the famous Lalonde dataset, investigating the effect of a job training program on earnings. We'll use the version of this dataset that comes with the `MatchIt` package.
+```{r}
+data("lalonde", package = "MatchIt")
+head(lalonde)
+```
+
+The treatment is `treat`, the outcome in the original study was `re78` (1978 earnings), and the other variables are pretreatment covariates that we want to adjust for using propensity score matching. In this example, I'll actually be using a different outcome, `re78_0`, which is whether the participant's 1978 earnings were equal to 0 or not, because I want to demonstrate the procedure for a binary outcome. So, we hope the treatment effect is negative, i.e., the risk of 0 earnings decreases for those in the treatment.
+
+```{r}
+lalonde$re78_0 <- as.numeric(lalonde$re78 == 0)
+```
+
+Our moderator will be `race`, a 3-category factor variable.
+
+```{r}
+with(lalonde, table(race))
+```
+
+Our estimand will be the subgroup-specific and marginal average treatment effect on the treated (ATT), using the risk difference as our effect measure.
+
+### Packages You'll Need
+
+We'll need a few R packages for this analysis. We'll need `MatchIt` and `optmatch` for the matching, `cobalt` for the balance assessment, `marginaleffects` for estimating the treatment effect, and `sandwich` for computing the standard errors. You can install those using the code below:
+
+```{r, eval = FALSE}
+install.packages(c("MatchIt", "cobalt", "marginaleffects", "sandwich"))
+```
+
+Let's get into it!
+
+## Step 1: Subgroup Matching
+
+Our first step is to perform the matching. Although there are a few strategies of how to do matching for subgroup analysis, in general performing subgroup-specific matching tends to work best, though it requires a little extra work.
+
+We'll do this by splitting the dataset by `race` and performing a separate matching analysis within each one.
+
+```{r}
+#Splitting the data
+lalonde_b <- subset(lalonde, race == "black")
+lalonde_h <- subset(lalonde, race == "hispan")
+lalonde_w <- subset(lalonde, race == "white")
+```
+
+Here we'll use full matching because 1:1 matching without replacement, the most common but worst way to do propensity score matching, doesn't work well in this dataset. The process described below works *exactly* the same for 1:1 and most other kinds of matching as it does for full matching. We'll estimate propensity score in each subgroup, here using probit regression, which happens to yield better balance than logistic regression.
+
+```{r}
+library("MatchIt")
+
+#Matching in race == "black"
+m.out_b <- matchit(treat ~ age + educ + married + nodegree + re74 + re75,
+                   data = lalonde_b, method = "full", estimand = "ATT",
+                   link = "probit")
+
+#Matching in race == "hispan"
+m.out_h <- matchit(treat ~ age + educ + married + nodegree + re74 + re75,
+                   data = lalonde_h, method = "full", estimand = "ATT",
+                   link = "probit")
+
+#Matching in race == "black"
+m.out_w <- matchit(treat ~ age + educ + married + nodegree + re74 + re75,
+                   data = lalonde_w, method = "full", estimand = "ATT",
+                   link = "probit")
+```
+
+## Step 2: Assessing Balance within Subgroups
+
+We need to assess subgroup balance; we can do that using `summary()` on each `matchit` object, or we can use functions from `cobalt`.
+
+Below are examples of using `summary()` and `cobalt::bal.tab()` on one `matchit` object at a time^[You might notices the mean differences for binary variables differ between the two outputs; that's because `summary()` standardizes the mean differences whereas `bal.tab()` does not for binary variables. If you want standardized mean differences for binary variables from `bal.tab()`, just add the argument `binary = "std"`.]:
+
+```{r}
+summary(m.out_b)
+
+library("cobalt")
+bal.tab(m.out_b, un = TRUE, stats = c("m", "ks"))
+```
+
+We can also get a clearer sense of balance overall using `bal.tab()` by directly supplying the matching weights.
+
+```{r}
+#Initialize the weights
+fm_weights <- numeric(nrow(lalonde))
+
+#Assign the weights based on the subgroup
+fm_weights[lalonde$race == "black"] <- m.out_b$weights
+fm_weights[lalonde$race == "hispan"] <- m.out_h$weights
+fm_weights[lalonde$race == "white"] <- m.out_w$weights
+
+bal.tab(treat ~ age + educ + married + nodegree + re74 + re75,
+        data = lalonde, weights = fm_weights, cluster = "race",
+        stats = c("m", "ks"), abs = TRUE, cluster.summary = TRUE)
+```
+
+Using the `cluster` argument produces balance tables in each cluster and, because we specified `cluster.summary = TRUE`, a balance table summarizing across clusters. To suppress display of the subgroup-specific balance tables (which may be useful if you have many subgroups), you can specify `which.cluster = .none`.
+
+From this output, we can see that balance is actually pretty bad; the greatest standardized mean difference (SMD) across subgroups is around .46, which is way too big. In a realistic scenario, you would try different matching methods, maybe resort to weighting, until you found good balance across the subgroups. In order to validly interpret the subgroup-specific effects and test for moderation, you need to have balance in each subgroup, not just overall. We didn't get good balance here, but to stay focused on the rest of the procedure, we'll move forward as if we did.
+
+## Step 3: Fitting the Outcome Model
+
+Next, we'll fit the outcome model. It's important to remember that the outcome model is an intermediate step to estimating the treatment effect; no quantity estimated by the model needs to correspond to the treatment effect directly. We'll be using a marginal effects procedure to estimate the treatment effects in the next section.
+
+First, we'll extract the matched datasets from the `matchit` objects. We can't just use the matching weights we extracted earlier because we need matched pair membership. We'll use `match.data()` from `MatchIt` to extract the matched datasets.
+
+```{r}
+#Extract the matched datasets
+matched_data_b <- match.data(m.out_b)
+matched_data_h <- match.data(m.out_h)
+matched_data_w <- match.data(m.out_w)
+
+#Combine them using rbind()
+matched_data <- rbind(matched_data_b,
+                      matched_data_h,
+                      matched_data_w)
+
+str(matched_data)
+```
+
+Notice we have a `weights` column and `subclass` column; these contain the matching weights and pair membership.
+
+Next, we can fit the outcome model. The choice of which model to fit should depend primarily on the best model for the outcome, though in some cases it can be useful to parameterize the model to get a quantity you want for free. We'll focus on using a good basic model; because we have a binary outcome, we'll use a logistic regression model.
+
+It's usually a good idea to include covariates in the outcome model. It's also usually a good idea to allow the treatment to interact with the covariates in the outcome model. It's also usually a good idea to fit separate models within each subgroup. Combining this all yields a pretty complicated model, which is why it will be so important to use a marginal effects procedure rather than trying to interpret the model's coefficients. Here's how we fit this model:
+
+```{r}
+fit <- glm(re78_0 ~ race * (treat * (age + educ + married + nodegree +
+                                       re74 + re75)),
+           data = matched_data, weights = weights,
+           family = quasibinomial)
+```
+
+We're not even going to look at the output of this model, which has 42 parameters. If the model doesn't fit in your dataset, you can remove interactions between the treatment and some covariates or remove the covariates altogether.
+
+For a linear model, you can use `lm()` and remove the `family` argument. We used `family = quasibinomial` because we want logistic regression for our binary outcome but we are using the matching weights, which otherwise create a warning when run.
+
+## Step 4: Estimate the Treatment Effects
+
+Finally, we can estimate the treatment effects. To do so, we'll use a marginal effects procedure as implemented in `marginaleffects`. First, we'll estimate the marginal effect overall, averaging across the subgroups. Again, we're hoping for a negative treatment effect, which indicates the risk of having zero income decreased among those who received the treatment. Because we are estimating the ATT, we need to subset the data on which the marginal effects are computed to just the treated units, which we do using the `newdata` argument (which can be omitted when the ATE is the target estimand). We also need to supply pair membership to ensure the standard errors are correctly computed, which we do by supplying the `subclass` variable containing pair membership to the `vcov` argument. In general, we need to supply the weights to the `wts` argument of `comparisons()` as well (though, in this case, because we are estimating the ATT and all weights are 1 for the treated group, it doesn't make a difference).
+
+```{r}
+library("marginaleffects")
+
+#Estimate the overall ATT
+comparisons(fit, variables = "treat",
+            newdata = subset(matched_data, treat == 1),
+            vcov = ~subclass, wts = "weights") |>
+  summary()
+```
+
+The estimated risk difference is 0.02305 with a high p-value and a confidence interval containing 0, indicating no evidence of an effect overall. (Note: this doesn't mean there is no effect! The data are compatible with effects anywhere within the confidence interval, which includes negative and positive effects of a moderate size!)
+
+New, let's estimate the subgroup-specific effects:
+
+```{r}
+comparisons(fit, variables = "treat",
+            newdata = subset(matched_data, treat == 1),
+            vcov = ~subclass, wts = "weights",
+            by = "race") |>
+  summary()
+```
+
+Here, we see that actually there are treatment effects within subgroups! In the subgroups `hispan` and `white`, we see moderately sized negative effects with small p-values and confidence intervals excluding 0, meaning there is evidence of treatment effects in these subgroups.
+
+We can also test whether the treatment effects differ between groups using the `hypothesis` argument of `comparisons()`:
+
+```{r}
+comparisons(fit, variables = "treat",
+            newdata = subset(matched_data, treat == 1),
+            vcov = ~subclass, wts = "weights",
+            by = "race", hypothesis = "pairwise") |>
+  summary()
+```
+
+We can see evidence that the treatment effect differs between the `black` (`Row 1`) and `hispan` (`Row 2`) groups, and between the `black` and `white` (`Row 3`) groups. With many subgroups, it might be useful to adjust your p-values for multiple comparisons, which we can do using `p.adjust()`, e.g.,
+
+```{r, eval = FALSE}
+p.adjust(comp$p.value, method = "holm")
+```
+
+if `comp` contained the `comparisons() |> summary()` output above.
+
+Congratulations! You've done a subgroup analysis!
+
+## Step 5: Reporting Your Results
+
+A lot needs to be said when reporting your results to ensure your analysis is replicable and can be correctly interpreted by your audience. The key things to report are the following:
+
+* The method of estimating the propensity score and performing the matching (noting that these were done within subgroups), including the estimand targeted and whether that estimand was respected by the procedure (using, e.g., a caliper changes the estimand from the one you specify). This should also include the packages used and, even better, the functions used. If you're using `MatchIt`, the documentation should also tell you which papers to cite.
+* A quick summary of other methods you might have tried and why you went with the one you went with (i.e., because it yielded better balance, a greater effective sample size, etc.).
+* Covariate balance, measured broadly; this can include a balance table, a balance plot (like one produced by `cobalt::love.plot()`), or a summary of balance (like providing the largest SMD and KS statistic observed across subgroups). Make sure your description of balance reflects the subgroups, e.g., by having separate tables or plots for each subgroup or clarifying that the statistics presented are averages or the worst case across subgroups.
+* The outcome model you used, especially specifying the form of the model used and how/whether covariates entered the model. Also mention the method used to compute the standard errors (e.g., cluster-robust standard errors with pair membership as the clustering variable).
+* Details of the marginal effects procedure used, including the package used.
+* The treatment effect estimates along with their p-values and confidence intervals, both overall and within subgroups.
+
+## References

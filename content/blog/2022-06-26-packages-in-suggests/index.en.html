@@ -1,0 +1,40 @@
+---
+title: "Dealing with the \"Packages in Suggests should be used conditionally\" email"
+author: Noah Greifer
+date: '2022-06-26'
+slug: test-post
+draft: yes
+categories:
+  - R
+tags:
+  - package development
+subtitle: "Every package developer's worst nightmare: CRAN threatening to remove their package because of a dependency problem"
+summary: 'I show you how to make your R package immune to its Suggested packages being removed from CRAN, saving you from dependency hell.'
+authors: []
+lastmod: '2022-06-26T02:11:27-04:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+
+
+<p>As an R package developer, you may one day receive a dreaded email from Prof. Brian Ripley at CRAN that looks something like this:</p>
+<blockquote>
+<p>Dear maintainer,</p>
+<p>Please see the problems shown on <a href="https://cran.r-project.org/web/checks/check_results_WeightIt.html" class="uri">https://cran.r-project.org/web/checks/check_results_WeightIt.html</a>.</p>
+<p>Please correct before 2022-06-23 to safely retain your package on CRAN.</p>
+<p>Packages in Suggests should be used conditionally: see ‘Writing R Extensions’.
+This needs to be corrected even if the missing package(s) become available.
+It can be tested by checking with <em>R_CHECK_DEPENDS_ONLY</em>=true.</p>
+<p>The CRAN Team</p>
+</blockquote>
+<p>The key message of this email is, “if you don’t fix these problems, your package will be taken down from CRAN in two weeks,” which is pretty scary, especially if this is your first R package. Although there are many reasons why you might get an email like this, in this post I want to address the specific problem identified by the sentence “Packages in Suggests should be used conditionally”.</p>
+<p>When writing an R package, the DESCRIPTION file contains metadata bout your package, including its name, a description of the package, and several lists of other packages that your package depends on in some way. There are 4 ways for your package to depend on another package, depending on how your package uses other package’s functions, which are named in the DESCRIPTION file: <code>Depends</code>, <code>Imports</code>, <code>Suggests</code>, and <code>Enhances.</code></p>
+<p>Packages listed in <code>Depends</code> are installed when a user installs your package and are attached when a user loads your package (e.g., using <code>library()</code>). Packages listed in <code>Imports</code> are installed when a user installs your package and are loaded when a user loads your package. Packages in <code>Suggests</code> are not installed when a user installs your package but are loaded by CRAN when performing CRAN checks. (I’ll skip <code>Enhances</code> because it basically is the same as <code>Suggests</code>.)</p>
+<p>You probably shouldn’t use <code>Depends</code>, but <code>Imports</code> contains the packages that are necessary for your package to run. For example, my package <code>WeightIt</code> needs <code>ggplot2</code> for some of its core functionality (plotting the distribution of estimated weights), so <code>ggplot2</code> is in <code>Imports</code>. The packages in <code>Suggests</code>, though are not necessary for the core functionality of your package. They may be only used in examples in the documentation, in the package vignettes, or in methods that are not central to your package’s operation. For example, <code>WeightIt</code> has <code>gbm</code> in <code>Suggests</code> because <code>gbm</code> is used in one of the documentation examples and is used when a user requests generalized boosted modeling to be used to estimate proepsnty scores, but GBM is not the only method a user can select and not the default method. That means the user doesn’t have to have <code>gbm</code> installed to use any of <code>WeightIt</code>’s core functionality; the package is truly optional. This is what CRAN expects from packages listed in <code>Suggests</code>, anyway. Your package should be able to be built and checked without the packages in <code>Suggested</code> installed.</p>
+<p>When you receive an email like the one above, this means that the packages you included in <code>Suggests</code> are not being used as intended. For example, if in order to build the documentation, a package needs to be installed, including it in <code>Suggests</code> is inappropriate, and it perhaps belongs in <code>Imports</code>. You may receive this email when a package in <code>Suggests</code> is removed from CRAN for some reason (e.g., it fails certain checks or violates a new policy, and the authors didn’t fix it in time). Because the package is not on CRAN, when your package is built, the package is not available, which will cause an error in the check when the functionality in yoru package that depends on that package is activated.</p>
+<p>ANy package in <code>Suggests</code> must be “used conditinally”; this means that if the package is not available, your package can still be built. In this post, I’m going to show you how to ensure the packages in <code>SUggests</code> are used conditionally to satisfy CRAN’s requirememnts and prevent your packagefrom being booted off CRAN. I will focus on making your documentation and vignettes satisfy this requirement, which invovles using some somewhat obtuse code that I had to do a bit of research to discover. There may be more elgant solutions, but I have found these work for my packages. (It’s important to note that I am nto a Roxygen user; I write all my documentation manually in .Rd files.)</p>
