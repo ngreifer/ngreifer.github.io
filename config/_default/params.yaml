@@ -24,7 +24,7 @@ marketing:
     google_analytics: ''
     baidu_tongji: ''
   verification:
-    google: ''
+    google: 'google-site-verification=bs6b7-kVXu8-rK1NF0EvxgRsE8vPgpyq5bGIPZ6Stbs'
     baidu: ''
 
 # Site header
@@ -43,7 +43,7 @@ header:
 
 footer:
   copyright:
-    notice: '© {year} Me. This work is licensed under {license}'
+    notice: '© {year} Noah Greifer. This work is licensed under {license}'
     license:
       enable: true
       allow_derivatives: false
