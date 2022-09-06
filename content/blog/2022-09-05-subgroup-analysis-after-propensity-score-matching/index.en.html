@@ -14,8 +14,8 @@ share: true
 
 
 
-<p>Today I’m going to demonstrate performing a subgroup analysis after propensity score matching using R. Subgroup analysis, also known as moderation analysis or the analysis of effect modification, concerns the estimation of treatment effects within subgroups of a pre-treatment covariate. This post assumes you understand how to do propensity score matching. For a general introduction propensity score matching, I recommend <span class="citation">Austin (<a href="#ref-austinIntroductionPropensityScore2011" role="doc-biblioref">2011</a>)</span> and the <code>MatchIt</code> <a href="https://kosukeimai.github.io/MatchIt/articles/MatchIt.html">introductory vignette</a>. If you understand inverse probability weighting but aren’t too familiar about matching, I recommend my article with Liz Stuart <span class="citation">(<a href="#ref-greiferMatchingMethodsConfounder2021a" role="doc-biblioref">Greifer and Stuart 2021</a>)</span>. For an introduction to subgroup analysis with propensity scores, you can also check out <span class="citation">Green and Stuart (<a href="#ref-greenExaminingModerationAnalyses2014" role="doc-biblioref">2014</a>)</span>. Here, I’ll mainly try to get to the point.</p>
-<p>The dataset we’ll use today is the famous Lalonde dataset, investigating the effect of a job training program on earnings. We’ll use the version of this dataset that comes with the <code>MatchIt</code> package.</p>
+<p>Today I’m going to demonstrate performing a subgroup analysis after propensity score matching using R. Subgroup analysis, also known as moderation analysis or the analysis of effect modification, concerns the estimation of treatment effects within subgroups of a pre-treatment covariate. This post assumes you understand how to do propensity score matching. For a general introduction to propensity score matching, I recommend <span class="citation">Austin (<a href="#ref-austinIntroductionPropensityScore2011" role="doc-biblioref">2011</a>)</span> and the <code>{MatchIt}</code> <a href="https://kosukeimai.github.io/MatchIt/articles/MatchIt.html">introductory vignette</a>. If you understand inverse probability weighting but aren’t too familiar with matching, I recommend my article with Liz Stuart <span class="citation">(<a href="#ref-greiferMatchingMethodsConfounder2021a" role="doc-biblioref">Greifer and Stuart 2021</a>)</span>. For an introduction to subgroup analysis with propensity scores, you can also check out <span class="citation">Green and Stuart (<a href="#ref-greenExaminingModerationAnalyses2014" role="doc-biblioref">2014</a>)</span>. Here, I’ll mainly try to get to the point.</p>
+<p>The dataset we’ll use today is the famous Lalonde dataset, investigating the effect of a job training program on earnings. We’ll use the version of this dataset that comes with the <code>{MatchIt}</code> package.</p>
 <pre class="r"><code>data(&quot;lalonde&quot;, package = &quot;MatchIt&quot;)
 head(lalonde)</code></pre>
 <pre><code>##      treat age educ   race married nodegree re74 re75       re78
@@ -35,19 +35,20 @@ head(lalonde)</code></pre>
 <p>Our estimand will be the subgroup-specific and marginal average treatment effect on the treated (ATT), using the risk difference as our effect measure.</p>
 <div id="packages-youll-need" class="section level3">
 <h3>Packages You’ll Need</h3>
-<p>We’ll need a few R packages for this analysis. We’ll need <code>MatchIt</code> and <code>optmatch</code> for the matching, <code>cobalt</code> for the balance assessment, <code>marginaleffects</code> for estimating the treatment effect, and <code>sandwich</code> for computing the standard errors. You can install those using the code below:</p>
-<pre class="r"><code>install.packages(c(&quot;MatchIt&quot;, &quot;cobalt&quot;, &quot;marginaleffects&quot;, &quot;sandwich&quot;))</code></pre>
+<p>We’ll need a few R packages for this analysis. We’ll need <code>{MatchIt}</code> and <code>{optmatch}</code> for the matching, <code>{cobalt}</code> for the balance assessment, <code>{marginaleffects}</code> for estimating the treatment effects, and <code>{sandwich}</code> for computing the standard errors. You can install those using the code below:</p>
+<pre class="r"><code>install.packages(c(&quot;MatchIt&quot;, &quot;optmatch&quot;, &quot;cobalt&quot;,
+                   &quot;marginaleffects&quot;, &quot;sandwich&quot;))</code></pre>
 <p>Let’s get into it!</p>
 </div>
 <div id="step-1-subgroup-matching" class="section level2">
 <h2>Step 1: Subgroup Matching</h2>
-<p>Our first step is to perform the matching. Although there are a few strategies of how to do matching for subgroup analysis, in general performing subgroup-specific matching tends to work best, though it requires a little extra work.</p>
+<p>Our first step is to perform the matching. Although there are a few strategies for performing matching for subgroup analysis, in general subgroup-specific matching tends to work best, though it requires a little extra work.</p>
 <p>We’ll do this by splitting the dataset by <code>race</code> and performing a separate matching analysis within each one.</p>
 <pre class="r"><code>#Splitting the data
 lalonde_b &lt;- subset(lalonde, race == &quot;black&quot;)
 lalonde_h &lt;- subset(lalonde, race == &quot;hispan&quot;)
 lalonde_w &lt;- subset(lalonde, race == &quot;white&quot;)</code></pre>
-<p>Here we’ll use full matching because 1:1 matching without replacement, the most common but worst way to do propensity score matching, doesn’t work well in this dataset. The process described below works <em>exactly</em> the same for 1:1 and most other kinds of matching as it does for full matching. We’ll estimate propensity score in each subgroup, here using probit regression, which happens to yield better balance than logistic regression.</p>
+<p>Here we’ll use full matching because 1:1 matching without replacement, the most common (but worst) way to do propensity score matching, doesn’t work well in this dataset. The process described below works <em>exactly</em> the same for 1:1 and most other kinds of matching as it does for full matching. We’ll estimate propensity scores in each subgroup, here using probit regression, which happens to yield better balance than logistic regression does.</p>
 <pre class="r"><code>library(&quot;MatchIt&quot;)
 
 #Matching in race == &quot;black&quot;
@@ -67,7 +68,7 @@ m.out_w &lt;- matchit(treat ~ age + educ + married + nodegree + re74 + re75,
 </div>
 <div id="step-2-assessing-balance-within-subgroups" class="section level2">
 <h2>Step 2: Assessing Balance within Subgroups</h2>
-<p>We need to assess subgroup balance; we can do that using <code>summary()</code> on each <code>matchit</code> object, or we can use functions from <code>cobalt</code>.</p>
+<p>We need to assess subgroup balance; we can do that using <code>summary()</code> on each <code>matchit</code> object, or we can use functions from <code>{cobalt}</code>.</p>
 <p>Below are examples of using <code>summary()</code> and <code>cobalt::bal.tab()</code> on one <code>matchit</code> object at a time<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a>:</p>
 <pre class="r"><code>summary(m.out_b)</code></pre>
 <pre><code>## 
@@ -198,13 +199,22 @@ bal.tab(treat ~ age + educ + married + nodegree + re74 + re75,
 ##            Control Treated
 ## Unadjusted  429.       185
 ## Adjusted    113.55     185</code></pre>
-<p>Using the <code>cluster</code> argument produces balance tables in each cluster and, because we specified <code>cluster.summary = TRUE</code>, a balance table summarizing across clusters. To suppress display of the subgroup-specific balance tables (which may be useful if you have many subgroups), you can specify <code>which.cluster = .none</code>.</p>
-<p>From this output, we can see that balance is actually pretty bad; the greatest standardized mean difference (SMD) across subgroups is around .46, which is way too big. In a realistic scenario, you would try different matching methods, maybe resort to weighting, until you found good balance across the subgroups. In order to validly interpret the subgroup-specific effects and test for moderation, you need to have balance in each subgroup, not just overall. We didn’t get good balance here, but to stay focused on the rest of the procedure, we’ll move forward as if we did.</p>
+<p>Using the <code>cluster</code> argument produces balance tables in each subgroup and, because we specified <code>cluster.summary = TRUE</code>, a balance table summarizing across subgroups. To suppress display of the subgroup-specific balance tables (which may be useful if you have many subgroups), you can specify <code>which.cluster = .none</code>.</p>
+<p>To make a plot displaying the balance statistics visually, we can use <code>cobalt::love.plot()</code>:</p>
+<pre class="r"><code>love.plot(treat ~ age + educ + married + nodegree + re74 + re75,
+        data = lalonde, weights = fm_weights, cluster = &quot;race&quot;,
+        stats = c(&quot;m&quot;, &quot;ks&quot;), abs = TRUE,
+        which.cluster = .none, agg.fun = &quot;max&quot;)</code></pre>
+<pre><code>## Warning: Standardized mean differences and raw mean differences are present in the same plot. 
+## Use the &#39;stars&#39; argument to distinguish between them and appropriately label the x-axis.</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+<p>See the <code>{cobalt}</code> <a href="https://ngreifer.github.io/cobalt/articles/cobalt_A4_love.plot.html">vignette on customizing <code>love.plot()</code></a> to see how to finely control the appearance of the plot.</p>
+<p>From this output, we can see that balance is actually pretty bad; the greatest standardized mean difference (SMD) across subgroups after matching is around .46, which is way too big. In a realistic scenario, we would try different matching methods, maybe resorting to weighting, until we found good balance across the subgroups. In order to validly interpret the subgroup-specific effects and tests for moderation, we need to achieve balance in each subgroup, not just overall. We didn’t get good balance here, but to stay focused on the rest of the procedure, we’ll move forward as if we did.</p>
 </div>
 <div id="step-3-fitting-the-outcome-model" class="section level2">
 <h2>Step 3: Fitting the Outcome Model</h2>
-<p>Next, we’ll fit the outcome model. It’s important to remember that the outcome model is an intermediate step to estimating the treatment effect; no quantity estimated by the model needs to correspond to the treatment effect directly. We’ll be using a marginal effects procedure to estimate the treatment effects in the next section.</p>
-<p>First, we’ll extract the matched datasets from the <code>matchit</code> objects. We can’t just use the matching weights we extracted earlier because we need matched pair membership. We’ll use <code>match.data()</code> from <code>MatchIt</code> to extract the matched datasets.</p>
+<p>Next, we’ll fit the outcome model. It’s important to remember that the outcome model is an intermediate step for estimating the treatment effect; no quantity estimated by the model needs to correspond to the treatment effect directly. We’ll be using a marginal effects procedure to estimate the treatment effects in the next section.</p>
+<p>First, we’ll extract the matched datasets from the <code>matchit</code> objects. We can’t just use the matching weights we extracted earlier because we also need subclass (i.e., pair) membership. We’ll use <code>match.data()</code> from <code>{MatchIt}</code> to extract the matched datasets, which contain the matching weights and subclass membership in the <code>weights</code> and <code>subclass</code> columns, respectively, and use <code>rbind()</code> to bind them into a single combined dataset<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a>.</p>
 <pre class="r"><code>#Extract the matched datasets
 matched_data_b &lt;- match.data(m.out_b)
 matched_data_h &lt;- match.data(m.out_h)
@@ -215,37 +225,20 @@ matched_data &lt;- rbind(matched_data_b,
                       matched_data_h,
                       matched_data_w)
 
-str(matched_data)</code></pre>
-<pre><code>## Classes &#39;matchdata&#39; and &#39;data.frame&#39;:    614 obs. of  13 variables:
-##  $ treat   : int  1 1 1 1 1 1 1 1 1 1 ...
-##  $ age     : int  37 30 27 33 22 23 32 22 19 21 ...
-##  $ educ    : int  11 12 11 8 9 12 11 16 9 13 ...
-##  $ race    : Factor w/ 3 levels &quot;black&quot;,&quot;hispan&quot;,..: 1 1 1 1 1 1 1 1 1 1 ...
-##  $ married : int  1 0 0 0 0 0 0 0 0 0 ...
-##  $ nodegree: int  1 0 1 1 1 0 1 0 1 0 ...
-##  $ re74    : num  0 0 0 0 0 0 0 0 0 0 ...
-##  $ re75    : num  0 0 0 0 0 0 0 0 0 0 ...
-##  $ re78    : num  9930 24909 7506 290 4056 ...
-##  $ re78_0  : num  0 0 0 0 0 1 0 0 0 0 ...
-##  $ distance: num  0.685 0.634 0.778 0.694 0.686 ...
-##  $ weights : num  1 1 1 1 1 1 1 1 1 1 ...
-##  $ subclass: Factor w/ 104 levels &quot;1_1&quot;,&quot;1_2&quot;,&quot;1_3&quot;,..: 1 69 2 9 1 20 27 29 10 69 ...
-##  - attr(*, &quot;distance&quot;)= chr &quot;distance&quot;
-##  - attr(*, &quot;weights&quot;)= chr &quot;weights&quot;
-##  - attr(*, &quot;subclass&quot;)= chr &quot;subclass&quot;</code></pre>
-<p>Notice we have a <code>weights</code> column and <code>subclass</code> column; these contain the matching weights and pair membership.</p>
-<p>Next, we can fit the outcome model. The choice of which model to fit should depend primarily on the best model for the outcome, though in some cases it can be useful to parameterize the model to get a quantity you want for free. We’ll focus on using a good basic model; because we have a binary outcome, we’ll use a logistic regression model.</p>
+names(matched_data)</code></pre>
+<pre><code>##  [1] &quot;treat&quot;    &quot;age&quot;      &quot;educ&quot;     &quot;race&quot;     &quot;married&quot;  &quot;nodegree&quot; &quot;re74&quot;     &quot;re75&quot;     &quot;re78&quot;     &quot;re78_0&quot;   &quot;distance&quot; &quot;weights&quot;  &quot;subclass&quot;</code></pre>
+<p>Next, we can fit the outcome model. The choice of which model to fit should depend primarily on the best model for the outcome, though in some cases it can be useful to parameterize the model to get a quantity you want for free. We’ll focus on using a good basic model; because we have a binary outcome, we’ll use logistic regression.</p>
 <p>It’s usually a good idea to include covariates in the outcome model. It’s also usually a good idea to allow the treatment to interact with the covariates in the outcome model. It’s also usually a good idea to fit separate models within each subgroup. Combining this all yields a pretty complicated model, which is why it will be so important to use a marginal effects procedure rather than trying to interpret the model’s coefficients. Here’s how we fit this model:</p>
 <pre class="r"><code>fit &lt;- glm(re78_0 ~ race * (treat * (age + educ + married + nodegree +
                                        re74 + re75)),
            data = matched_data, weights = weights,
-           family = quasibinomial)</code></pre>
-<p>We’re not even going to look at the output of this model, which has 42 parameters. If the model doesn’t fit in your dataset, you can remove interactions between the treatment and some covariates or remove the covariates altogether.</p>
-<p>For a linear model, you can use <code>lm()</code> and remove the <code>family</code> argument. We used <code>family = quasibinomial</code> because we want logistic regression for our binary outcome but we are using the matching weights, which otherwise create a warning when run.</p>
+           family = &quot;quasibinomial&quot;)</code></pre>
+<p>We’re not even going to look at the output of this model, which has 42 parameters. If the model doesn’t fit with your dataset, you can remove interactions between the treatment and some covariates or remove the covariates altogether.</p>
+<p>For a linear model, you can use <code>lm()</code> and remove the <code>family</code> argument. We used <code>family = "quasibinomial"</code> because we want logistic regression for our binary outcome but we are using the matching weights, which otherwise create a (harmless but annoying) warning when run with <code>family = "binomial"</code>.</p>
 </div>
 <div id="step-4-estimate-the-treatment-effects" class="section level2">
 <h2>Step 4: Estimate the Treatment Effects</h2>
-<p>Finally, we can estimate the treatment effects. To do so, we’ll use a marginal effects procedure as implemented in <code>marginaleffects</code>. First, we’ll estimate the marginal effect overall, averaging across the subgroups. Again, we’re hoping for a negative treatment effect, which indicates the risk of having zero income decreased among those who received the treatment. Because we are estimating the ATT, we need to subset the data on which the marginal effects are computed to just the treated units, which we do using the <code>newdata</code> argument (which can be omitted when the ATE is the target estimand). We also need to supply pair membership to ensure the standard errors are correctly computed, which we do by supplying the <code>subclass</code> variable containing pair membership to the <code>vcov</code> argument. In general, we need to supply the weights to the <code>wts</code> argument of <code>comparisons()</code> as well (though, in this case, because we are estimating the ATT and all weights are 1 for the treated group, it doesn’t make a difference).</p>
+<p>Finally, we can estimate the treatment effects. To do so, we’ll use an average marginal effects procedure as implemented in <code>{marginaleffects}</code>. First, we’ll estimate the average marginal effect overall, averaging across the subgroups. Again, we’re hoping for a negative treatment effect, which indicates the risk of having zero income decreased among those who received the treatment. Because we are estimating the ATT, we need to subset the data for which the average marginal effects are computed to just the treated units, which we do using the <code>newdata</code> argument (which can be omitted when the ATE is the target estimand). We also need to supply pair membership to ensure the standard errors are correctly computed, which we do by supplying the <code>subclass</code> variable containing pair membership to the <code>vcov</code> argument. In general, we need to supply the weights to the <code>wts</code> argument of <code>comparisons()</code> as well (though, in this case, because we are estimating the ATT and all weights are 1 for the treated group, it doesn’t make a difference).</p>
 <pre class="r"><code>library(&quot;marginaleffects&quot;)
 
 #Estimate the overall ATT
@@ -259,7 +252,7 @@ comparisons(fit, variables = &quot;treat&quot;,
 ## Model type:  glm 
 ## Prediction type:  response</code></pre>
 <p>The estimated risk difference is 0.02305 with a high p-value and a confidence interval containing 0, indicating no evidence of an effect overall. (Note: this doesn’t mean there is no effect! The data are compatible with effects anywhere within the confidence interval, which includes negative and positive effects of a moderate size!)</p>
-<p>New, let’s estimate the subgroup-specific effects:</p>
+<p>New, let’s estimate the subgroup-specific effects by supplying the subgrouping variable, <code>"race"</code>, to the <code>by</code> argument:</p>
 <pre class="r"><code>comparisons(fit, variables = &quot;treat&quot;,
             newdata = subset(matched_data, treat == 1),
             vcov = ~subclass, wts = &quot;weights&quot;,
@@ -272,7 +265,7 @@ comparisons(fit, variables = &quot;treat&quot;,
 ## 
 ## Model type:  glm 
 ## Prediction type:  response</code></pre>
-<p>Here, we see that actually there are treatment effects within subgroups! In the subgroups <code>hispan</code> and <code>white</code>, we see moderately sized negative effects with small p-values and confidence intervals excluding 0, meaning there is evidence of treatment effects in these subgroups.</p>
+<p>Here, we see that actually there is evidence of treatment effects within subgroups! In the subgroups <code>hispan</code> and <code>white</code>, we see moderately sized negative effects with small p-values and confidence intervals excluding 0, suggesting that there treatment effects in these subgroups.</p>
 <p>We can also test whether the treatment effects differ between groups using the <code>hypothesis</code> argument of <code>comparisons()</code>:</p>
 <pre class="r"><code>comparisons(fit, variables = &quot;treat&quot;,
             newdata = subset(matched_data, treat == 1),
@@ -293,13 +286,13 @@ comparisons(fit, variables = &quot;treat&quot;,
 </div>
 <div id="step-5-reporting-your-results" class="section level2">
 <h2>Step 5: Reporting Your Results</h2>
-<p>A lot needs to be said when reporting your results to ensure your analysis is replicable and can be correctly interpreted by your audience. The key things to report are the following:</p>
+<p>A fair bit needs to be included when reporting your results to ensure your analysis is replicable and can be correctly interpreted by your audience. The key things to report are the following:</p>
 <ul>
-<li>The method of estimating the propensity score and performing the matching (noting that these were done within subgroups), including the estimand targeted and whether that estimand was respected by the procedure (using, e.g., a caliper changes the estimand from the one you specify). This should also include the packages used and, even better, the functions used. If you’re using <code>MatchIt</code>, the documentation should also tell you which papers to cite.</li>
+<li>The method of estimating the propensity score and performing the matching (noting that these were done within subgroups), including the estimand targeted and whether that estimand was respected by the procedure (using, e.g., a caliper changes the estimand from the one you specify). This should also include the packages used and, even better, the functions used. If you’re using <code>{MatchIt}</code>, the documentation should also tell you which papers to cite.</li>
 <li>A quick summary of other methods you might have tried and why you went with the one you went with (i.e., because it yielded better balance, a greater effective sample size, etc.).</li>
 <li>Covariate balance, measured broadly; this can include a balance table, a balance plot (like one produced by <code>cobalt::love.plot()</code>), or a summary of balance (like providing the largest SMD and KS statistic observed across subgroups). Make sure your description of balance reflects the subgroups, e.g., by having separate tables or plots for each subgroup or clarifying that the statistics presented are averages or the worst case across subgroups.</li>
 <li>The outcome model you used, especially specifying the form of the model used and how/whether covariates entered the model. Also mention the method used to compute the standard errors (e.g., cluster-robust standard errors with pair membership as the clustering variable).</li>
-<li>Details of the marginal effects procedure used, including the package used.</li>
+<li>Details of the marginal effects procedure used, including the package used, and the method to compute the standard errors (in this case, the delta method, which is the only method available in <code>{marginaleffects}</code>).</li>
 <li>The treatment effect estimates along with their p-values and confidence intervals, both overall and within subgroups.</li>
 </ul>
 </div>
@@ -321,5 +314,6 @@ Greifer, Noah, and Elizabeth A Stuart. 2021. <span>“Matching <span>Methods</sp
 <hr />
 <ol>
 <li id="fn1"><p>You might notices the mean differences for binary variables differ between the two outputs; that’s because <code>summary()</code> standardizes the mean differences whereas <code>bal.tab()</code> does not for binary variables. If you want standardized mean differences for binary variables from <code>bal.tab()</code>, just add the argument <code>binary = "std"</code>.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+<li id="fn2"><p>Note: <code>rbind()</code> must be used for this; functions from other packages, like <code>dplyr::bind_rows()</code>, will not correctly preserve the subclass structure.<a href="#fnref2" class="footnote-back">↩︎</a></p></li>
 </ol>
 </div>
