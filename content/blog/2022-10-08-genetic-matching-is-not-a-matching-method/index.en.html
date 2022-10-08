@@ -1,0 +1,384 @@
+---
+title: Genetic Matching, from the Bottom Up
+author: Noah Greifer
+date: '2022-10-08'
+slug: genetic-matching
+categories: []
+tags:
+  - matching
+  - R
+subtitle: ''
+summary: ''
+lastmod: Sys.time()
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+bibliography: references.bib
+---
+
+
+
+<p>Genetic matching sounds cool and science-y, something we social scientists love because nobody thinks what we do is “real” science. And genetic matching is cool and science-y, but not because it has anything to do with genes or DNA. Genetic matching is a method of adjusting for confounding in observational studies; it is a close relative of propensity score matching and Mahalanobis distance matching and serves exactly the same purpose. <span class="citation">Sekhon (<a href="#ref-sekhonMultivariatePropensityScore2011" role="doc-biblioref">2011</a>)</span> and <span class="citation">Diamond and Sekhon (<a href="#ref-diamondGeneticMatchingEstimating2013" role="doc-biblioref">2013</a>)</span> describe genetic matching, but I’ll explain it here in simple terms and with an emphasis on its generality, which is undersold by its implementations.</p>
+<p>This post won’t make any sense if you don’t know what matching in general is. Go read <span class="citation">Stuart (<a href="#ref-stuartMatchingMethodsCausal2010" role="doc-biblioref">2010</a>)</span>, <span class="citation">Greifer and Stuart (<a href="#ref-greiferMatchingMethodsConfounder2021a" role="doc-biblioref">2021</a>)</span>, and the <code>MatchIt</code> <a href="https://kosukeimai.github.io/MatchIt/articles/matching-methods.html">vignette</a> on matching methods to learn about them. The focus here will be on <em>pair matching</em>, which involves assigning units to pairs or strata based on the distances between them, then discarding unpaired units.</p>
+<p>The goal of matching is balanced samples, i.e., samples where the distribution of covariates in the treated and control groups is the same so that an estimated treatment effect cannot be said to be due to differences in the covariate distributions. Why, then, do we make pairs? Close pairs create balance, in theory.</p>
+<p>How do we compute the distance between units? There are several ways; a common one is the Mahalanobis distance, as described for matching in <span class="citation">Rubin (<a href="#ref-rubinBiasReductionUsing1980" role="doc-biblioref">1980</a>)</span>, and which I’ll describe here.</p>
+<p>The <strong>Mahalanobis distance</strong> between two units <span class="math inline">\(i\)</span> and <span class="math inline">\(j\)</span> is defined as</p>
+<p><span class="math display">\[
+\delta^{md}_{i,j}=\sqrt{(\mathbf{x}_i-\mathbf{x}_j)\Sigma^{-1}(\mathbf{x}_i-\mathbf{x}_j)&#39;}
+\]</span></p>
+<p>where <span class="math inline">\(\mathbf{x}_i\)</span> is the vector of covariates for unit <span class="math inline">\(i\)</span> (i.e., that unit’s row in the dataset) and <span class="math inline">\(\Sigma\)</span> is the covariance matrix of the covariates<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a>. Equivalently, the Mahalanobis distance is the Euclidean distance (i.e., the regular distance) computed on the standardized principal components. The Mahalanobis distance is an improvement over the Euclidean distance of the covariates because it standardizes the covariates to be on the same scale and adjusts for correlations between covariates (so two highly correlated variables only count once). A great description of the Mahalanobis distance is <a href="https://stats.stackexchange.com/a/62147/116195">here</a> (though there it is not described in the context of matching).</p>
+<p>Genetic matching concerns a generalization of the Mahalanobis distance, called the <strong>generalized Mahalanobis distance</strong>, which additionally involves a set of weights for each covariate (not weights for each unit like in propensity score weighting; a weight for each <em>covariate</em>). The generalized Mahalanobis distance is defined as</p>
+<p><span class="math display">\[
+\delta^{gmd}_{i,j}(W)=\sqrt{(\mathbf{x}_i-\mathbf{x}_j)&#39;\left(\Sigma^{-\frac{1}{2}}\right)&#39; W\Sigma^{-\frac{1}{2}}(\mathbf{x}_i-\mathbf{x}_j)}
+\]</span></p>
+<p>where <span class="math inline">\(\Sigma^{-\frac{1}{2}}\)</span> is the “square root” of the inverse of the covariance matrix (e.g., the Cholesky decomposition), and <span class="math inline">\(W\)</span> is a symmetric “weight matrix” that can contain anything but in most cases is a diagonal matrix with a scalar weight for each covariate in <span class="math inline">\(\mathbf{x}\)</span>, i.e., <span class="math inline">\(W = \text{diag}(\begin{bmatrix} w_1 &amp; \dots &amp; w_p \end{bmatrix})\)</span>. The usual Mahalanobis distance is equal to the generalized Mahalanobis distance when $W=I$, the identity matrix.</p>
+<p>What does any of this have to do with genetic matching? Well, “genetic matching” is a bit of a misnomer; it’s not a matching method. It’s a method of estimating <span class="math inline">\(W\)</span>. Genetic matching finds the <span class="math inline">\(W\)</span> that, when incorporated in a generalized Mahalanobis distance used to match treated and control units, yields the best balance. Once you have found <span class="math inline">\(W\)</span>, you then do a regular round of matching, and that is your matched sample.</p>
+<p>To put it slightly more formally, consider a function <span class="math inline">\(\text{match}(\delta)\)</span>, which takes in a distance matrix <span class="math inline">\(\delta\)</span> and produces a matched set of treated and control units, characterized by a set of matching weights (e.g., 1 if matched, 0 if unmatched) and pair membership for each unit. Consider a function <span class="math inline">\(\text{imbalance}(m)\)</span>, which takes in the output of a <span class="math inline">\(\text{match}(\delta)\)</span> and returns a scalar imbalance metric (e.g., the largest absolute standardized mean difference among all the covariates). We can then write the genetic matching problem as the following:</p>
+<p><span class="math display">\[
+\underset{W}{\operatorname{arg\,min}} \, \text{imbalance}(\text{match}(\delta^{gmd}(W)))
+\]</span></p>
+<p>Genetic matching is very general; there are many ways to do the matching (i.e., many ways to specify the <span class="math inline">\(\text{match}()\)</span> function) and many ways to characterize imbalance (i.e., many ways to specify the <span class="math inline">\(\text{imbalance}()\)</span> function) (and even several ways to specific <span class="math inline">\(\delta()\)</span>!). Although nearest neighbor matching is often used for <span class="math inline">\(\text{match}()\)</span>, any matching method that uses a distance matrix could be as well. A specific imbalance measure (which I’ll explain in more detail later) is most often used for <span class="math inline">\(\text{imbalance}()\)</span> because it is the default in the software that implements genetic matching, but any imbalance measure could be used, and there has been research that indicates that alternative measures may work better.</p>
+<p>You may be wondering where the “genetic” part of “genetic matching” comes in. “Genetic” comes from the name of the optimization algorithm that is used to solve the genetic matching problem stated above, which is just called the genetic algorithm. In principle, though, any optimization routine could be used; the genetic algorithm was chosen specifically because it deals well with nonsmooth surfaces, which the objective function above surely is. But other optimization methods that do not rely on derivatives do as well, such as “particle swarm optimization” (we’re really doing <em>science</em> here). I don’t really understand these methods deeply, but we don’t have to to understand what genetic matching is doing<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a>. In order to understand how to tune the algorithm, though, there are some bits worth knowing about, which I’ll briefly cover in the Implementation section below.</p>
+<div id="implementation" class="section level3">
+<h3>Implementation</h3>
+<p>Genetic matching is implemented in the <code>{Matching}</code> package in R, which performs genetic matching to estimate <span class="math inline">\(W\)</span>, performs nearest neighbor matching using <span class="math inline">\(\delta^{gmd}(W)\)</span> or another distance matrix, and then estimates the treatment effect<a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a>. The <code>GenMatch()</code> function estimates <span class="math inline">\(W\)</span>, and the <code>Match()</code> function does the matching on the resulting output<a href="#fn4" class="footnote-ref" id="fnref4"><sup>4</sup></a>. Genetic matching is also available in <code>{MatchIt}</code> by setting <code>method = "genetic"</code> in the call to <code>matchit()</code>, but it just calls <code>GenMatch()</code> and <code>Match()</code> from <code>{Matching}</code>.</p>
+<p><code>GenMatch()</code> relies on <code>rgenoud::genoud()</code>, one implementation of the genetic algorithm in R. There are a few tuning parameters worth understanding to use genetic matching to its full potential. The most important one is the population size (i.e., the number of candidates in each generation of the genetic algorithm), controlled by the <code>pop.size</code> argument. All you need to know is that high values are better and slower. Another one perhaps worth knowing about is the number of generations that have to pass with no improvement in the objective function before the algorithm halts and returns the best candidate it has found, controlled by the <code>wait.generations</code> argument. Here, too, higher values are better and slower.</p>
+<p>A detail I haven’t emphasized is that the matching method used to to produce the final matched sample using the estimated <span class="math inline">\(W\)</span> should be the same one used in estimating $W$, because the estimated <span class="math inline">\(W\)</span> are tailored to that matching method (i.e., they only optimize balance when supplied to that <span class="math inline">\(\text{match}()\)</span> function)<a href="#fn5" class="footnote-ref" id="fnref5"><sup>5</sup></a>. The matching methods available in <code>{Matching}</code> are nearest neighbor matching with or without replacement, with or without calipers or exact matching constraints, and with <span class="math inline">\(1:1\)</span> or <span class="math inline">\(k:1\)</span> matching. This is a pretty broad set of matching options, though it is not complete (e.g., optimal and full matching are not available). One thing about genetic matching is that it is <em>slow</em>, so using a fast matching method is useful for not spending forever to get your matches. <code>{Matching}</code> uses a fast implementation of nearest neighbor matching programmed in C, which makes it fairly fast, though still quite slow for even moderately sized problems.</p>
+</div>
+<div id="the-imbalance-measure" class="section level3">
+<h3>The Imbalance Measure</h3>
+<p>The imbalance measure used in genetic matching is critical to its success as a method. Seeking balance using a poor metric means the resulting matched sample will not be able to reduce bias well, even if the optimal values of <span class="math inline">\(W\)</span> that minimize that imbalance measure have been found. One challenge is that there is no clear best imbalance measure to use. Ideally, it should incorporate balance on all covariates, and not just on their means but on their full distributions, and not just the marginal distributions but the joint distributions. The best imbalance measure depends heavily on the true outcome-generating model, which is inherently unknowable (otherwise we wouldn’t be doing matching in the first place), though there has been some research into it.</p>
+<p>By default, the imbalance measure <code>GenMatch()</code> uses is the smallest p-value among the sets of two-sample t-tests and Kolmogorov-Smirnov (KS) tests for each covariate. This is a bit of a strange imbalance measure that doesn’t really show up anywhere else in the literature. <span class="citation">Diamond and Sekhon (<a href="#ref-diamondGeneticMatchingEstimating2013" role="doc-biblioref">2013</a>)</span> justify the use of p-values (which are typically disregarded as methods to assess balance) by arguing that here they are simply used to put the mean differences and KS statistic on a uniform scale rather than to be interpreted as p-values to be used in a hypothesis test. However, there has been research into other balance criteria that might perform better. <span class="citation">Oyenubi and Wittenberg (<a href="#ref-oyenubiDoesChoiceBalancemeasure2020" role="doc-biblioref">2020</a>)</span> find that the largest value of a univariate balance measure called the “entropic distance”, which is a relative of the KS statistic, performs well as an imbalance measure. <span class="citation">Zhu, Savage, and Ghosh (<a href="#ref-zhuKernelBasedMetricBalance2018" role="doc-biblioref">2018</a>)</span> find that a multivariate imbalance measure called the “kernel distance” does well; this measure takes into account the full, joint covariate distribution, unlike the other methods which do not consider the joint distribution, explaining its effectiveness. I am partial to the energy distance <span class="citation">(<a href="#ref-rizzoEnergyDistance2016" role="doc-biblioref">Rizzo and Székely 2016</a>; <a href="#ref-hulingEnergyBalancingCovariate2022" role="doc-biblioref">Huling and Mak 2022</a>)</span>, which is demonstrated to have nice properties and is easy to explain and calculate. Simple balance measures can be effective as well, though; <span class="citation">Oyenubi and Wittenberg (<a href="#ref-oyenubiDoesChoiceBalancemeasure2020" role="doc-biblioref">2020</a>)</span> and <span class="citation">Stuart, Lee, and Leacy (<a href="#ref-stuartPrognosticScorebasedBalance2013" role="doc-biblioref">2013</a>)</span> find that standardized mean differences can be effective in assessing balance, even though they only take into account the covariate means and do not consider the joint distribution of the covariates.</p>
+</div>
+<div id="the-covariates" class="section level3">
+<h3>The Covariates</h3>
+<p>The generalized Mahalanobis distance depends on <span class="math inline">\(\mathbf{x}\)</span>–the covariates, <span class="math inline">\(\Sigma\)</span>–the “scaling” matrix (usually the covariance matrix), and <span class="math inline">\(W\)</span>–the weights matrix. These, of course, can all be specified in a variety of ways. <span class="math inline">\(\mathbf{x}\)</span> should contain the covariates one would like balance on, though in principle it doesn’t have to, as long as those covariates are included in the imbalance measure. For example, one might only include 3 of the most important covariates in the calculation of the distance and weights, but optimize balance on all 10 covariates included in the analysis. <span class="citation">Diamond and Sekhon (<a href="#ref-diamondGeneticMatchingEstimating2013" role="doc-biblioref">2013</a>)</span> recommend including the propensity score in <span class="math inline">\(\mathbf{x}\)</span>, as close pairs on the propensity score tends to yield well-balanced samples (which is the motivation behind propensity score matching in the first place). On the other hand, <span class="citation">King and Nielsen (<a href="#ref-kingWhyPropensityScores2019" role="doc-biblioref">2019</a>)</span> recommend against including the propensity score if balance can be achieved without it.</p>
+</div>
+<div id="examples" class="section level2">
+<h2>Examples</h2>
+<p>Below are some examples of genetic matching. First we’ll use <code>{Matching}</code>, which gives us a bit more insight into how the process goes, and then we’ll perform the same analysis using <code>{MatchIt}</code> to demonstrate how much easier it is. We’ll use the <code>lalonde</code> dataset in <code>{MatchIt}</code> for this analysis<a href="#fn6" class="footnote-ref" id="fnref6"><sup>6</sup></a></p>
+<div id="using-matching" class="section level3">
+<h3>Using <code>Matching</code></h3>
+<pre class="r"><code>data(&quot;lalonde&quot;, package = &quot;MatchIt&quot;)
+
+covs &lt;- lalonde |&gt; subset(select = c(age, educ, married,
+                                     race, nodegree,
+                                     re74, re75))
+treat &lt;- lalonde$treat</code></pre>
+<p>We have a factor variable (<code>race</code>) among our covariates, so we need to turn it into a set of dummy variables for <code>{Matching}</code> . The <code>{cobalt}</code> function <code>splitfactor()</code> makes this easy.</p>
+<pre class="r"><code>covs &lt;- covs |&gt; cobalt::splitfactor(drop.first = FALSE)
+
+head(covs)</code></pre>
+<pre><code>##      age educ married race_black race_hispan race_white nodegree re74 re75
+## NSW1  37   11       1          1           0          0        1    0    0
+## NSW2  22    9       0          0           1          0        1    0    0
+## NSW3  30   12       0          1           0          0        0    0    0
+## NSW4  27   11       0          1           0          0        1    0    0
+## NSW5  33    8       0          1           0          0        1    0    0
+## NSW6  22    9       0          1           0          0        1    0    0</code></pre>
+<p>We’ll estimate a propensity score to include among the covariates, as recommended by <span class="citation">Diamond and Sekhon (<a href="#ref-diamondGeneticMatchingEstimating2013" role="doc-biblioref">2013</a>)</span>.</p>
+<pre class="r"><code>## Logistic regression PS
+ps &lt;- glm(treat ~ age + educ + married + race +
+            nodegree + re74 + re75, data = lalonde,
+          family = binomial) |&gt;
+  fitted()
+
+## Append the PS to the covariates
+covs_ps &lt;- cbind(ps, covs)</code></pre>
+<p>Okay, now we’re finally ready to use functions in <code>{Matching}</code> to perform genetic matching. The first step is to use <code>GenMatch()</code> to compute <span class="math inline">\(W\)</span>, and after that we will use <code>Match()</code> to perform the matching using the <code>GenMatch()</code> output. To use <code>GenMatch()</code>, we have to know what kind of matching we eventually want to do. In this example, we’ll do 2:1 matching with replacement for the ATT. <code>{Matching}</code> has a few extra quirks that need to be addressed to make the matching work as intended, which I’ll include in the code below without much explanation (since my recommendation is to use <code>{MatchIt}</code> anyway, which takes care of these automatically).</p>
+<pre class="r"><code>library(Matching)
+# Set seed for reproducibility; genetic matching has a random
+# component
+set.seed(333)
+gen_out &lt;- GenMatch(
+  Tr = treat,             #Treatment
+  X = covs_ps,            #Covariates to match on
+  BalanceMatrix = covs,   #Covariance to balance
+  estimand = &quot;ATT&quot;,       #Estimand
+  M = 2,                  #3:1 matching
+  replace = TRUE,         #With replacement
+  ties = FALSE,           #No ties
+  distance.tolerance = 0, #Use precise values
+  print.level = 0,        #Don&#39;t print output
+  pop.size = 200          #Genetic population size; bigger is better
+)</code></pre>
+<p>The important part of the <code>GenMatch()</code> output is the <code>Weight.matrix</code>, which corresponds to <span class="math inline">\(W\)</span>. It’s not really worth interpreting the weights; they are just whatever values happened to yield the best balance and don’t actually tell you anything about how important any covariate is to the treatment. We can supply the weights to the <code>Match()</code> function to do a final round of matching. All the arguments related to matching (e.g., <code>estimand</code>, <code>M</code>, <code>replace</code>, etc.) should be the same between <code>GenMatch()</code> and <code>Match()</code>. We call <code>Match()</code> below.</p>
+<pre class="r"><code>match_out &lt;- Match(
+  Tr = treat,             #Treatment
+  X = covs_ps,            #Covariates to match on
+  estimand = &quot;ATT&quot;,       #Estimand
+  M = 2,                  #2:1 matching
+  replace = TRUE,         #With replacement
+  ties = FALSE,           #No ties
+  distance.tolerance = 0, #Use precise values
+  Weight.matrix = gen_out$Weight.matrix,
+  Weight = 3              #Tell Match() we&#39;re using Weight.matrix
+)</code></pre>
+<p>Finally we can take a look at the balance using <code>cobalt::bal.tab()</code>. Here, we check balance not only on the means but also on the KS statistics, since those are part of what is being optimized by the genetic optimization.</p>
+<pre class="r"><code>cobalt::bal.tab(match_out, treat ~ age + educ + married + race +
+                  nodegree + re74 + re75, data = lalonde,
+                stats = c(&quot;m&quot;, &quot;ks&quot;))</code></pre>
+<pre><code>## Balance Measures
+##                Type Diff.Adj KS.Adj
+## age         Contin.  -0.0178 0.1378
+## educ        Contin.   0.0686 0.0459
+## married      Binary   0.0000 0.0000
+## race_black   Binary   0.0054 0.0054
+## race_hispan  Binary   0.0000 0.0000
+## race_white   Binary  -0.0054 0.0054
+## nodegree     Binary   0.0135 0.0135
+## re74        Contin.   0.0305 0.1270
+## re75        Contin.   0.0923 0.0919
+## 
+## Sample sizes
+##                      Control Treated
+## All                    429.      185
+## Matched (ESS)           42.1     185
+## Matched (Unweighted)   121.      185
+## Unmatched              308.        0</code></pre>
+<p>Below we’ll use <code>MatchIt</code>, which does everything (adjusting the covariate matrix, estimating propensity scores, optimizing <span class="math inline">\(W\)</span>, and matching on the new distance matrix) all at once.</p>
+</div>
+<div id="using-matchit" class="section level3">
+<h3>Using <code>MatchIt</code></h3>
+<p>All we need to do is supply the usual arguments to <code>matchit()</code> and set <code>method = "genetic"</code>. See the <code>MatchIt</code> <a href="https://kosukeimai.github.io/MatchIt/articles/MatchIt.html">vignettes</a> for information on the basic use of <code>matchit()</code>.</p>
+<pre class="r"><code>set.seed(888)
+matchit_out &lt;- MatchIt::matchit(
+  treat ~ age + educ + married + race +
+                  nodegree + re74 + re75,
+  data = lalonde,
+  method = &quot;genetic&quot;,
+  estimand = &quot;ATT&quot;,
+  ratio = 2,
+  replace = TRUE,
+  pop.size = 200
+)</code></pre>
+<p>By default, <code>matchit()</code> estimates a propensity score using logistic regression and includes it in the matching covariates (but not the covariates on which balance is optimized), just as we did manually using <code>GenMatch()</code> above. If you want to use difference variables to balance on from those used to match, use the <code>mahvars</code> argument, which is explained in the documentation for genetic matching (accessible using <code>help("method_genetic", package = "MatchIt")</code>).</p>
+<p>We can assess balance using <code>summary()</code> or using <code>bal.tab()</code>. We’ll do the latter below.</p>
+<pre class="r"><code>cobalt::bal.tab(matchit_out, stats = c(&quot;m&quot;, &quot;ks&quot;))</code></pre>
+<pre><code>## Call
+##  MatchIt::matchit(formula = treat ~ age + educ + married + race + 
+##     nodegree + re74 + re75, data = lalonde, method = &quot;genetic&quot;, 
+##     estimand = &quot;ATT&quot;, replace = TRUE, ratio = 2, pop.size = 200)
+## 
+## Balance Measures
+##                 Type Diff.Adj KS.Adj
+## distance    Distance   0.0337 0.1000
+## age          Contin.  -0.0238 0.1514
+## educ         Contin.   0.0712 0.0324
+## married       Binary  -0.0027 0.0027
+## race_black    Binary   0.0081 0.0081
+## race_hispan   Binary   0.0000 0.0000
+## race_white    Binary  -0.0081 0.0081
+## nodegree      Binary   0.0054 0.0054
+## re74         Contin.   0.0356 0.1514
+## re75         Contin.   0.0689 0.0730
+## 
+## Sample sizes
+##                      Control Treated
+## All                    429.      185
+## Matched (ESS)           45.6     185
+## Matched (Unweighted)   123.      185
+## Unmatched              306.        0</code></pre>
+<p>The results will differ due to slight differences in how the two functions process their inputs.</p>
+</div>
+</div>
+<div id="programming-genetic-matching-yourself" class="section level2">
+<h2>Programming genetic matching yourself</h2>
+<p>Perhaps surprisingly, it’s fairly easy to program genetic matching yourself. You only need the following ingredients:</p>
+<ol style="list-style-type: decimal">
+<li>A function that creates a distance matrix from a set of weights <span class="math inline">\(W\)</span></li>
+<li>A function that performs matching on a given distance matrix</li>
+<li>A function that evaluates balance on a given matched sample</li>
+<li>A function that performs the genetic optimization</li>
+</ol>
+<p>These are (fairly) easy to come by, and I’ll show you how to write each of them.</p>
+<p>For the first function, we can use <code>MatchIt::mahalanobis_dist()</code> if we want <span class="math inline">\(\Sigma\)</span> to be the full covariance matrix of the covariates, but it’s actually quite a bit simpler to use <code>MatchIt::scaled_euclidean_dist()</code> to just use the variances of the covariates, which is what <code>GenMatch()</code> (and therefore <code>matchit()</code>) does anyway. This is because we can supply to <code>scaled_euclidean_dist()</code> a vector of variances, which we will simply divide by the weights. So, our function for creating the distance matrix given the set of weights will be the following:</p>
+<pre class="r"><code>dist_from_W &lt;- function(W, dist_covs) {
+  variances &lt;- apply(dist_covs, 2, var)
+  MatchIt::scaled_euclidean_dist(data = dist_covs, var = variances / W)
+}</code></pre>
+<p>Of course, there are many ways we could make this more efficient. I just want to demonstrate how easy it is to program genetic matching. Programming it <em>well</em> is another story.</p>
+<p>Next, we need a function that performs matching on covariates given a distance matrix. We could use <code>optmatch::fullmatch()</code> for full matching, but <code>matchit()</code> provides a nice, general interface for many matching methods. We can supply the distance matrix to the <code>distance</code> argument of <code>matchit()</code>. A function that takes in a distance matrix and returns a <code>matchit</code> object containing the matched sample and matching weights is the following<a href="#fn7" class="footnote-ref" id="fnref7"><sup>7</sup></a></p>
+<pre class="r"><code>do_matching_with_dist &lt;- function(dist) {
+  MatchIt::matchit(treat ~ 1, data = lalonde, distance = dist,
+                   method = &quot;nearest&quot;, ratio = 2, replace = TRUE)
+}</code></pre>
+<p>Next, we need a function that takes in a <code>matchit</code> object and computes a scalar balance statistic. You can use your favorite balance statistic, but here I’ll use the maximum absolute standardized mean difference (ASMD) of all the covariates in the matched sample<a href="#fn8" class="footnote-ref" id="fnref8"><sup>8</sup></a>. This measure can be easily computed using <code>cobalt::col_w_smd()</code>, which takes in a matrix of covariates, a treatment vector, and a weights vector and returns the weighted ASMDs for each covariate. We will allow the set of covariates to be different from those used to compute the distance measure. We implement this below:</p>
+<pre class="r"><code>compute_balance &lt;- function(m, bal_covs, treat) {
+  weights &lt;- cobalt::get.w(m)
+  max(cobalt::col_w_smd(bal_covs, treat, weights,
+                        s.d.denom = &quot;treated&quot;,
+                        abs = TRUE))
+}</code></pre>
+<p>Okay! We have the key ingredients for our objective function, which takes in a set of covariates weights <span class="math inline">\(W\)</span> and returns a balance statistic that we want to optimize. Let’s put everything together into a single function:</p>
+<pre class="r"><code>objective &lt;- function(W_, dist_covs, bal_covs, treat) {
+  W &lt;- exp(c(0, W_))
+  
+  dist_from_W(W, dist_covs) |&gt;
+    do_matching_with_dist() |&gt;
+    compute_balance(bal_covs, treat)
+}</code></pre>
+<p>The first line of the function needs explaining. Instead of optimizing over the weights directly, we’re going to optimize over the log of the weights. This ensures the weights can prioritize and de-prioritize variables in a symmetric way<a href="#fn9" class="footnote-ref" id="fnref9"><sup>9</sup></a>. To get back to the weights <code>W</code> used in the distance measure, we need to exponentiate the optimized log-weights <code>W_</code>. Also, instead of optimizing over all the weights, we are going to fix one weight to 1 (i.e., fix one log-weight to 0). This is because the matches are invariant to multiplying all the weights by a constant<a href="#fn10" class="footnote-ref" id="fnref10"><sup>10</sup></a>. So, we can identify the weights by choosing an arbitrary weight to set to 1<a href="#fn11" class="footnote-ref" id="fnref11"><sup>11</sup></a>.</p>
+<p>We can give this function a try to see balance when when the log-weights are all set to 0 (i.e., so all weights are equal to 1), which corresponds to matching using the standard scaled Euclidean distance:</p>
+<pre class="r"><code>W_test &lt;- rep(0, ncol(covs_ps) - 1)
+objective(W_test, dist_covs = covs_ps, bal_covs = covs,
+          treat = treat)</code></pre>
+<pre><code>## [1] 0.1280539</code></pre>
+<p>Now we can supply this to a function that performs the genetic algorithm to optimize out objective function. <code>GenMatch()</code> uses <code>rgenoud::genoud()</code>, but there is a more modern interface in the R package <code>{GA}</code>, which we’ll use instead just to demonstrate that the method is software-independent. We’ll use <code>GA::ga()</code>, which implements the standard genetic algorithm, though other functions are available for more sophisticated methods.</p>
+<p><code>ga()</code> can only maximize functions, but we want to minimize our imbalance, so we just have to create a new object function that is the negative of our original.</p>
+<pre class="r"><code>#Need negative objective to minimize imbalance
+neg_objective &lt;- function(...) -objective(...)</code></pre>
+<p>Take a look at the <code>GA::ga()</code> call below. We specify <code>type = "real-valued"</code> because our weights are real numbers, we supply the negative of our objective function to <code>fitness</code>, and we supply the additional argument to our functions (<code>dist_covs</code>, the covariates used in the distance matrix and the weights of which we are optimizing over; <code>bal_covs</code>, the covariates used to compute the balance statistic that is our criterion; and <code>treat</code>, the treatment vector). We need to provide lower and upper bounds for the weights, and here I’ve supplied -7 and 7, which correspond to weights of <span class="math inline">\(\exp(-7)=.0009\)</span> and <span class="math inline">\(\exp(7)=1096.6\)</span>.</p>
+<p>The next arguments control the speed and performance of the optimization process. I’ve already described <code>popSize</code>, the population size (called <code>pop.size</code> in <code>GenMatch()</code>). We are going to let the algorithm run for 500 generations (<code>maxiter</code>, called <code>max.generations</code> in <code>GenMatch()</code>/<code>genoud()</code>) but stop if there is no improvement in balance after 100 iterations (<code>run</code>, called <code>wait.generations</code> in <code>GenMatch()</code>/<code>genoud()</code>). I’m going to request parallel processing using 4 cores to speed it up, and suppress printing of output<a href="#fn12" class="footnote-ref" id="fnref12"><sup>12</sup></a>.</p>
+<pre class="r"><code>opt_out &lt;- GA::ga(
+  type = &quot;real-valued&quot;,
+  fitness = neg_objective,
+  dist_covs = covs_ps,
+  bal_covs = covs,
+  treat = treat,
+  lower = rep(-7, ncol(covs_ps) - 1),
+  upper = rep(7, ncol(covs_ps) - 1),
+  popSize = 200, 
+  maxiter = 500,
+  run = 100,
+  parallel = 4,
+  seed = 567,
+  monitor = NULL
+)</code></pre>
+<p>This takes my computer about 3 minutes to run. We can run some summaries on the output object to examine the results of the optimization:</p>
+<pre class="r"><code>summary(opt_out)</code></pre>
+<pre><code>## ── Genetic Algorithm ─────────────────── 
+## 
+## GA settings: 
+## Type                  =  real-valued 
+## Population size       =  200 
+## Number of generations =  500 
+## Elitism               =  10 
+## Crossover probability =  0.8 
+## Mutation probability  =  0.1 
+## Search domain = 
+##       x1 x2 x3 x4 x5 x6 x7 x8 x9
+## lower -7 -7 -7 -7 -7 -7 -7 -7 -7
+## upper  7  7  7  7  7  7  7  7  7
+## 
+## GA results: 
+## Iterations             = 251 
+## Fitness function value = -0.02735878 
+## Solutions = 
+##              x1        x2         x3       x4        x5          x6        x7          x8       x9
+##  [1,] -2.131722 -3.211259 0.07716908 2.014075 0.8820362 -0.56233539 0.8603869 -0.11499679 3.247619
+##  [2,] -2.143106 -3.214016 0.04484056 1.883541 0.7790500 -0.23702373 0.8119892 -0.13855416 3.239199
+##  [3,] -2.134344 -3.215796 0.06373645 2.096751 0.9507463 -0.51305525 0.8511466 -0.13408798 3.240825
+##  [4,] -2.126203 -3.218519 0.06842050 2.054350 0.8760389  0.14654690 0.8123135 -0.13585342 3.240511
+##  [5,] -2.139156 -3.215859 0.05880775 2.075352 0.8094103 -0.55428742 0.8385978 -0.14236686 3.231219
+##  [6,] -2.126643 -3.215275 0.07452945 2.085683 0.9246621  0.03924881 0.8309840 -0.13213708 3.233923
+##  [7,] -2.144081 -3.217624 0.07350998 2.083049 0.6266973 -0.19835280 0.8437496 -0.13188036 3.230876
+##  [8,] -2.140938 -3.218686 0.08261494 2.046125 0.8239281 -0.74804769 0.8537672 -0.12327868 3.263523
+##  [9,] -2.126126 -3.208634 0.06744410 1.963189 0.9050594 -0.37299052 0.8754860 -0.06291793 3.241593
+## [10,] -2.127889 -3.198998 0.05221517 1.678228 0.8716645  0.10282196 0.8418134 -0.13623726 3.241613
+## [11,] -2.144941 -3.215945 0.05434804 2.057280 0.8117419 -0.96995541 0.8475345 -0.13000397 3.307741
+## [12,] -2.140205 -3.205996 0.06436092 2.048975 0.7902906 -1.87554753 0.8307355 -0.13913023 3.239275</code></pre>
+<p>We can see that our final value for the criterion was about -0.0274 and this was achieved by each of the sets of log weights displayed. We can just focus on the first row. It’s not worth over-interpreting these values since their purpose is just to achieve balance and don’t reveal anything about the causal or statistic relevance of the covariates. But we can see that <code>x9</code> (i.e., <code>re75</code>) was the most important covariate in the distance measure, and <code>x2</code> (i.e., <code>educ</code>) was the least important.</p>
+<pre class="r"><code>plot(opt_out)</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-17-1.png" width="576" style="display: block; margin: auto;" />
+We can also see from the plot that close to the best balance was reached pretty quickly in fewer than 50 generations, and refinements after that were very minor. This suggests that if you’re in a rush or just want to test out genetic matching without committing to it, you can wait just a few generations (fewer than 100, which is the default in <code>GenMatch()</code>) to get a good sense of its performance.</p>
+<p>Finally, let’s perform a final round of matching using the found matching weights and assess balance on each covariate in our matched sample.</p>
+<pre class="r"><code>#Extract weights by transforming log weights from output
+W &lt;- exp(c(0, opt_out@solution[1,]))
+
+#Compute distance measure from weights and do matching
+m.out &lt;- dist_from_W(W, covs_ps) |&gt;
+  do_matching_with_dist()
+
+m.out</code></pre>
+<pre><code>## A matchit object
+##  - method: 2:1 nearest neighbor matching with replacement
+##  - distance: User-defined (matrix)
+##  - number of obs.: 614 (original), 306 (matched)
+##  - target estimand: ATT</code></pre>
+<pre class="r"><code>#Assess balance. See ?bal.tab for info on the arguments
+cobalt::bal.tab(treat ~ age + educ + married + race +
+                  nodegree + re74 + re75,
+                data = lalonde, stats = c(&quot;m&quot;, &quot;ks&quot;), 
+                binary = &quot;std&quot;, un = TRUE,
+                weights = cobalt::get.w(m.out),
+                method = &quot;matching&quot;)</code></pre>
+<pre><code>## Balance Measures
+##                Type Diff.Un  KS.Un Diff.Adj KS.Adj
+## age         Contin. -0.3094 0.1577   0.0181 0.2541
+## educ        Contin.  0.0550 0.1114   0.0255 0.0243
+## married      Binary -0.8263 0.3236  -0.0207 0.0081
+## race_black   Binary  1.7615 0.6404   0.0223 0.0081
+## race_hispan  Binary -0.3498 0.0827   0.0000 0.0000
+## race_white   Binary -1.8819 0.5577  -0.0274 0.0081
+## nodegree     Binary  0.2450 0.1114   0.0178 0.0081
+## re74        Contin. -0.7211 0.4470  -0.0273 0.1405
+## re75        Contin. -0.2903 0.2876   0.0271 0.0405
+## 
+## Sample sizes
+##                      Control Treated
+## All                   429.       185
+## Matched (ESS)          49.93     185
+## Matched (Unweighted)  121.       185
+## Unmatched             308.         0</code></pre>
+<p>We can see that after matching, the largest standardized mean difference is indeed 0.0274, well below the usual criterion of .1. That doesn’t mean the sample is fully balanced, though; some KS statistics are a bit high, suggesting that an imbalance measure that accounts for the full distribution of the covariates beyond the means might be more effective. Finally, once satisfactory balance has been found, you can estimate the treatment effect using the methods described in <code>vignette("estimating-effects", package = "MatchIt")</code>. I’ve gone on long enough so I won’t do that here.</p>
+<p>Congratulations! You’ve just done genetic matching, three ways!</p>
+</div>
+<div id="references" class="section level2 unnumbered">
+<h2>References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-diamondGeneticMatchingEstimating2013" class="csl-entry">
+Diamond, Alexis, and Jasjeet S. Sekhon. 2013. <span>“Genetic Matching for Estimating Causal Effects: A General Multivariate Matching Method for Achieving Balance in Observational Studies.”</span> <em>Review of Economics and Statistics</em> 95 (3): 932945. <a href="https://doi.org/10.1162/REST_a_00318">https://doi.org/10.1162/REST_a_00318</a>.
+</div>
+<div id="ref-greiferMatchingMethodsConfounder2021a" class="csl-entry">
+Greifer, Noah, and Elizabeth A Stuart. 2021. <span>“Matching Methods for Confounder Adjustment: An Addition to the Epidemiologist<span>’</span>s Toolbox.”</span> <em>Epidemiologic Reviews</em>, June, mxab003. <a href="https://doi.org/10.1093/epirev/mxab003">https://doi.org/10.1093/epirev/mxab003</a>.
+</div>
+<div id="ref-hulingEnergyBalancingCovariate2022" class="csl-entry">
+Huling, Jared D., and Simon Mak. 2022. <span>“Energy <span>Balancing</span> of <span>Covariate Distributions</span>.”</span> <span>arXiv</span>. <a href="https://doi.org/10.48550/arXiv.2004.13962">https://doi.org/10.48550/arXiv.2004.13962</a>.
+</div>
+<div id="ref-kingWhyPropensityScores2019" class="csl-entry">
+King, Gary, and Richard Nielsen. 2019. <span>“Why Propensity Scores Should Not Be Used for Matching.”</span> <em>Political Analysis</em>, May, 1–20. <a href="https://doi.org/10.1017/pan.2019.11">https://doi.org/10.1017/pan.2019.11</a>.
+</div>
+<div id="ref-oyenubiDoesChoiceBalancemeasure2020" class="csl-entry">
+Oyenubi, Adeola, and Martin Wittenberg. 2020. <span>“Does the Choice of Balance-Measure Matter Under Genetic Matching?”</span> <em>Empirical Economics</em>, May. <a href="https://doi.org/10.1007/s00181-020-01873-9">https://doi.org/10.1007/s00181-020-01873-9</a>.
+</div>
+<div id="ref-rizzoEnergyDistance2016" class="csl-entry">
+Rizzo, Maria L., and Gábor J. Székely. 2016. <span>“Energy Distance.”</span> <em>WIREs Computational Statistics</em> 8 (1): 27–38. <a href="https://doi.org/10.1002/wics.1375">https://doi.org/10.1002/wics.1375</a>.
+</div>
+<div id="ref-rubinBiasReductionUsing1980" class="csl-entry">
+Rubin, Donald B. 1980. <span>“Bias Reduction Using Mahalanobis-Metric Matching.”</span> <em>Biometrics</em> 36 (2): 293–98. <a href="https://doi.org/10.2307/2529981">https://doi.org/10.2307/2529981</a>.
+</div>
+<div id="ref-sekhonMultivariatePropensityScore2011" class="csl-entry">
+Sekhon, Jasjeet S. 2011. <span>“Multivariate and Propensity Score Matching Software with Automated Balance Optimization: The Matching Package for R.”</span> <em>Journal of Statistical Software</em> 42 (1): 1–52. <a href="https://doi.org/10.18637/jss.v042.i07">https://doi.org/10.18637/jss.v042.i07</a>.
+</div>
+<div id="ref-stuartMatchingMethodsCausal2010" class="csl-entry">
+Stuart, Elizabeth A. 2010. <span>“Matching Methods for Causal Inference: A Review and a Look Forward.”</span> <em>Statistical Science</em> 25 (1): 1–21. <a href="https://doi.org/10.1214/09-STS313">https://doi.org/10.1214/09-STS313</a>.
+</div>
+<div id="ref-stuartPrognosticScorebasedBalance2013" class="csl-entry">
+Stuart, Elizabeth A., Brian K. Lee, and Finbarr P. Leacy. 2013. <span>“Prognostic Score-Based Balance Measures Can Be a Useful Diagnostic for Propensity Score Methods in Comparative Effectiveness Research.”</span> <em>Journal of Clinical Epidemiology</em> 66 (8): S84. <a href="https://doi.org/10.1016/j.jclinepi.2013.01.013">https://doi.org/10.1016/j.jclinepi.2013.01.013</a>.
+</div>
+<div id="ref-zhuKernelBasedMetricBalance2018" class="csl-entry">
+Zhu, Yeying, Jennifer S. Savage, and Debashis Ghosh. 2018. <span>“A Kernel-Based Metric for Balance Assessment.”</span> <em>Journal of Causal Inference</em> 6 (2). <a href="https://doi.org/10.1515/jci-2016-0029">https://doi.org/10.1515/jci-2016-0029</a>.
+</div>
+</div>
+</div>
+<div class="footnotes footnotes-end-of-document">
+<hr />
+<ol>
+<li id="fn1"><p>There are several possible ways to compute <span class="math inline">\(\Sigma\)</span>; for example, <span class="citation">Rubin (<a href="#ref-rubinBiasReductionUsing1980" role="doc-biblioref">1980</a>)</span> uses the “pooled” covariance matrix, which is a weighted average of the within-group covariances.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+<li id="fn2"><p>Basically, they work by proposing a population of guesses of the parameters to be estimated (e.g., 50 sets of candidate <span class="math inline">\(W\)</span>s), removing the candidates with the worst imbalance, and reproducing and perturbing the remaining candidates slightly (like a genetic mutation), then doing this over and over again so that only the best candidates remain. This is a type of “evolutionary algorithm” because it works a bit like natural selection, where the fittest creatures remain to reproduce but with slight variation, and the least fit die off, improving the overall fitness of the species.<a href="#fnref2" class="footnote-back">↩︎</a></p></li>
+<li id="fn3"><p><code>{Matching}</code> uses matching imputation to estimate the treatment effect, which is different from running an outcome regression in the matched sample. See my answer <a href="https://stats.stackexchange.com/a/566981/116195">here</a> for some additional details on this distinction and its implications<a href="#fnref3" class="footnote-back">↩︎</a></p></li>
+<li id="fn4"><p>It’s maybe worth knowing that <code>GenMatch()</code> actually uses <span class="math inline">\(\Sigma\)</span> with all the off-diagonal elements set to <span class="math inline">\(0\)</span>. This is not described in its documentation or in the papers describing the method. In practice, this likely makes little difference to the overall matching performance. A benefit of this approach is that you get a nice interpretation of the resulting <span class="math inline">\(W\)</span> as importance of each variable in the match, though this interpretation serves little use in practice.<a href="#fnref4" class="footnote-back">↩︎</a></p></li>
+<li id="fn5"><p>Using a different matching method for the final match than you did in estimating <span class="math inline">\(W\)</span> is possible, but not advised.<a href="#fnref5" class="footnote-back">↩︎</a></p></li>
+<li id="fn6"><p>Be careful! There’s a <code>lalonde</code> dataset in <code>{Matching}</code>, too, which is different.<a href="#fnref6" class="footnote-back">↩︎</a></p></li>
+<li id="fn7"><p>Here is seems like we aren’t matching on any covariates by supplying <code>treat ~ 1</code> as the model formula; we are supplying the distance matrix ourselves, so the covariates play no role in the matching beyond that. To speed up the evaluation and prevent <code>matchit()</code> from having to process a whole data frame of covariates, we omit the covariates.<a href="#fnref7" class="footnote-back">↩︎</a></p></li>
+<li id="fn8"><p>This same balance statistic can be used in <code>WeightIt</code> and <code>twang</code> for generalized boosted modeling and other methods that involve optimizing a user-supplied criterion.<a href="#fnref8" class="footnote-back">↩︎</a></p></li>
+<li id="fn9"><p>That is, so a weight of 2 is as easy to find as a weight of 1/2, as these have the same “magnitude”; they correspond to log-weights of .69 and -.69, respectively.<a href="#fnref9" class="footnote-back">↩︎</a></p></li>
+<li id="fn10"><p>That is, the exact same matches found for a given set of weights would be found if all those weights were multiplied by, e.g., 100.<a href="#fnref10" class="footnote-back">↩︎</a></p></li>
+<li id="fn11"><p>It doesn’t matter which one you choose, but I like to make the propensity score have the scaling weight to assess how much more or less important the covariates are than the propensity score for achieving balance.<a href="#fnref11" class="footnote-back">↩︎</a></p></li>
+<li id="fn12"><p>If you’re following along at home, try setting <code>monitor = plot</code> to see a neat plot of the progress of the optimization! We’ll also view this plot after the optimization has finished.<a href="#fnref12" class="footnote-back">↩︎</a></p></li>
+</ol>
+</div>
