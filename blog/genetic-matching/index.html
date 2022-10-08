@@ -663,18 +663,17 @@
 
 <p>Genetic matching sounds cool and science-y, something we social scientists love because nobody thinks what we do is “real” science. And genetic matching is cool and science-y, but not because it has anything to do with genes or DNA. Genetic matching is a method of adjusting for confounding in observational studies; it is a close relative of propensity score matching and Mahalanobis distance matching and serves exactly the same purpose. <span class="citation">Sekhon (<a href="#ref-sekhonMultivariatePropensityScore2011" role="doc-biblioref">2011</a>)</span> and <span class="citation">Diamond and Sekhon (<a href="#ref-diamondGeneticMatchingEstimating2013" role="doc-biblioref">2013</a>)</span> describe genetic matching, but I’ll explain it here in simple terms and with an emphasis on its generality, which is undersold by its implementations.</p>
 <p>This post won’t make any sense if you don’t know what matching in general is. Go read <span class="citation">Stuart (<a href="#ref-stuartMatchingMethodsCausal2010" role="doc-biblioref">2010</a>)</span>, <span class="citation">Greifer and Stuart (<a href="#ref-greiferMatchingMethodsConfounder2021a" role="doc-biblioref">2021</a>)</span>, and the <code>MatchIt</code> <a href="https://kosukeimai.github.io/MatchIt/articles/matching-methods.html">vignette</a> on matching methods to learn about them. The focus here will be on <em>pair matching</em>, which involves assigning units to pairs or strata based on the distances between them, then discarding unpaired units.</p>
-<p>The goal of matching is balanced samples, i.e., samples where the distribution of covariates in the treated and control groups is the same so that an estimated treatment effect cannot be said to be due to differences in the covariate distributions. Why, then, do we make pairs? Close pairs create balance, in theory.</p>
-<p>How do we compute the distance between units? There are several ways; a common one is the Mahalanobis distance, as described for matching in <span class="citation">Rubin (<a href="#ref-rubinBiasReductionUsing1980" role="doc-biblioref">1980</a>)</span>, and which I’ll describe here.</p>
+<p>The goal of matching is balanced samples, i.e., samples where the distribution of covariates in the treated and control groups is the same so that an estimated treatment effect cannot be said to be due to differences in the covariate distributions. Why, then, do we make pairs? Close pairs create balance, in theory. How do we compute how close units are to each other? There are several ways; a common one is the Mahalanobis distance, as described for matching in <span class="citation">Rubin (<a href="#ref-rubinBiasReductionUsing1980" role="doc-biblioref">1980</a>)</span>, and which I’ll describe here.</p>
 <p>The <strong>Mahalanobis distance</strong> between two units <span class="math inline">\(i\)</span> and <span class="math inline">\(j\)</span> is defined as</p>
 <p><span class="math display">\[
 \delta^{md}_{i,j}=\sqrt{(\mathbf{x}_i-\mathbf{x}_j)\Sigma^{-1}(\mathbf{x}_i-\mathbf{x}_j)&#39;}
 \]</span></p>
 <p>where <span class="math inline">\(\mathbf{x}_i\)</span> is the vector of covariates for unit <span class="math inline">\(i\)</span> (i.e., that unit’s row in the dataset) and <span class="math inline">\(\Sigma\)</span> is the covariance matrix of the covariates<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a>. Equivalently, the Mahalanobis distance is the Euclidean distance (i.e., the regular distance) computed on the standardized principal components. The Mahalanobis distance is an improvement over the Euclidean distance of the covariates because it standardizes the covariates to be on the same scale and adjusts for correlations between covariates (so two highly correlated variables only count once). A great description of the Mahalanobis distance is <a href="https://stats.stackexchange.com/a/62147/116195">here</a> (though there it is not described in the context of matching).</p>
-<p>Genetic matching concerns a generalization of the Mahalanobis distance, called the <strong>generalized Mahalanobis distance</strong>, which additionally involves a set of weights for each covariate (not weights for each unit like in propensity score weighting; a weight for each <em>covariate</em>). The generalized Mahalanobis distance is defined as</p>
+<p>Genetic matching concerns a generalization of the Mahalanobis distance, called the <strong>generalized Mahalanobis distance</strong>, which additionally involves a weight matrix. The generalized Mahalanobis distance is defined as</p>
 <p><span class="math display">\[
 \delta^{gmd}_{i,j}(W)=\sqrt{(\mathbf{x}_i-\mathbf{x}_j)&#39;\left(\Sigma^{-\frac{1}{2}}\right)&#39; W\Sigma^{-\frac{1}{2}}(\mathbf{x}_i-\mathbf{x}_j)}
 \]</span></p>
-<p>where <span class="math inline">\(\Sigma^{-\frac{1}{2}}\)</span> is the “square root” of the inverse of the covariance matrix (e.g., the Cholesky decomposition), and <span class="math inline">\(W\)</span> is a symmetric “weight matrix” that can contain anything but in most cases is a diagonal matrix with a scalar weight for each covariate in <span class="math inline">\(\mathbf{x}\)</span>, i.e., <span class="math inline">\(W = \text{diag}(\begin{bmatrix} w_1 &amp; \dots &amp; w_p \end{bmatrix})\)</span>. The usual Mahalanobis distance is equal to the generalized Mahalanobis distance when $W=I$, the identity matrix.</p>
+<p>where <span class="math inline">\(\Sigma^{-\frac{1}{2}}\)</span> is the “square root” of the inverse of the covariance matrix (e.g., the Cholesky decomposition), and <span class="math inline">\(W\)</span> is a symmetric weight matrix that can contain anything but in most cases is a diagonal matrix with a scalar weight for each covariate in <span class="math inline">\(\mathbf{x}\)</span> (not weights for each unit like in propensity score weighting; a weight for each <em>covariate</em>), i.e., <span class="math inline">\(W = \text{diag}(\begin{bmatrix} w_1 &amp; \dots &amp; w_p \end{bmatrix})\)</span>. The generalized Mahalanobis distance is equal to the usual Mahalanobis distance when <span class="math inline">\(W=I\)</span>, the identity matrix.</p>
 <p>What does any of this have to do with genetic matching? Well, “genetic matching” is a bit of a misnomer; it’s not a matching method. It’s a method of estimating <span class="math inline">\(W\)</span>. Genetic matching finds the <span class="math inline">\(W\)</span> that, when incorporated in a generalized Mahalanobis distance used to match treated and control units, yields the best balance. Once you have found <span class="math inline">\(W\)</span>, you then do a regular round of matching, and that is your matched sample.</p>
 <p>To put it slightly more formally, consider a function <span class="math inline">\(\text{match}(\delta)\)</span>, which takes in a distance matrix <span class="math inline">\(\delta\)</span> and produces a matched set of treated and control units, characterized by a set of matching weights (e.g., 1 if matched, 0 if unmatched) and pair membership for each unit. Consider a function <span class="math inline">\(\text{imbalance}(m)\)</span>, which takes in the output of a <span class="math inline">\(\text{match}(\delta)\)</span> and returns a scalar imbalance metric (e.g., the largest absolute standardized mean difference among all the covariates). We can then write the genetic matching problem as the following:</p>
 <p><span class="math display">\[
@@ -699,7 +698,7 @@
 </div>
 <div id="examples" class="section level2">
 <h2>Examples</h2>
-<p>Below are some examples of genetic matching. First we’ll use <code>{Matching}</code>, which gives us a bit more insight into how the process goes, and then we’ll perform the same analysis using <code>{MatchIt}</code> to demonstrate how much easier it is. We’ll use the <code>lalonde</code> dataset in <code>{MatchIt}</code> for this analysis<a href="#fn6" class="footnote-ref" id="fnref6"><sup>6</sup></a></p>
+<p>Below are some examples of genetic matching. First we’ll use <code>{Matching}</code>, which gives us a bit more insight into how the process goes, and then we’ll perform the same analysis using <code>{MatchIt}</code> to demonstrate how much easier it is. We’ll use the <code>lalonde</code> dataset in <code>{MatchIt}</code> for this analysis<a href="#fn6" class="footnote-ref" id="fnref6"><sup>6</sup></a>.</p>
 <div id="using-matching" class="section level3">
 <h3>Using <code>Matching</code></h3>
 <pre class="r"><code>data(&quot;lalonde&quot;, package = &quot;MatchIt&quot;)
@@ -733,12 +732,12 @@ covs_ps &lt;- cbind(ps, covs)</code></pre>
 # Set seed for reproducibility; genetic matching has a random
 # component
 set.seed(333)
-gen_out &lt;- GenMatch(
+Gen_out &lt;- GenMatch(
   Tr = treat,             #Treatment
   X = covs_ps,            #Covariates to match on
   BalanceMatrix = covs,   #Covariance to balance
   estimand = &quot;ATT&quot;,       #Estimand
-  M = 2,                  #3:1 matching
+  M = 2,                  #2:1 matching
   replace = TRUE,         #With replacement
   ties = FALSE,           #No ties
   distance.tolerance = 0, #Use precise values
@@ -746,7 +745,7 @@ gen_out &lt;- GenMatch(
   pop.size = 200          #Genetic population size; bigger is better
 )</code></pre>
 <p>The important part of the <code>GenMatch()</code> output is the <code>Weight.matrix</code>, which corresponds to <span class="math inline">\(W\)</span>. It’s not really worth interpreting the weights; they are just whatever values happened to yield the best balance and don’t actually tell you anything about how important any covariate is to the treatment. We can supply the weights to the <code>Match()</code> function to do a final round of matching. All the arguments related to matching (e.g., <code>estimand</code>, <code>M</code>, <code>replace</code>, etc.) should be the same between <code>GenMatch()</code> and <code>Match()</code>. We call <code>Match()</code> below.</p>
-<pre class="r"><code>match_out &lt;- Match(
+<pre class="r"><code>Match_out &lt;- Match(
   Tr = treat,             #Treatment
   X = covs_ps,            #Covariates to match on
   estimand = &quot;ATT&quot;,       #Estimand
@@ -754,11 +753,11 @@ gen_out &lt;- GenMatch(
   replace = TRUE,         #With replacement
   ties = FALSE,           #No ties
   distance.tolerance = 0, #Use precise values
-  Weight.matrix = gen_out$Weight.matrix,
+  Weight.matrix = Gen_out$Weight.matrix,
   Weight = 3              #Tell Match() we&#39;re using Weight.matrix
 )</code></pre>
 <p>Finally we can take a look at the balance using <code>cobalt::bal.tab()</code>. Here, we check balance not only on the means but also on the KS statistics, since those are part of what is being optimized by the genetic optimization.</p>
-<pre class="r"><code>cobalt::bal.tab(match_out, treat ~ age + educ + married + race +
+<pre class="r"><code>cobalt::bal.tab(Match_out, treat ~ age + educ + married + race +
                   nodegree + re74 + re75, data = lalonde,
                 stats = c(&quot;m&quot;, &quot;ks&quot;))</code></pre>
 <pre><code>## Balance Measures
@@ -826,7 +825,7 @@ matchit_out &lt;- MatchIt::matchit(
 </div>
 </div>
 <div id="programming-genetic-matching-yourself" class="section level2">
-<h2>Programming genetic matching yourself</h2>
+<h2>Programming Genetic Matching Yourself</h2>
 <p>Perhaps surprisingly, it’s fairly easy to program genetic matching yourself. You only need the following ingredients:</p>
 <ol style="list-style-type: decimal">
 <li>A function that creates a distance matrix from a set of weights <span class="math inline">\(W\)</span></li>
@@ -841,7 +840,7 @@ matchit_out &lt;- MatchIt::matchit(
   MatchIt::scaled_euclidean_dist(data = dist_covs, var = variances / W)
 }</code></pre>
 <p>Of course, there are many ways we could make this more efficient. I just want to demonstrate how easy it is to program genetic matching. Programming it <em>well</em> is another story.</p>
-<p>Next, we need a function that performs matching on covariates given a distance matrix. We could use <code>optmatch::fullmatch()</code> for full matching, but <code>matchit()</code> provides a nice, general interface for many matching methods. We can supply the distance matrix to the <code>distance</code> argument of <code>matchit()</code>. A function that takes in a distance matrix and returns a <code>matchit</code> object containing the matched sample and matching weights is the following<a href="#fn7" class="footnote-ref" id="fnref7"><sup>7</sup></a></p>
+<p>Next, we need a function that performs matching on covariates given a distance matrix. We could use <code>optmatch::fullmatch()</code> for full matching, but <code>matchit()</code> provides a nice, general interface for many matching methods. We can supply the distance matrix to the <code>distance</code> argument of <code>matchit()</code>. A function that takes in a distance matrix and returns a <code>matchit</code> object containing the matched sample and matching weights is the following<a href="#fn7" class="footnote-ref" id="fnref7"><sup>7</sup></a>:</p>
 <pre class="r"><code>do_matching_with_dist &lt;- function(dist) {
   MatchIt::matchit(treat ~ 1, data = lalonde, distance = dist,
                    method = &quot;nearest&quot;, ratio = 2, replace = TRUE)
@@ -867,8 +866,8 @@ matchit_out &lt;- MatchIt::matchit(
 objective(W_test, dist_covs = covs_ps, bal_covs = covs,
           treat = treat)</code></pre>
 <pre><code>## [1] 0.1280539</code></pre>
-<p>Now we can supply this to a function that performs the genetic algorithm to optimize out objective function. <code>GenMatch()</code> uses <code>rgenoud::genoud()</code>, but there is a more modern interface in the R package <code>{GA}</code>, which we’ll use instead just to demonstrate that the method is software-independent. We’ll use <code>GA::ga()</code>, which implements the standard genetic algorithm, though other functions are available for more sophisticated methods.</p>
-<p><code>ga()</code> can only maximize functions, but we want to minimize our imbalance, so we just have to create a new object function that is the negative of our original.</p>
+<p>Now we can supply this to a function that performs the genetic algorithm to optimize our objective function. <code>GenMatch()</code> uses <code>rgenoud::genoud()</code>, but there is a more modern interface in the R package <code>{GA}</code>, which we’ll use instead just to demonstrate that the method is software-independent. We’ll use <code>GA::ga()</code>, which implements the standard genetic algorithm, though other functions are available for more sophisticated methods.</p>
+<p><code>ga()</code> can only maximize functions, but we want to minimize our imbalance, so we just have to create a new objective function that is the negative of our original.</p>
 <pre class="r"><code>#Need negative objective to minimize imbalance
 neg_objective &lt;- function(...) -objective(...)</code></pre>
 <p>Take a look at the <code>GA::ga()</code> call below. We specify <code>type = "real-valued"</code> because our weights are real numbers, we supply the negative of our objective function to <code>fitness</code>, and we supply the additional argument to our functions (<code>dist_covs</code>, the covariates used in the distance matrix and the weights of which we are optimizing over; <code>bal_covs</code>, the covariates used to compute the balance statistic that is our criterion; and <code>treat</code>, the treatment vector). We need to provide lower and upper bounds for the weights, and here I’ve supplied -7 and 7, which correspond to weights of <span class="math inline">\(\exp(-7)=.0009\)</span> and <span class="math inline">\(\exp(7)=1096.6\)</span>.</p>
@@ -885,7 +884,7 @@ neg_objective &lt;- function(...) -objective(...)</code></pre>
   maxiter = 500,
   run = 100,
   parallel = 4,
-  seed = 567,
+  seed = 567, #set seed here if using parallelization
   monitor = NULL
 )</code></pre>
 <p>This takes my computer about 3 minutes to run. We can run some summaries on the output object to examine the results of the optimization:</p>
@@ -921,7 +920,7 @@ neg_objective &lt;- function(...) -objective(...)</code></pre>
 ## [10,] -2.127889 -3.198998 0.05221517 1.678228 0.8716645  0.10282196 0.8418134 -0.13623726 3.241613
 ## [11,] -2.144941 -3.215945 0.05434804 2.057280 0.8117419 -0.96995541 0.8475345 -0.13000397 3.307741
 ## [12,] -2.140205 -3.205996 0.06436092 2.048975 0.7902906 -1.87554753 0.8307355 -0.13913023 3.239275</code></pre>
-<p>We can see that our final value for the criterion was about -0.0274 and this was achieved by each of the sets of log weights displayed. We can just focus on the first row. It’s not worth over-interpreting these values since their purpose is just to achieve balance and don’t reveal anything about the causal or statistic relevance of the covariates. But we can see that <code>x9</code> (i.e., <code>re75</code>) was the most important covariate in the distance measure, and <code>x2</code> (i.e., <code>educ</code>) was the least important.</p>
+<p>We can see that our final value for the criterion was about -0.0274 and this was achieved by each of the sets of log weights displayed. We can just focus on the first row. It’s not worth over-interpreting these values since their purpose is just to achieve balance and they don’t reveal anything about the causal or statistical relevance of the covariates. But we can see that <code>x9</code> (i.e., <code>re75</code>) was the most important covariate in the distance measure, and <code>x2</code> (i.e., <code>educ</code>) was the least important.</p>
 <pre class="r"><code>plot(opt_out)</code></pre>
 <p><img src="https://ngreifer.github.io/blog/genetic-matching/index.en_files/figure-html/unnamed-chunk-17-1.png" width="576" style="display: block; margin: auto;" />
 We can also see from the plot that close to the best balance was reached pretty quickly in fewer than 50 generations, and refinements after that were very minor. This suggests that if you’re in a rush or just want to test out genetic matching without committing to it, you can wait just a few generations (fewer than 100, which is the default in <code>GenMatch()</code>) to get a good sense of its performance.</p>
@@ -1010,7 +1009,7 @@ Zhu, Yeying, Jennifer S. Savage, and Debashis Ghosh. 2018. <span>“A Kernel-Bas
 <ol>
 <li id="fn1"><p>There are several possible ways to compute <span class="math inline">\(\Sigma\)</span>; for example, <span class="citation">Rubin (<a href="#ref-rubinBiasReductionUsing1980" role="doc-biblioref">1980</a>)</span> uses the “pooled” covariance matrix, which is a weighted average of the within-group covariances.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
 <li id="fn2"><p>Basically, they work by proposing a population of guesses of the parameters to be estimated (e.g., 50 sets of candidate <span class="math inline">\(W\)</span>s), removing the candidates with the worst imbalance, and reproducing and perturbing the remaining candidates slightly (like a genetic mutation), then doing this over and over again so that only the best candidates remain. This is a type of “evolutionary algorithm” because it works a bit like natural selection, where the fittest creatures remain to reproduce but with slight variation, and the least fit die off, improving the overall fitness of the species.<a href="#fnref2" class="footnote-back">↩︎</a></p></li>
-<li id="fn3"><p><code>{Matching}</code> uses matching imputation to estimate the treatment effect, which is different from running an outcome regression in the matched sample. See my answer <a href="https://stats.stackexchange.com/a/566981/116195">here</a> for some additional details on this distinction and its implications<a href="#fnref3" class="footnote-back">↩︎</a></p></li>
+<li id="fn3"><p><code>{Matching}</code> uses matching imputation to estimate the treatment effect, which is different from running an outcome regression in the matched sample. See my answer <a href="https://stats.stackexchange.com/a/566981/116195">here</a> for some additional details on this distinction and its implications.<a href="#fnref3" class="footnote-back">↩︎</a></p></li>
 <li id="fn4"><p>It’s maybe worth knowing that <code>GenMatch()</code> actually uses <span class="math inline">\(\Sigma\)</span> with all the off-diagonal elements set to <span class="math inline">\(0\)</span>. This is not described in its documentation or in the papers describing the method. In practice, this likely makes little difference to the overall matching performance. A benefit of this approach is that you get a nice interpretation of the resulting <span class="math inline">\(W\)</span> as importance of each variable in the match, though this interpretation serves little use in practice.<a href="#fnref4" class="footnote-back">↩︎</a></p></li>
 <li id="fn5"><p>Using a different matching method for the final match than you did in estimating <span class="math inline">\(W\)</span> is possible, but not advised.<a href="#fnref5" class="footnote-back">↩︎</a></p></li>
 <li id="fn6"><p>Be careful! There’s a <code>lalonde</code> dataset in <code>{Matching}</code>, too, which is different.<a href="#fnref6" class="footnote-back">↩︎</a></p></li>
