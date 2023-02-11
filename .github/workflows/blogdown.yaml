@@ -33,7 +33,7 @@ jobs:
         shell: Rscript {0}
 
       - name: Install hugo
-        run: blogdown::install_hugo()
+        run: blogdown::install_hugo("0.99.0")
         shell: Rscript {0}
 
       - name: Build site
