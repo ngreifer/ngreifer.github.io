@@ -29,7 +29,8 @@ jobs:
       - uses: r-lib/actions/setup-renv@v2
 
       - name: Install hugo
-        run: blogdown::install_hugo()
+        run: install.packages("blogdown")
+        run: blogdown::install_hugo()}
         shell: Rscript {0}
 
       - name: Build site
