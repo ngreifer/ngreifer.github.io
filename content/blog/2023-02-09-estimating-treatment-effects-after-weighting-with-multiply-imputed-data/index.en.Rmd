@@ -1,0 +1,224 @@
+---
+title: Estimating Treatment Effects After Weighting with Multiply Imputed Data
+author: Noah Greifer
+date: '2023-02-10'
+slug: estimating-treatment-effects-after-weighting-with-multiply-imputed-data
+categories:
+  - R
+tags:
+  - propensity-scores
+  - R
+  - multiple-imputation
+subtitle: ''
+summary: ''
+authors: []
+lastmod: Sys.time()
+draft: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+```{r}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+options(width = 200)
+```
+
+
+Multiply imputed data always makes things a little harder. Essentially, you have to perform each step of the analysis in each imputed dataset and then combine the results together in a special way. For basic regression analysis, the `mice` package makes fitting models and combining estimates simple. But when we want to do propensity score matching or weighting before fitting our regression models, and when the quantity we want to estimate is not just a coefficient in a regression model, things get a bit harder.
+
+For doing matching or weighting in multiply imputed data, the R package `{MatchThem}` does the job. It essentially provides wrappers for `MatchIt::matchit()` and `WeightIt::weightit()` for multiply imputed data. It extends `{mice}`'s functionality for fitting regression models in multiply imputed data by automatically incorporating the matched or weighted structure into the estimation of the outcome models. It uses `mice::pool()` to pool estimates across multiply imputed data.
+
+But for estimating treatment effects, it's often not as simple as using a regression coefficient. If we include covariates in our outcome model but want a marginal effect, we need to use an average marginal effects procedure (i.e., g-computation) to compute it within each imputed dataset, and then combine the results afterward. The `{marginaleffects}` package provides a wonderful interface for performing g-computation, but for multiply imputed data, it can require some programming by the analyst. In this guide, I'll show you how to do that programming to combine treatment effect estimates across multiple imputed datasets.
+
+An alternative to using `{marginaleffects}` is to use the `{clarify}` package. `{clarify}` can also be used to perform g-computation, but it uses simulation-based inference to compute the uncertainty bounds for the estimate. An advantage of simulation-based inference for multiply imputed data is that combining estimates across imputed datasets is much more straightforward. In this guide, I'll also show you how to use `{clarify}` to combine treatment effect estimates across imputed datasets.
+
+### Packages we'll need
+
+We will need the following packages for this demonstration: `cobalt`, `mice`, `MatchThem`, `WeightIt`, `marginaleffects`, and `clarify`.
+
+### The data
+
+As usual, we'll be using a version of the `lalonde` dataset. Here will use the `lalonde_mis` dataset in `{cobalt}`, which has missing values.
+
+```{r}
+data("lalonde_mis", package = "cobalt")
+
+summary(lalonde_mis)
+```
+
+You can see there are some missing values in `married`, `re74`, and `re75`.
+
+### Imputing the data
+
+Here, we'll use `{mice}` to impute the data. Although typically something like 20 imputation is sufficient, for the method `{clarify}` uses, it needs way more, so we'll use 50. We'll use the default settings, but you should tailor the imputation to fit the needs of your dataset. (I always like to use a machine learning method for my imputations). We'll also set a seed to ensure replicability.
+
+```{r}
+library("mice")
+set.seed(12345)
+imp <- mice(lalonde_mis, m = 50, printFlag = FALSE)
+```
+
+`mice()` returns a `mids` object, which contains the imputed datasets. Although we could extract the datasets using `complete()`, we'll supply this object directly to our function for estimating the propensity score weights.
+
+### Weighting the imputed data
+
+We'll use `MatchThem::weightthem()` to estimate propensity score weights in the imputed datasets. We could also use `MatchThem::matchthem()` to do matching; the process is basically identical^[The key differences is that pair membership needs to be accounted for in estimation of the variance of the outcome model coefficients; this is usually as simply as specifying `vcov = ~subclass` to functions in `{marginaleffects}` or `{clarify}`.]. Here we'll use logistic regression (🤢) to estimate ATT weights to keep things quick and simple.
+
+```{r}
+library("MatchThem")
+w.imp <- weightthem(treat ~ age + educ + race + married + nodegree +
+                      re74 + re75, data = imp, method = "ps",
+                    estimand = "ATT")
+```
+
+Let's assess balance using `{cobalt}`.
+
+```{r}
+library("cobalt")
+bal.tab(w.imp, stats = c("m", "ks"), abs = TRUE)
+```
+
+Balance could be a bit better on `age`, but we're going to move on because we have things to do.
+
+### Fitting the outcome models
+
+Our next step is to fit the outcome model in each imputed dataset. Here, our outcome will be `re78 == 0`, i.e., whether a unit's earnings in 1978 were 0. Ideally, treatment reduces this risk. Although our estimand will be a risk ratio, because we're doing g-computation, we can fit a model for the outcome that actually makes sense rather than choosing one based on the convenient interpretation of its coefficients. So, we'll fit a probit outcome model to really hit home that we need a post-estimation method to estimate our quantity of interest and can't rely on our model coefficients.
+
+Although `{MatchThem}` has functionality for fitting models to the imputed datasets that incorporate the weights, for our purposes, it is better to extract the imputed datasets and fit each model manually in a loop. We'll use `glm()` to do so, though the `{MatchThem}` and `{WeightIt}` documentation may recommend `syrvey::svyglm()` because it correctly computes the robust standard errors. We'll do that later using `{marginaleffects}` and `{clarify}` functions so it's okay that we don't do it now. We'll use a quasi-binomial model because we have weights.
+
+```{r}
+fits <- lapply(complete(w.imp, "all"), function(d) {
+  glm(I(re78 == 0) ~ treat + age + educ + married + race +
+        nodegree + re74 + re75, data = d,
+      weights = weights, family = quasibinomial("probit"))
+})
+```
+
+If we wanted to interpret the pooled coefficients from our outcome model (and we had included correct estimation of the standard errors, which we didn't here), we could use `pool(fits) |> summary()` to get them. But none of that is true here so we'll move on and save the pooling till after we estimate the quantity of interest.
+
+## The `{marginaleffects}` workflow
+
+Now we have our list of models. Our next step is to estimate the ATT risk ratio in each one (with the correct standard error) and pool the results. If the only quantity we want is the treatment effect, this is easy. We can use `marginaleffects::avg_comparisons()` on each model and then use `mice::pool()` to pool the results. In our call to `avg_comparisons()`, we need to subset the data used to fit each model to just the treated units and supply this to `newdata`, supply the name of the variable containing the weights to `wts`^[This actually isn't necessary for the ATT but it's walys good practice.], supply the robust standard error type (HC3) to `vcov`, and specify that we want the log risk ratio of the average estimated potential outcomes by supplying `"lnratioavg"` to `transform_pre`^[Note: we need the log risk ratio because Rubin's pooling rules don't apply to the risk ratio but do to the log risk ratio. We will exponentiate the log risk ratio and its confidence interval after pooling.].
+
+```{r}
+library("marginaleffects")
+comp.imp <- lapply(fits, function(fit) {
+  avg_comparisons(fit, newdata = subset(fit$data, treat == 1),
+                  variables = "treat", wts = "weights", vcov = "HC3",
+                  transform_pre = "lnratioavg")
+})
+
+pooled.comp <- mice::pool(comp.imp)
+```
+
+Finally, we can use `summary()` on the resulting object, adding the arguments `conf.int = TRUE` to request confidence intervals and `exponentiate = TRUE` to get the risk ratio from the log risk ratio.
+
+```{r}
+summary(pooled.comp, conf.int = TRUE,
+        exponentiate = TRUE)
+```
+```{r, include = F}
+out <- summary(pooled.comp, conf.int = TRUE,
+               exponentiate = TRUE)
+```
+
+
+We find a risk ratio of approximately `r round(out$estimate[1], 3)`, 95% CI: [`r round(out[["2.5 %"]][1], 3)`, `r round(out[["97.5 %"]][1], 3)`], indicating that in our sample, the risk of having zero earnings in 1978 decreased slightly for those who received treatment, but we don't have strong evidence for such an effect in the population.
+
+Although this is nice and simple, things get a bit more complicated when we want to estimate multiple comparisons at the same time, estimate the marginal risks, or perform a more complex analysis. Additional programming is required to make `mice::pool()` compatible with these more complex quantities. We'll demonstrate how to hack `{marginaleffects}` to make it work using the instructions in the `{marginaleffects}` [vignette on multiple imputation](https://vincentarelbundock.github.io/marginaleffects/articles/multiple_imputation.html).
+
+We'll be using `avg_predictions()` on each model to compute the marginal risks under each treatment level, which uses a similar syntax to `comparisons()`. The challenge comes in that `avg_predictions()` produces two rows of output (one for each treatment level), which are not correctly distinguished by `mice::pool()`. So, we'll have to create a new custom class and write a new `tidy()` method for our class.
+
+First, we'll generate our marginal risks and assign the output our new class, which is arbitrary but which I will call `"pred_imp_custom"`.
+
+```{r}
+pred.imp <- lapply(fits, function(fit) {
+  out <- avg_predictions(fit, newdata = subset(fit$data, treat == 1),
+                         variables = "treat", wts = "weights",
+                         vcov = "HC3", by = "treat")
+  
+  # the next line assigns our custom class
+  class(out) <- c("pred_imp_custom", class(out))
+  return(out)
+})
+```
+
+Next, we'll write our new `tidy()` method. (Make sure to replace `treat` everywhere you see it with the name of your treatment variable.) We won't actually be using this function at all; it is called internally by `mice::pool()`.
+
+```{r}
+tidy.pred_imp_custom <- function(x, ...) {
+    out <- marginaleffects:::tidy.predictions(x, ...)
+    out$term <- paste("treat =", out$treat)
+    return(out)
+}
+```
+
+Finally, we can use `mice::pool()` and `summary()` to get our marginal risks:
+
+```{r}
+mice::pool(pred.imp) |> summary(conf.int = TRUE)
+```
+
+Taking the ratio of these risks gives us the risk ratio we computed above.
+
+Note that you have to customize the `tidy()` method in a slightly different way when you are estimating treatment effects in subgroups. I'll leave that as an exercise to the reader, or you can hire me to do it for you :)
+
+## The `{clarify}` workflow
+
+The `{clarify}` workflow for multiply imputed data is very similar to its workflow for regular data. How simulation-based inference works broadly is that sets of parameters are drawn from a distribution after fitting the model; this distribution is often assumed to be multivariate normal with the mean vector equal to the estimated coefficients and the covariance equal to the asymptotic covariance matrix of the coefficients. Many (e.g., 1000) sets of coefficients are drawn, and a quantity of interest is computed using each set, forming a "posterior" distribution of the quantity of interest. This posterior is then used for inference: its standard deviation can be used as the quantity's standard error, and its quantiles can be used as confidence intervals. For more information on this methodology, see the `{clarify}` [website](https://iqss.github.io/clarify/) and its references.
+
+With multiply imputed data, this process is done for the model fit to each imputed dataset, and then the distributions of the quantities of interest are simply combined to form a single distribution, which is used for inference. In Bayesian terms, this would be called "mixing draws". The variance of this mixture distribution approaches the variance of the estimate computed using Rubin's rules when the number of imputations is high.
+
+To use `{clarify}`, we supply the list of fitted models to `clarify::misim()`, which draws the coefficients from their implied distributions from each model. We also need to specify the method for computing the covariance matrix (here, using the same HC3 robust covariance we used with `{marginaleffects}` to account for the weights). We will only request 200 replications per fitted model since we have 50 imputations, which gives us 10,000 replicates (likely more than enough for stable inference).
+
+```{r}
+library("clarify")
+
+sim.imp <- misim(fits, n = 200, vcov = "HC3")
+sim.imp
+```
+
+(Note: because we used a quasi-binomial model, a scaled t-distribution was used to draw the coefficients. In practice this will give similar draws to a normal distribution.)
+
+The output of `misim()` is then fed to a function for computing the quantity of interest in each draw; here, we'll be using `clarify::sim_ame()`, which is appropriate for computing marginal risks in a subset of the data (i.e., the ATT risk ratio). We supply the treatment variable to `var` and subset the data to just the treated units using `subset` to request the ATT. Although we can use the `contrast` argument to request the (log) risk ratio, we can compute that afterward quickly from the marginal risks. (Using `cl = 3` uses parallel computing with 3 cores but only if you are on a Mac. See the `sim_ame()` documentation for more information on how to use the `cl` argument.)
+
+```{r}
+sim.att <- sim_ame(sim.imp, var = "treat",
+                   subset = treat == 1, cl = 3,
+                   verbose = FALSE)
+sim.att
+```
+
+To compute the risk ratio, we can use `transform()`:
+
+```{r}
+sim.att <- transform(sim.att, RR = `E[Y(1)]`/`E[Y(0)]`)
+```
+
+Finally, we can compute out confidence intervals and p-values around the estimated marginal risks and risk ratio using `summary()`:
+
+```{r}
+summary(sim.att, null = c(RR = 1))
+```
+```{r, include = FALSE}
+out <- summary(sim.att, null = c(RR = 1))
+```
+
+Here, we find a risk ratio of approximately `r round(out["RR", "Estimate"], 3)`, 95% CI: [`r round(out["RR", "2.5 %"], 3)`, `r round(out["RR", "97.5 %"], 3)`]. The estimates, confidence intervals, and p-values we get from the two methods line up well.
+
+By default, `{clarify}` uses quantile-based confidence intervals and computes the p-values by inverting them (i.e., finding the largest confidence level that yields an interval that excludes the null value and computing the p-value as one minus that level). Wald confidence intervals and p-values can also be request by setting `method = "wald"` in the call to `summary()`, but these are only recommended if the quantity has a normal distribution (which the risk ratio does not).
+
+### Explaining differences between the approaches
+
+Both the delta method- and simulation-based inference approaches are valid, but sometimes you will get results that disagree. The estimates of the quantities of interest may disagree because of how `mice::pool()` and `clarify::sim_ame()` combine estimates across imputations.
+
+Rubin's rules involve simply taking the mean of the estimates across imputations. This works well when the quantity is collapsible, linear, or has a symmetric (ideally normal) distribution. If the quantity of interest is none of those but can be transformed from a quantity that does have those properties, Rubin's rules can be apply to this intermediate quantity before transforming the estimate to get the final results. This is exactly what we did in the `{marginaleffects}` workflow when we computed the log risk ratio before pooling and then exponentiating the pooled log risk ratio to arrive at the risk ratio. If we had gone straight into pooling the risk ratio, the resulting estimate might not have been consistent.
+
+`{clarify}` works by first using Rubin's pooling rules on the model coefficients, which we assume to be normally distributed, and then computing the quantity of interest in each imputed dataset using draws from the pooled coefficients. A benefit of this strategy is that we don't have to wonder whether the quantity of interest satisfies the above properties. The resulting estimates will be consistent because no pooling is done on them; the pooling happens only in the first step.
+
+Confidence intervals may differ slightly between the two methods, and this could be due to two reasons: 1) the delta method and simulation-based inferences naturally compute confidence intervals in different ways, with the delta method using a first-order Taylor series approximation and assuming normality of the quantity of interest, and simulation-based inference using simulation to generate a "posterior" for the quantity of interest and using its quantiles as the interval; and 2) simulation-based inference requires many imputations for the variance of the posterior to equal the variance of the Rubin's rules pooled estimate. More imputations is always better for both methods, so do as many as you can.
+
+How should you choose between the delta method and simulation-based inference? Use whichever will get you published, of course! (Just kidding.) Use the one you find most trustworthy, that your audience will find the most trustworthy, and that balances the assumptions you are willing to make with the desired precision of the estimate. You might also use the one that seems more natural to you, either conceptually or in terms of usability. Frankly, I find `{clarify}` to be easier to use when the quantity of interest is more complicated than a single comparison (e.g., for subgroup analysis or for computing average marginal risks), but `{marginaleffects}` can be faster, doesn't rely on a stochastic process, and is better-backed by statistical theory. Confirming you get similar results with both methods is always a good idea, and the plotting diagnostics in `{clarify}` can be used to determine whether any difference might be due to the failure of the delta method due to violation of one of its assumptions.
