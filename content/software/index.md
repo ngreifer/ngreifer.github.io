@@ -6,7 +6,7 @@ share: false  # Show social sharing links?
 profile: false  # Show author profile?
 comments: false  # Show comments?
 ---
-This page documents the software packages I have worked on. if you have any questions about them, please submit your question to their GitHub issues page rather than emailing me. You are also welcome to ask a question on [StackOverflow](https://stackoverflow.com/) or [CrossValidated](https://stats.stackexchange.com/), which I check often.
+This page documents the software packages I have worked on. If you have any questions about them, please submit your question to their GitHub issues page rather than emailing me. You are also welcome to ask a question on [StackOverflow](https://stackoverflow.com/) or [CrossValidated](https://stats.stackexchange.com/), which I check often.
 
 ## R packages
 
@@ -26,6 +26,8 @@ These packages are ones that I am a primary author on and have expertise on the 
   - Gary King, Christopher Lucas, Richard Nielsen, and Noah Greifer | [website](https://iqss.github.io/MatchingFrontier) | [source](https://github.com/iqss/MatchingFrontier)
 * `fwb`: Fractional Weighted Bootstrap
   - Noah Greifer | [website](https://ngreifer.github.io/fwb) | [CRAN](https://cran.r-project.org/package=fwb) | [source](https://github.com/ngreifer/fwb)
+* `clarify`: Simulation-Based Inference for Regression Models
+  - Noah Greifer, Steven Worthington, Stefano Iacus, and Gary King | [website](https://iqss.github.io/clarify/) | [CRAN](https://cloud.r-project.org/package=clarify) | [source](https://github.com/iqss/clarify/)
 
 These packages are ones that I have developed as part of my job but which I don't consider "mine" in the sense that I am not the primary maintainer and I don't have expertise on the methods implemented. Please do not contact me about these packages.
 
