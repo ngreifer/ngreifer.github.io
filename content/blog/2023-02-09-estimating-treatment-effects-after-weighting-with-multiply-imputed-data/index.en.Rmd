@@ -13,7 +13,7 @@ lastmod: Sys.time()
 share: true
 ---
 
-```{r}
+```{r setup, include = FALSE}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 options(width = 200)
 ```
