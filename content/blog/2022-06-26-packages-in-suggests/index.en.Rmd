@@ -3,7 +3,7 @@ title: 'Dealing with the "Packages in Suggests should be used conditionally" ema
 author: Noah Greifer
 date: '2022-06-26'
 slug: test-post
-draft: true
+draft: yes
 categories:
   - R
 tags:
