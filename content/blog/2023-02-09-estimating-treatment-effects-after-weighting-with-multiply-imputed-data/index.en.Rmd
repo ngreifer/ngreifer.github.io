@@ -2,23 +2,15 @@
 title: Estimating Treatment Effects After Weighting with Multiply Imputed Data
 author: Noah Greifer
 date: '2023-02-10'
-slug: estimating-treatment-effects-after-weighting-with-multiply-imputed-data
+slug: treatment-effects-mi
 categories:
   - R
 tags:
   - propensity-scores
   - R
   - multiple-imputation
-subtitle: ''
-summary: ''
-authors: []
 lastmod: Sys.time()
-draft: no
-image:
-  caption: ''
-  focal_point: ''
-  preview_only: no
-projects: []
+share: true
 ---
 
 ```{r}

@@ -1,22 +1,14 @@
 ---
-title: Genetic Matching, from the Bottom Up
+title: Genetic Matching, from the Ground Up
 author: Noah Greifer
 date: '2022-10-08'
 slug: genetic-matching
-categories: []
 tags:
   - matching
   - R
-subtitle: ''
-summary: ''
 lastmod: Sys.time()
-featured: no
-image:
-  caption: ''
-  focal_point: ''
-  preview_only: no
-projects: []
 bibliography: references.bib
+share: true
 ---
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE,
