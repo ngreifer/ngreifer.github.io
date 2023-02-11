@@ -1,0 +1,1385 @@
+<!DOCTYPE html><html lang="en-us" >
+
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  
+  
+  
+    <meta name="generator" content="Wowchemy 5.5.0 for Hugo" />
+  
+
+  
+  
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+  
+  
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  
+
+  
+  
+  
+    
+      
+      <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Roboto+Mono&family=Roboto:wght@400;700&display=swap">
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Roboto+Mono&family=Roboto:wght@400;700&display=swap" media="print" onload="this.media='all'">
+    
+  
+
+  
+    <meta name="google-site-verification" content="ZWBIxYyx89sPR8cWppV98s52niwEhHNRqXlIU9D4B14" />
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Noah Greifer" />
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Today I’m going to demonstrate performing a subgroup analysis after propensity score matching using R. Subgroup analysis, also known as moderation analysis or the analysis of effect modification, concerns the estimation of treatment effects within subgroups of a pre-treatment covariate." />
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://ngreifer.github.io/blog/subgroup-analysis-psm/" />
+
+  
+  
+  
+    <meta name="theme-color" content="#1565c0" />
+  
+
+  
+  
+    
+    <script src="/js/mathjax-config.js"></script>
+  
+
+  
+
+  <link rel="stylesheet" href="/css/vendor-bundle.min.c7b8d9abd591ba2253ea42747e3ac3f5.css" media="print" onload="this.media='all'">
+
+  
+  
+  
+    
+    
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/academicons@1.9.1/css/academicons.min.css" integrity="sha512-W0xM4mr6dEP9nREo7Z9z+9X70wytKvMGeDsj7ps2+xg5QPrEBXC8tAW1IFnzjR6eoJ90JmCnFzerQJTLzIEHjA==" crossorigin="anonymous" media="print" onload="this.media='all'">
+    
+
+    
+    
+    
+    
+      
+      
+    
+    
+    
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@10.2.1/build/styles/github.min.css" crossorigin="anonymous" title="hl-light" media="print" onload="this.media='all'">
+          <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@10.2.1/build/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" media="print" onload="this.media='all'" disabled>
+        
+      
+    
+
+    
+    
+    
+
+    
+
+    
+    
+      
+      
+
+      
+      
+
+      
+    
+      
+      
+
+      
+      
+
+      
+    
+      
+      
+
+      
+      
+
+      
+    
+      
+      
+
+      
+      
+
+      
+    
+      
+      
+
+      
+      
+
+      
+    
+      
+      
+
+      
+      
+
+      
+    
+      
+      
+
+      
+      
+
+      
+    
+      
+      
+
+      
+      
+
+      
+    
+      
+      
+
+      
+      
+
+      
+    
+      
+      
+
+      
+      
+
+      
+    
+      
+      
+
+      
+      
+
+      
+    
+      
+      
+
+      
+      
+
+      
+    
+      
+      
+
+      
+      
+
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" integrity="" crossorigin="anonymous" async></script>
+      
+    
+      
+      
+
+      
+      
+
+      
+    
+      
+      
+
+      
+      
+
+      
+    
+  
+
+  
+  
+  
+  
+  
+  <link rel="stylesheet" href="/css/wowchemy.306aeb887f7c1338455c74dc805fe1bc.css" />
+
+  
+
+
+
+  
+
+
+  
+
+
+  
+
+
+
+
+  
+  
+  
+
+  
+
+  
+    <link rel="manifest" href="/manifest.webmanifest" />
+  
+
+  <link rel="icon" type="image/png" href="/media/icon_huc587dcc5401d36981f4ca7feddf736f3_375856_32x32_fill_lanczos_center_3.png" />
+  <link rel="apple-touch-icon" type="image/png" href="/media/icon_huc587dcc5401d36981f4ca7feddf736f3_375856_180x180_fill_lanczos_center_3.png" />
+
+  <link rel="canonical" href="https://ngreifer.github.io/blog/subgroup-analysis-psm/" />
+
+  
+  
+  
+  
+  
+  
+  
+  
+    
+  
+  
+
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary_large_image" />
+  
+    <meta property="twitter:site" content="@noah_greifer" />
+    <meta property="twitter:creator" content="@noah_greifer" />
+  
+  <meta property="og:site_name" content="Noah Greifer" />
+  <meta property="og:url" content="https://ngreifer.github.io/blog/subgroup-analysis-psm/" />
+  <meta property="og:title" content="Subgroup Analysis After Propensity Score Matching Using R | Noah Greifer" />
+  <meta property="og:description" content="Today I’m going to demonstrate performing a subgroup analysis after propensity score matching using R. Subgroup analysis, also known as moderation analysis or the analysis of effect modification, concerns the estimation of treatment effects within subgroups of a pre-treatment covariate." /><meta property="og:image" content="https://ngreifer.github.io/media/sharing.jpg" />
+    <meta property="twitter:image" content="https://ngreifer.github.io/media/sharing.jpg" /><meta property="og:locale" content="en-us" />
+  
+    
+      <meta
+        property="article:published_time"
+        content="2022-09-05T00:00:00&#43;00:00"
+      />
+    
+    <meta property="article:modified_time" content="2022-09-05T00:00:00&#43;00:00">
+  
+
+  
+
+
+
+  
+
+  
+
+  
+
+
+
+
+
+  <title>Subgroup Analysis After Propensity Score Matching Using R | Noah Greifer</title>
+</head>
+
+
+<body id="top" data-spy="scroll" data-offset="70" data-target="#TableOfContents" class="page-wrapper   " data-wc-page-id="2ce2bc3725b3a8aff6cde5b4b0c90240" >
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  <script src="/js/wowchemy-init.min.2ed908358299dd7ab553faae685c746c.js"></script>
+
+  
+
+
+<aside class="search-modal" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#" aria-label="Close"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        <input name="q" id="search-query" placeholder="Search..." autocapitalize="off"
+        autocomplete="off" autocorrect="off" spellcheck="false" type="search" class="form-control"
+        aria-label="Search...">
+        
+      </div>
+
+      
+      
+
+      
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+
+  <div class="page-header">
+    
+
+
+
+
+
+
+
+
+
+
+
+
+<header class="header--fixed">
+  <nav class="navbar navbar-expand-lg navbar-light compensate-for-scrollbar" id="navbar-main">
+    <div class="container-xl">
+
+      
+      <div class="d-none d-lg-inline-flex">
+        <a class="navbar-brand" href="/">Noah Greifer</a>
+      </div>
+      
+
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse"
+              data-target="#navbar-content" aria-controls="navbar-content" aria-expanded="false" aria-label="Toggle navigation">
+      <span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+      
+      <div class="navbar-brand-mobile-wrapper d-inline-flex d-lg-none">
+        <a class="navbar-brand" href="/">Noah Greifer</a>
+      </div>
+      
+
+      
+      
+      <div class="navbar-collapse main-menu-item collapse justify-content-start" id="navbar-content">
+
+        
+        <ul class="navbar-nav d-md-inline-flex">
+          
+
+          
+
+          
+          
+          
+
+          
+
+          
+          
+          
+          
+
+          
+            
+            
+          
+
+          <li class="nav-item">
+            <a class="nav-link " href="/"><span>Home</span></a>
+          </li>
+
+          
+          
+
+          
+
+          
+          
+          
+            
+          
+
+          
+
+          
+          
+          
+          
+
+          
+            
+              
+              
+            
+            
+          
+
+          <li class="nav-item">
+            <a class="nav-link  active" href="/blog"><span>Blog</span></a>
+          </li>
+
+          
+          
+
+          
+
+          
+          
+          
+            
+          
+
+          
+
+          
+          
+          
+          
+
+          
+            
+              
+              
+            
+            
+          
+
+          <li class="nav-item">
+            <a class="nav-link " href="/software"><span>Software</span></a>
+          </li>
+
+          
+          
+
+        
+
+          
+        </ul>
+      </div>
+
+      <ul class="nav-icons navbar-nav flex-row ml-auto d-flex pl-md-2">
+
+        
+        
+          
+        
+
+        
+        
+        <li class="nav-item">
+          <a class="nav-link js-search" href="#" aria-label="Search"><i class="fas fa-search" aria-hidden="true"></i></a>
+        </li>
+        
+
+        
+        
+        
+        <li class="nav-item dropdown theme-dropdown">
+          <a href="#" class="nav-link" data-toggle="dropdown" aria-haspopup="true" aria-label="Display preferences">
+            <i class="fas fa-moon" aria-hidden="true"></i>
+          </a>
+          <div class="dropdown-menu">
+            <a href="#" class="dropdown-item js-set-theme-light">
+              <span>Light</span>
+            </a>
+            <a href="#" class="dropdown-item js-set-theme-dark">
+              <span>Dark</span>
+            </a>
+            <a href="#" class="dropdown-item js-set-theme-auto">
+              <span>Automatic</span>
+            </a>
+          </div>
+        </li>
+        
+
+        
+        
+
+      </ul>
+
+    </div>
+  </nav>
+</header>
+
+
+  </div>
+
+  <div class="page-body">
+    
+    
+    
+
+    <article class="article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+  
+  
+<div class="article-container pt-3">
+  <h1>Subgroup Analysis After Propensity Score Matching Using R</h1>
+
+  
+
+  
+    
+
+
+<div class="article-metadata">
+
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+    
+    Sep 5, 2022
+  </span>
+  
+
+  
+
+  
+
+  
+  
+  
+  
+
+  
+  
+
+</div>
+
+    
+
+
+
+
+
+  
+</div>
+
+
+
+  <div class="article-container">
+
+    <div class="article-style">
+      
+
+
+<p>Today I’m going to demonstrate performing a subgroup analysis after propensity score matching using R. Subgroup analysis, also known as moderation analysis or the analysis of effect modification, concerns the estimation of treatment effects within subgroups of a pre-treatment covariate. This post assumes you understand how to do propensity score matching. For a general introduction to propensity score matching, I recommend <span class="citation">Austin (<a href="#ref-austinIntroductionPropensityScore2011" role="doc-biblioref">2011</a>)</span> and the <code>{MatchIt}</code> <a href="https://kosukeimai.github.io/MatchIt/articles/MatchIt.html">introductory vignette</a>. If you understand inverse probability weighting but aren’t too familiar with matching, I recommend my article with Liz Stuart <span class="citation">(<a href="#ref-greiferMatchingMethodsConfounder2021a" role="doc-biblioref">Greifer and Stuart 2021</a>)</span>. For an introduction to subgroup analysis with propensity scores, you can also check out <span class="citation">Green and Stuart (<a href="#ref-greenExaminingModerationAnalyses2014" role="doc-biblioref">2014</a>)</span>. Here, I’ll mainly try to get to the point.</p>
+<p>The dataset we’ll use today is the famous Lalonde dataset, investigating the effect of a job training program on earnings. We’ll use the version of this dataset that comes with the <code>{MatchIt}</code> package.</p>
+<pre class="r"><code>data(&quot;lalonde&quot;, package = &quot;MatchIt&quot;)
+head(lalonde)</code></pre>
+<pre><code>##      treat age educ   race married nodegree re74 re75       re78
+## NSW1     1  37   11  black       1        1    0    0  9930.0460
+## NSW2     1  22    9 hispan       0        1    0    0  3595.8940
+## NSW3     1  30   12  black       0        0    0    0 24909.4500
+## NSW4     1  27   11  black       0        1    0    0  7506.1460
+## NSW5     1  33    8  black       0        1    0    0   289.7899
+## NSW6     1  22    9  black       0        1    0    0  4056.4940</code></pre>
+<p>The treatment is <code>treat</code>, the outcome in the original study was <code>re78</code> (1978 earnings), and the other variables are pretreatment covariates that we want to adjust for using propensity score matching. In this example, I’ll actually be using a different outcome, <code>re78_0</code>, which is whether the participant’s 1978 earnings were equal to 0 or not, because I want to demonstrate the procedure for a binary outcome. So, we hope the treatment effect is negative, i.e., the risk of 0 earnings decreases for those in the treatment.</p>
+<pre class="r"><code>lalonde$re78_0 &lt;- as.numeric(lalonde$re78 == 0)</code></pre>
+<p>Our moderator will be <code>race</code>, a 3-category factor variable.</p>
+<pre class="r"><code>with(lalonde, table(race))</code></pre>
+<pre><code>## race
+##  black hispan  white 
+##    243     72    299</code></pre>
+<p>Our estimand will be the subgroup-specific and marginal average treatment effect on the treated (ATT), using the risk difference as our effect measure.</p>
+<div id="packages-youll-need" class="section level3">
+<h3>Packages You’ll Need</h3>
+<p>We’ll need a few R packages for this analysis. We’ll need <code>{MatchIt}</code> and <code>{optmatch}</code> for the matching, <code>{cobalt}</code> for the balance assessment, <code>{marginaleffects}</code> for estimating the treatment effects, and <code>{sandwich}</code> for computing the standard errors. You can install those using the code below:</p>
+<pre class="r"><code>install.packages(c(&quot;MatchIt&quot;, &quot;optmatch&quot;, &quot;cobalt&quot;,
+                   &quot;marginaleffects&quot;, &quot;sandwich&quot;))</code></pre>
+<p>Let’s get into it!</p>
+</div>
+<div id="step-1-subgroup-matching" class="section level2">
+<h2>Step 1: Subgroup Matching</h2>
+<p>Our first step is to perform the matching. Although there are a few strategies for performing matching for subgroup analysis, in general subgroup-specific matching tends to work best, though it requires a little extra work.</p>
+<p>We’ll do this by splitting the dataset by <code>race</code> and performing a separate matching analysis within each one.</p>
+<pre class="r"><code>#Splitting the data
+lalonde_b &lt;- subset(lalonde, race == &quot;black&quot;)
+lalonde_h &lt;- subset(lalonde, race == &quot;hispan&quot;)
+lalonde_w &lt;- subset(lalonde, race == &quot;white&quot;)</code></pre>
+<p>Here we’ll use full matching because 1:1 matching without replacement, the most common (but worst) way to do propensity score matching, doesn’t work well in this dataset. The process described below works <em>exactly</em> the same for 1:1 and most other kinds of matching as it does for full matching. We’ll estimate propensity scores in each subgroup, here using probit regression, which happens to yield better balance than logistic regression does.</p>
+<pre class="r"><code>library(&quot;MatchIt&quot;)
+
+#Matching in race == &quot;black&quot;
+m.out_b &lt;- matchit(treat ~ age + educ + married + nodegree + re74 + re75,
+                   data = lalonde_b, method = &quot;full&quot;, estimand = &quot;ATT&quot;,
+                   link = &quot;probit&quot;)
+
+#Matching in race == &quot;hispan&quot;
+m.out_h &lt;- matchit(treat ~ age + educ + married + nodegree + re74 + re75,
+                   data = lalonde_h, method = &quot;full&quot;, estimand = &quot;ATT&quot;,
+                   link = &quot;probit&quot;)
+
+#Matching in race == &quot;black&quot;
+m.out_w &lt;- matchit(treat ~ age + educ + married + nodegree + re74 + re75,
+                   data = lalonde_w, method = &quot;full&quot;, estimand = &quot;ATT&quot;,
+                   link = &quot;probit&quot;)</code></pre>
+</div>
+<div id="step-2-assessing-balance-within-subgroups" class="section level2">
+<h2>Step 2: Assessing Balance within Subgroups</h2>
+<p>We need to assess subgroup balance; we can do that using <code>summary()</code> on each <code>matchit</code> object, or we can use functions from <code>{cobalt}</code>.</p>
+<p>Below are examples of using <code>summary()</code> and <code>cobalt::bal.tab()</code> on one <code>matchit</code> object at a time<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a>:</p>
+<pre class="r"><code>summary(m.out_b)</code></pre>
+<pre><code>## 
+## Call:
+## matchit(formula = treat ~ age + educ + married + nodegree + re74 + 
+##     re75, data = lalonde_b, method = &quot;full&quot;, link = &quot;probit&quot;, 
+##     estimand = &quot;ATT&quot;)
+## 
+## Summary of Balance for All Data:
+##          Means Treated Means Control Std. Mean Diff. Var. Ratio eCDF Mean eCDF Max
+## distance        0.6587        0.6121          0.4851     0.7278    0.1134   0.1972
+## age            25.9808       26.0690         -0.0121     0.4511    0.0902   0.2378
+## educ           10.3141       10.0920          0.1079     0.5436    0.0336   0.0807
+## married         0.1859        0.2874         -0.2608          .    0.1015   0.1015
+## nodegree        0.7244        0.6437          0.1806          .    0.0807   0.0807
+## re74         2155.0132     3117.0584         -0.1881     0.9436    0.0890   0.2863
+## re75         1490.7221     1834.4220         -0.1043     1.0667    0.0480   0.1441
+## 
+## Summary of Balance for Matched Data:
+##          Means Treated Means Control Std. Mean Diff. Var. Ratio eCDF Mean eCDF Max Std. Pair Dist.
+## distance        0.6587        0.6577          0.0096     1.0403    0.0095   0.0705          0.0374
+## age            25.9808       27.6538         -0.2292     0.3644    0.1148   0.2073          1.3764
+## educ           10.3141       10.1368          0.0861     0.6552    0.0228   0.0684          1.0485
+## married         0.1859        0.1822          0.0096          .    0.0037   0.0037          0.6236
+## nodegree        0.7244        0.7286         -0.0096          .    0.0043   0.0043          0.7548
+## re74         2155.0132     2998.6538         -0.1650     0.7590    0.0513   0.2025          0.7256
+## re75         1490.7221     2120.7862         -0.1911     0.8819    0.0798   0.1912          0.8430
+## 
+## Sample Sizes:
+##               Control Treated
+## All             87.       156
+## Matched (ESS)   36.04     156
+## Matched         87.       156
+## Unmatched        0.         0
+## Discarded        0.         0</code></pre>
+<pre class="r"><code>library(&quot;cobalt&quot;)
+bal.tab(m.out_b, un = TRUE, stats = c(&quot;m&quot;, &quot;ks&quot;))</code></pre>
+<pre><code>## Balance Measures
+##              Type Diff.Un  KS.Un Diff.Adj KS.Adj
+## distance Distance  0.4851 0.1972   0.0096 0.0705
+## age       Contin. -0.0121 0.2378  -0.2292 0.2073
+## educ      Contin.  0.1079 0.0807   0.0861 0.0684
+## married    Binary -0.1015 0.1015   0.0037 0.0037
+## nodegree   Binary  0.0807 0.0807  -0.0043 0.0043
+## re74      Contin. -0.1881 0.2863  -0.1650 0.2025
+## re75      Contin. -0.1043 0.1441  -0.1911 0.1912
+## 
+## Sample sizes
+##                      Control Treated
+## All                    87.       156
+## Matched (ESS)          36.04     156
+## Matched (Unweighted)   87.       156</code></pre>
+<p>We can also get a clearer sense of balance overall using <code>bal.tab()</code> by directly supplying the matching weights.</p>
+<pre class="r"><code>#Initialize the weights
+fm_weights &lt;- numeric(nrow(lalonde))
+
+#Assign the weights based on the subgroup
+fm_weights[lalonde$race == &quot;black&quot;] &lt;- m.out_b$weights
+fm_weights[lalonde$race == &quot;hispan&quot;] &lt;- m.out_h$weights
+fm_weights[lalonde$race == &quot;white&quot;] &lt;- m.out_w$weights
+
+bal.tab(treat ~ age + educ + married + nodegree + re74 + re75,
+        data = lalonde, weights = fm_weights, cluster = &quot;race&quot;,
+        stats = c(&quot;m&quot;, &quot;ks&quot;), abs = TRUE, cluster.summary = TRUE)</code></pre>
+<pre><code>## Balance by cluster
+## 
+##  - - - Cluster: black - - - 
+## Balance Measures
+##             Type Diff.Adj KS.Adj
+## age      Contin.   0.2292 0.2073
+## educ     Contin.   0.0861 0.0684
+## married   Binary   0.0037 0.0037
+## nodegree  Binary   0.0043 0.0043
+## re74     Contin.   0.1650 0.2025
+## re75     Contin.   0.1911 0.1912
+## 
+## Effective sample sizes
+##                0   1
+## Unadjusted 87.   156
+## Adjusted   36.04 156
+## 
+##  - - - Cluster: hispan - - - 
+## Balance Measures
+##             Type Diff.Adj KS.Adj
+## age      Contin.   0.2298 0.1848
+## educ     Contin.   0.2888 0.2762
+## married   Binary   0.0604 0.0604
+## nodegree  Binary   0.1024 0.1024
+## re74     Contin.   0.1323 0.3188
+## re75     Contin.   0.1220 0.2351
+## 
+## Effective sample sizes
+##                0  1
+## Unadjusted 61.   11
+## Adjusted   26.24 11
+## 
+##  - - - Cluster: white - - - 
+## Balance Measures
+##             Type Diff.Adj KS.Adj
+## age      Contin.   0.4137 0.2126
+## educ     Contin.   0.4246 0.1840
+## married   Binary   0.0025 0.0025
+## nodegree  Binary   0.1653 0.1653
+## re74     Contin.   0.2846 0.4165
+## re75     Contin.   0.0825 0.1444
+## 
+## Effective sample sizes
+##                 0  1
+## Unadjusted 281.   18
+## Adjusted    49.49 18
+##  - - - - - - - - - - - - - - 
+## 
+## Balance summary across all clusters
+##             Type Mean.Diff.Adj Max.Diff.Adj Mean.KS.Adj Max.KS.Adj
+## age      Contin.        0.2909       0.4137      0.2016     0.2126
+## educ     Contin.        0.2665       0.4246      0.1762     0.2762
+## married   Binary        0.0222       0.0604      0.0222     0.0604
+## nodegree  Binary        0.0907       0.1653      0.0907     0.1653
+## re74     Contin.        0.1940       0.2846      0.3126     0.4165
+## re75     Contin.        0.1319       0.1911      0.1902     0.2351
+## 
+## Total effective sample sizes across clusters
+##                 0   1
+## Unadjusted 429.   185
+## Adjusted   111.77 185</code></pre>
+<p>Using the <code>cluster</code> argument produces balance tables in each subgroup and, because we specified <code>cluster.summary = TRUE</code>, a balance table summarizing across subgroups. To suppress display of the subgroup-specific balance tables (which may be useful if you have many subgroups), you can specify <code>which.cluster = .none</code>.</p>
+<p>To make a plot displaying the balance statistics visually, we can use <code>cobalt::love.plot()</code>:</p>
+<pre class="r"><code>love.plot(treat ~ age + educ + married + nodegree + re74 + re75,
+        data = lalonde, weights = fm_weights, cluster = &quot;race&quot;,
+        stats = c(&quot;m&quot;, &quot;ks&quot;), abs = TRUE,
+        which.cluster = .none, agg.fun = &quot;max&quot;)</code></pre>
+<pre><code>## Warning: Standardized mean differences and raw mean differences are present in the same plot. 
+## Use the &#39;stars&#39; argument to distinguish between them and appropriately label the x-axis.</code></pre>
+<p><img src="https://ngreifer.github.io/blog/subgroup-analysis-psm/index.en_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+<p>See the <code>{cobalt}</code> <a href="https://ngreifer.github.io/cobalt/articles/cobalt_A4_love.plot.html">vignette on customizing <code>love.plot()</code></a> to see how to finely control the appearance of the plot.</p>
+<p>From this output, we can see that balance is actually pretty bad; the greatest standardized mean difference (SMD) across subgroups after matching is around .46, which is way too big. In a realistic scenario, we would try different matching methods, maybe resorting to weighting, until we found good balance across the subgroups. In order to validly interpret the subgroup-specific effects and tests for moderation, we need to achieve balance in each subgroup, not just overall. We didn’t get good balance here, but to stay focused on the rest of the procedure, we’ll move forward as if we did.</p>
+</div>
+<div id="step-3-fitting-the-outcome-model" class="section level2">
+<h2>Step 3: Fitting the Outcome Model</h2>
+<p>Next, we’ll fit the outcome model. It’s important to remember that the outcome model is an intermediate step for estimating the treatment effect; no quantity estimated by the model needs to correspond to the treatment effect directly. We’ll be using a marginal effects procedure to estimate the treatment effects in the next section.</p>
+<p>First, we’ll extract the matched datasets from the <code>matchit</code> objects. We can’t just use the matching weights we extracted earlier because we also need subclass (i.e., pair) membership. We’ll use <code>match.data()</code> from <code>{MatchIt}</code> to extract the matched datasets, which contain the matching weights and subclass membership in the <code>weights</code> and <code>subclass</code> columns, respectively, and use <code>rbind()</code> to bind them into a single combined dataset<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a>.</p>
+<pre class="r"><code>#Extract the matched datasets
+matched_data_b &lt;- match.data(m.out_b)
+matched_data_h &lt;- match.data(m.out_h)
+matched_data_w &lt;- match.data(m.out_w)
+
+#Combine them using rbind()
+matched_data &lt;- rbind(matched_data_b,
+                      matched_data_h,
+                      matched_data_w)
+
+names(matched_data)</code></pre>
+<pre><code>##  [1] &quot;treat&quot;    &quot;age&quot;      &quot;educ&quot;     &quot;race&quot;     &quot;married&quot;  &quot;nodegree&quot; &quot;re74&quot;     &quot;re75&quot;     &quot;re78&quot;     &quot;re78_0&quot;   &quot;distance&quot; &quot;weights&quot;  &quot;subclass&quot;</code></pre>
+<p>Next, we can fit the outcome model. The choice of which model to fit should depend primarily on the best model for the outcome; because we have a binary outcome, we’ll use logistic regression.</p>
+<p>It’s usually a good idea to include covariates in the outcome model. It’s also usually a good idea to allow the treatment to interact with the covariates in the outcome model. It’s also usually a good idea to fit separate models within each subgroup. Combining this all yields a pretty complicated model, which is why it will be so important to use a marginal effects procedure rather than trying to interpret the model’s coefficients. Here’s how we fit this model:</p>
+<pre class="r"><code>fit &lt;- glm(re78_0 ~ race * (treat * (age + educ + married + nodegree +
+                                       re74 + re75)),
+           data = matched_data, weights = weights,
+           family = &quot;quasibinomial&quot;)</code></pre>
+<p>We’re not even going to look at the output of this model, which has 42 parameters. If the model doesn’t fit with your dataset, you can remove interactions between the treatment and some covariates or remove the covariates altogether.</p>
+<p>For a linear model, you can use <code>lm()</code> and remove the <code>family</code> argument. We used <code>family = "quasibinomial"</code> because we want logistic regression for our binary outcome but we are using the matching weights, which otherwise create a (harmless but annoying) warning when run with <code>family = "binomial"</code>.</p>
+</div>
+<div id="step-4-estimate-the-treatment-effects" class="section level2">
+<h2>Step 4: Estimate the Treatment Effects</h2>
+<p>Finally, we can estimate the treatment effects. To do so, we’ll use an average marginal effects procedure as implemented in <code>{marginaleffects}</code><a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a>. First, we’ll estimate the average marginal effect overall, averaging across the subgroups. Again, we’re hoping for a negative treatment effect, which indicates the risk of having zero income decreased among those who received the treatment. Because we are estimating the ATT, we need to subset the data for which the average marginal effects are computed to just the treated units, which we do using the <code>newdata</code> argument (which can be omitted when the ATE is the target estimand). We also need to supply pair membership to ensure the standard errors are correctly computed, which we do by supplying the <code>subclass</code> variable containing pair membership to the <code>vcov</code> argument. In general, we need to supply the weights to the <code>wts</code> argument of <code>avg_comparisons()</code> as well (though, in this case, because we are estimating the ATT and all weights are 1 for the treated group, it doesn’t make a difference).</p>
+<pre class="r"><code>library(&quot;marginaleffects&quot;)
+
+#Estimate the overall ATT
+avg_comparisons(fit, variables = &quot;treat&quot;,
+                newdata = subset(matched_data, treat == 1),
+                vcov = ~subclass, wts = &quot;weights&quot;)</code></pre>
+<pre><code>## 
+##   Term Contrast Estimate Std. Error      z Pr(&gt;|z|)  2.5 % 97.5 %
+##  treat    1 - 0  0.03434    0.04405 0.7795  0.43566 -0.052 0.1207
+## 
+## Prediction type:  response 
+## Columns: type, term, contrast, estimate, std.error, statistic, p.value, conf.low, conf.high</code></pre>
+<p>The estimated risk difference is 0.02305 with a high p-value and a confidence interval containing 0, indicating no evidence of an effect overall. (Note: this doesn’t mean there is no effect! The data are compatible with effects anywhere within the confidence interval, which includes negative and positive effects of a moderate size!)</p>
+<p>New, let’s estimate the subgroup-specific effects by supplying the subgrouping variable, <code>"race"</code>, to the <code>by</code> argument:</p>
+<pre class="r"><code>avg_comparisons(fit, variables = &quot;treat&quot;,
+                newdata = subset(matched_data, treat == 1),
+                vcov = ~subclass, wts = &quot;weights&quot;,
+                by = &quot;race&quot;)</code></pre>
+<pre><code>## 
+##   Term          Contrast   race Estimate Std. Error      z  Pr(&gt;|z|)    2.5 %   97.5 %
+##  treat mean(1) - mean(0)  black  0.06985    0.05168  1.352 0.1764930 -0.03144  0.17114
+##  treat mean(1) - mean(0) hispan -0.18744    0.07293 -2.570 0.0101667 -0.33038 -0.04450
+##  treat mean(1) - mean(0)  white -0.13790    0.04886 -2.822 0.0047678 -0.23367 -0.04214
+## 
+## Prediction type:  response 
+## Columns: type, term, contrast, race, estimate, std.error, statistic, p.value, conf.low, conf.high, predicted, predicted_hi, predicted_lo</code></pre>
+<p>Here, we see that actually there is evidence of treatment effects within subgroups! In the subgroups <code>hispan</code> and <code>white</code>, we see moderately sized negative effects with small p-values and confidence intervals excluding 0, suggesting that there treatment effects in these subgroups.</p>
+<p>We can also test whether the treatment effects differ between groups using the <code>hypothesis</code> argument of <code>avg_comparisons()</code>:</p>
+<pre class="r"><code>avg_comparisons(fit, variables = &quot;treat&quot;,
+                newdata = subset(matched_data, treat == 1),
+                vcov = ~subclass, wts = &quot;weights&quot;,
+                by = &quot;race&quot;, hypothesis = &quot;pairwise&quot;)</code></pre>
+<pre><code>## 
+##                                                                Term Estimate Std. Error       z  Pr(&gt;|z|)    2.5 % 97.5 %
+##  (black,treat,mean(1) - mean(0)) - (hispan,treat,mean(1) - mean(0))  0.25729    0.08939  2.8785 0.0039961  0.08210 0.4325
+##   (black,treat,mean(1) - mean(0)) - (white,treat,mean(1) - mean(0))  0.20775    0.07112  2.9211 0.0034877  0.06836 0.3471
+##  (hispan,treat,mean(1) - mean(0)) - (white,treat,mean(1) - mean(0)) -0.04954    0.08779 -0.5643 0.5725398 -0.22160 0.1225
+## 
+## Prediction type:  response 
+## Columns: type, term, estimate, std.error, statistic, p.value, conf.low, conf.high</code></pre>
+<p>We can see evidence that the treatment effect differs between the <code>black</code> and <code>hispan</code> groups, and between the <code>black</code> and <code>white</code> groups. With many subgroups, it might be useful to adjust your p-values for multiple comparisons, which we can do using <code>p.adjust()</code>, e.g.,</p>
+<pre class="r"><code>p.adjust(comp$p.value, method = &quot;holm&quot;)</code></pre>
+<p>if <code>comp</code> contained the <code>avg_comparisons()</code> output above.</p>
+<p>Congratulations! You’ve done a subgroup analysis!</p>
+</div>
+<div id="step-5-reporting-your-results" class="section level2">
+<h2>Step 5: Reporting Your Results</h2>
+<p>A fair bit needs to be included when reporting your results to ensure your analysis is replicable and can be correctly interpreted by your audience. The key things to report are the following:</p>
+<ul>
+<li>The method of estimating the propensity score and performing the matching (noting that these were done within subgroups), including the estimand targeted and whether that estimand was respected by the procedure (using, e.g., a caliper changes the estimand from the one you specify). This should also include the packages used and, even better, the functions used. If you’re using <code>{MatchIt}</code>, the documentation should also tell you which papers to cite.</li>
+<li>A quick summary of other methods you might have tried and why you went with the one you went with (i.e., because it yielded better balance, a greater effective sample size, etc.).</li>
+<li>Covariate balance, measured broadly; this can include a balance table, a balance plot (like one produced by <code>cobalt::love.plot()</code>), or a summary of balance (like providing the largest SMD and KS statistic observed across subgroups). Make sure your description of balance reflects the subgroups, e.g., by having separate tables or plots for each subgroup or clarifying that the statistics presented are averages or the worst case across subgroups.</li>
+<li>The outcome model you used, especially specifying the form of the model used and how/whether covariates entered the model. Also mention the method used to compute the standard errors (e.g., cluster-robust standard errors with pair membership as the clustering variable).</li>
+<li>Details of the marginal effects procedure used, including the package used, and the method to compute the standard errors (in this case, the delta method, which is the only method available in <code>{marginaleffects}</code>).</li>
+<li>The treatment effect estimates along with their p-values and confidence intervals, both overall and within subgroups.</li>
+</ul>
+</div>
+<div id="references" class="section level2 unnumbered">
+<h2>References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-austinIntroductionPropensityScore2011" class="csl-entry">
+Austin, Peter C. 2011. <span>“An Introduction to Propensity Score Methods for Reducing the Effects of Confounding in Observational Studies.”</span> <em>Multivariate Behavioral Research</em> 46 (3): 399–424. <a href="https://doi.org/10.1080/00273171.2011.568786">https://doi.org/10.1080/00273171.2011.568786</a>.
+</div>
+<div id="ref-greenExaminingModerationAnalyses2014" class="csl-entry">
+Green, Kerry M., and Elizabeth A. Stuart. 2014. <span>“Examining Moderation Analyses in Propensity Score Methods: <span>Application</span> to Depression and Substance Use.”</span> <em>Journal of Consulting and Clinical Psychology</em>, Advances in <span>Data Analytic Methods</span>, 82 (5): 773–83. <a href="https://doi.org/10.1037/a0036515">https://doi.org/10.1037/a0036515</a>.
+</div>
+<div id="ref-greiferMatchingMethodsConfounder2021a" class="csl-entry">
+Greifer, Noah, and Elizabeth A Stuart. 2021. <span>“Matching <span>Methods</span> for <span>Confounder Adjustment</span>: <span>An Addition</span> to the <span>Epidemiologist</span>’s <span>Toolbox</span>.”</span> <em>Epidemiologic Reviews</em>, June, mxab003. <a href="https://doi.org/10.1093/epirev/mxab003">https://doi.org/10.1093/epirev/mxab003</a>.
+</div>
+</div>
+</div>
+<div class="footnotes footnotes-end-of-document">
+<hr />
+<ol>
+<li id="fn1"><p>You might notices the mean differences for binary variables differ between the two outputs; that’s because <code>summary()</code> standardizes the mean differences whereas <code>bal.tab()</code> does not for binary variables. If you want standardized mean differences for binary variables from <code>bal.tab()</code>, just add the argument <code>binary = "std"</code>.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+<li id="fn2"><p>Note: <code>rbind()</code> must be used for this; functions from other packages, like <code>dplyr::bind_rows()</code>, will not correctly preserve the subclass structure.<a href="#fnref2" class="footnote-back">↩︎</a></p></li>
+<li id="fn3"><p>This requires version 0.9.0 ore greater of <code>{marginaleffects}</code>.<a href="#fnref3" class="footnote-back">↩︎</a></p></li>
+</ol>
+</div>
+
+    </div>
+
+    
+
+
+
+
+<div class="article-tags">
+  
+  <a class="badge badge-light" href="/tag/matching/">matching</a>
+  
+  <a class="badge badge-light" href="/tag/propensity-scores/">propensity-scores</a>
+  
+  <a class="badge badge-light" href="/tag/r/">R</a>
+  
+  <a class="badge badge-light" href="/tag/subgroup-analysis/">subgroup analysis</a>
+  
+</div>
+
+
+
+<div class="share-box">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://ngreifer.github.io/blog/subgroup-analysis-psm/&amp;text=Subgroup%20Analysis%20After%20Propensity%20Score%20Matching%20Using%20R" target="_blank" rel="noopener" class="share-btn-twitter" aria-label="twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://ngreifer.github.io/blog/subgroup-analysis-psm/&amp;t=Subgroup%20Analysis%20After%20Propensity%20Score%20Matching%20Using%20R" target="_blank" rel="noopener" class="share-btn-facebook" aria-label="facebook">
+          <i class="fab fa-facebook"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=Subgroup%20Analysis%20After%20Propensity%20Score%20Matching%20Using%20R&amp;body=https://ngreifer.github.io/blog/subgroup-analysis-psm/" target="_blank" rel="noopener" class="share-btn-email" aria-label="envelope">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://ngreifer.github.io/blog/subgroup-analysis-psm/&amp;title=Subgroup%20Analysis%20After%20Propensity%20Score%20Matching%20Using%20R" target="_blank" rel="noopener" class="share-btn-linkedin" aria-label="linkedin-in">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="whatsapp://send?text=Subgroup%20Analysis%20After%20Propensity%20Score%20Matching%20Using%20R%20https://ngreifer.github.io/blog/subgroup-analysis-psm/" target="_blank" rel="noopener" class="share-btn-whatsapp" aria-label="whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://ngreifer.github.io/blog/subgroup-analysis-psm/&amp;title=Subgroup%20Analysis%20After%20Propensity%20Score%20Matching%20Using%20R" target="_blank" rel="noopener" class="share-btn-weibo" aria-label="weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+
+
+
+  
+  
+  
+    
+  
+  
+  
+  <div class="media author-card content-widget-hr">
+    
+      
+      <a href="https://ngreifer.github.io/"><img class="avatar mr-3 avatar-circle" src="/authors/noah-greifer/avatar_hu8cd5e2f86688deebdf424321704b109c_308340_270x270_fill_q75_lanczos_center.jpg" alt="Noah Greifer"></a>
+    
+
+    <div class="media-body">
+      <h5 class="card-title"><a href="https://ngreifer.github.io/">Noah Greifer</a></h5>
+      <h6 class="card-subtitle">Statistical Consultant and Programmer</h6>
+      
+      <ul class="network-icon" aria-hidden="true">
+  
+    
+    
+    
+      
+    
+    
+    
+    
+    
+      
+    
+    <li>
+      <a href="/#contact" >
+        <i class="fas fa-envelope"></i>
+      </a>
+    </li>
+  
+    
+    
+    
+      
+    
+    
+    
+    
+    
+      
+    
+    <li>
+      <a href="https://twitter.com/noah_greifer" target="_blank" rel="noopener">
+        <i class="fab fa-twitter"></i>
+      </a>
+    </li>
+  
+    
+    
+    
+    
+    
+    
+    
+      
+    
+    <li>
+      <a href="https://scholar.google.com/citations?user=pUqM9nkAAAAJ&amp;hl=en" target="_blank" rel="noopener">
+        <i class="ai ai-google-scholar"></i>
+      </a>
+    </li>
+  
+    
+    
+    
+      
+    
+    
+    
+    
+    
+      
+    
+    <li>
+      <a href="https://github.com/ngreifer" target="_blank" rel="noopener">
+        <i class="fab fa-github"></i>
+      </a>
+    </li>
+  
+</ul>
+
+    </div>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+</article>
+  </div>
+
+  <div class="page-footer">
+    
+    
+    <div class="container">
+      <footer class="site-footer">
+
+  
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+
+
+
+
+
+  
+  
+  
+
+  
+  
+    
+  
+  
+    
+  
+
+  
+
+  
+  <p class="powered-by copyright-license-text">
+    © 2023 Noah Greifer. This work is licensed under <a href="https://creativecommons.org/licenses/by-nc-nd/4.0" rel="noopener noreferrer" target="_blank">CC BY NC ND 4.0</a>
+  </p>
+  
+
+  <p class="powered-by footer-license-icons">
+    <a href="https://creativecommons.org/licenses/by-nc-nd/4.0" rel="noopener noreferrer" target="_blank" aria-label="Creative Commons">
+      <i class="fab fa-creative-commons fa-2x" aria-hidden="true"></i>
+      <i class="fab fa-creative-commons-by fa-2x" aria-hidden="true"></i>
+      
+        <i class="fab fa-creative-commons-nc fa-2x" aria-hidden="true"></i>
+      
+      
+        <i class="fab fa-creative-commons-nd fa-2x" aria-hidden="true"></i>
+      
+    </a>
+  </p>
+
+
+
+
+  <p class="powered-by">
+    
+    
+    
+      
+      
+      
+      
+      
+      
+      Published with <a href="https://wowchemy.com/?utm_campaign=poweredby" target="_blank" rel="noopener">Wowchemy</a> — the free, <a href="https://github.com/wowchemy/wowchemy-hugo-themes" target="_blank" rel="noopener">open source</a> website builder that empowers creators.
+    
+  </p>
+</footer>
+
+    </div>
+    
+  </div>
+
+      
+
+    
+    <script src="/js/vendor-bundle.min.53d67dc2cb1ebceb89d5e2aba2f86112.js"></script>
+
+    
+    
+    
+      
+
+      
+      
+
+      
+
+      
+        
+        <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@10.2.1/build/highlight.min.js" integrity="sha512-Ypjm0o7jOxAd4hpdoppSEN0TQOC19UtPAqD+4s5AlXmUvbmmS/YMxYqAqarQYyxTnB6/rqip9qcxlNB/3U9Wdg==" crossorigin="anonymous"></script>
+        
+        
+        <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@10.2.1/build/languages/r.min.js" crossorigin="anonymous"></script>
+        
+        <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@10.2.1/build/languages/latex.min.js" crossorigin="anonymous"></script>
+        
+      
+
+    
+
+    
+    
+    
+
+    
+    
+
+    
+    
+    
+      
+      <script id="search-hit-fuse-template" type="text/x-template">
+        <div class="search-hit" id="summary-{{key}}">
+          <div class="search-hit-content">
+            <div class="search-hit-name">
+              <a href="{{relpermalink}}">{{title}}</a>
+              <div class="article-metadata search-hit-type">{{type}}</div>
+              <p class="search-hit-description">{{snippet}}</p>
+            </div>
+          </div>
+        </div>
+      </script>
+      
+        <script src="https://cdn.jsdelivr.net/gh/krisk/Fuse@v3.2.1/dist/fuse.min.js" integrity="sha512-o38bmzBGX+hD3JHWUFCDA09btWaqrNmoJ3RXLlrysA7PP01Kgs4UlE4MhelE1v5dJR3+cxlR4qQlotsW7jKsnw==" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/gh/julmot/mark.js@8.11.1/dist/jquery.mark.min.js" integrity="sha512-mhbv5DqBMgrWL+32MmsDOt/OAvqr/cHimk6B8y/bx/xS88MVkYGPiVv2ixKVrkywF2qHplNRUvFsAHUdxZ3Krg==" crossorigin="anonymous"></script>
+      
+    
+
+    
+    
+
+    
+    
+    
+    
+
+    
+    
+      
+      
+      
+      
+      
+      
+      
+    
+
+    
+
+    
+    
+    
+    <script id="page-data" type="application/json">{"use_headroom":true}</script>
+
+    
+    
+      <script src="/js/wowchemy-headroom.c251366b4128fd5e6b046d4c97a62a51.js" type="module"></script>
+    
+    
+    
+    
+    
+    
+    
+      
+      
+    
+    
+    <script src="/en/js/wowchemy.min.ab2f2890dbe3e2e83579366d3d6e8fd9.js"></script>
+
+    
+    
+    
+    
+    
+    
+
+
+
+
+
+
+</body>
+</html>

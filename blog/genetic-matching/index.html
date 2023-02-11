@@ -312,7 +312,7 @@
   
   <meta property="og:site_name" content="Noah Greifer" />
   <meta property="og:url" content="https://ngreifer.github.io/blog/genetic-matching/" />
-  <meta property="og:title" content="Genetic Matching, from the Bottom Up | Noah Greifer" />
+  <meta property="og:title" content="Genetic Matching, from the Ground Up | Noah Greifer" />
   <meta property="og:description" content="Genetic matching sounds cool and science-y, something we social scientists love because nobody thinks what we do is “real” science. And genetic matching is cool and science-y, but not because it has anything to do with genes or DNA." /><meta property="og:image" content="https://ngreifer.github.io/media/sharing.jpg" />
     <meta property="twitter:image" content="https://ngreifer.github.io/media/sharing.jpg" /><meta property="og:locale" content="en-us" />
   
@@ -339,7 +339,7 @@
 
 
 
-  <title>Genetic Matching, from the Bottom Up | Noah Greifer</title>
+  <title>Genetic Matching, from the Ground Up | Noah Greifer</title>
 </head>
 
 
@@ -607,7 +607,7 @@
   
   
 <div class="article-container pt-3">
-  <h1>Genetic Matching, from the Bottom Up</h1>
+  <h1>Genetic Matching, from the Ground Up</h1>
 
   
 
@@ -797,12 +797,7 @@ matchit_out &lt;- MatchIt::matchit(
 <p>By default, <code>matchit()</code> estimates a propensity score using logistic regression and includes it in the matching covariates (but not the covariates on which balance is optimized), just as we did manually using <code>GenMatch()</code> above. If you want to use difference variables to balance on from those used to match, use the <code>mahvars</code> argument, which is explained in the documentation for genetic matching (accessible using <code>help("method_genetic", package = "MatchIt")</code>).</p>
 <p>We can assess balance using <code>summary()</code> or using <code>bal.tab()</code>. We’ll do the latter below.</p>
 <pre class="r"><code>cobalt::bal.tab(matchit_out, stats = c(&quot;m&quot;, &quot;ks&quot;))</code></pre>
-<pre><code>## Call
-##  MatchIt::matchit(formula = treat ~ age + educ + married + race + 
-##     nodegree + re74 + re75, data = lalonde, method = &quot;genetic&quot;, 
-##     estimand = &quot;ATT&quot;, replace = TRUE, ratio = 2, pop.size = 200)
-## 
-## Balance Measures
+<pre><code>## Balance Measures
 ##                 Type Diff.Adj KS.Adj
 ## distance    Distance   0.0337 0.1000
 ## age          Contin.  -0.0238 0.1514
@@ -904,22 +899,14 @@ neg_objective &lt;- function(...) -objective(...)</code></pre>
 ## upper  7  7  7  7  7  7  7  7  7
 ## 
 ## GA results: 
-## Iterations             = 251 
+## Iterations             = 205 
 ## Fitness function value = -0.02735878 
 ## Solutions = 
-##              x1        x2         x3       x4        x5          x6        x7          x8       x9
-##  [1,] -2.131722 -3.211259 0.07716908 2.014075 0.8820362 -0.56233539 0.8603869 -0.11499679 3.247619
-##  [2,] -2.143106 -3.214016 0.04484056 1.883541 0.7790500 -0.23702373 0.8119892 -0.13855416 3.239199
-##  [3,] -2.134344 -3.215796 0.06373645 2.096751 0.9507463 -0.51305525 0.8511466 -0.13408798 3.240825
-##  [4,] -2.126203 -3.218519 0.06842050 2.054350 0.8760389  0.14654690 0.8123135 -0.13585342 3.240511
-##  [5,] -2.139156 -3.215859 0.05880775 2.075352 0.8094103 -0.55428742 0.8385978 -0.14236686 3.231219
-##  [6,] -2.126643 -3.215275 0.07452945 2.085683 0.9246621  0.03924881 0.8309840 -0.13213708 3.233923
-##  [7,] -2.144081 -3.217624 0.07350998 2.083049 0.6266973 -0.19835280 0.8437496 -0.13188036 3.230876
-##  [8,] -2.140938 -3.218686 0.08261494 2.046125 0.8239281 -0.74804769 0.8537672 -0.12327868 3.263523
-##  [9,] -2.126126 -3.208634 0.06744410 1.963189 0.9050594 -0.37299052 0.8754860 -0.06291793 3.241593
-## [10,] -2.127889 -3.198998 0.05221517 1.678228 0.8716645  0.10282196 0.8418134 -0.13623726 3.241613
-## [11,] -2.144941 -3.215945 0.05434804 2.057280 0.8117419 -0.96995541 0.8475345 -0.13000397 3.307741
-## [12,] -2.140205 -3.205996 0.06436092 2.048975 0.7902906 -1.87554753 0.8307355 -0.13913023 3.239275</code></pre>
+##             x1        x2         x3       x4       x5        x6        x7        x8       x9
+## [1,] -2.390895 -3.260254 -0.3561188 1.771811 1.873141 0.4049403 0.5014592 -1.137037 2.931112
+## [2,] -2.376927 -3.258679 -0.3536636 1.525004 1.885433 0.3003448 0.5020003 -1.143757 2.929666
+## [3,] -2.390895 -3.260254 -0.3561188 1.319585 1.873141 0.4049403 0.5014592 -1.137037 2.931112
+## [4,] -2.390895 -3.260254 -0.3561188 1.542400 1.873141 0.4049403 0.5014592 -1.137037 2.931112</code></pre>
 <p>We can see that our final value for the criterion was about -0.0274 and this was achieved by each of the sets of log weights displayed. We can just focus on the first row. It’s not worth over-interpreting these values since their purpose is just to achieve balance and they don’t reveal anything about the causal or statistical relevance of the covariates. But we can see that <code>x9</code> (i.e., <code>re75</code>) was the most important covariate in the distance measure, and <code>x2</code> (i.e., <code>educ</code>) was the least important.</p>
 <pre class="r"><code>plot(opt_out)</code></pre>
 <p><img src="https://ngreifer.github.io/blog/genetic-matching/index.en_files/figure-html/unnamed-chunk-17-1.png" width="576" style="display: block; margin: auto;" />
@@ -936,7 +923,7 @@ m.out</code></pre>
 <pre><code>## A matchit object
 ##  - method: 2:1 nearest neighbor matching with replacement
 ##  - distance: User-defined (matrix)
-##  - number of obs.: 614 (original), 306 (matched)
+##  - number of obs.: 614 (original), 305 (matched)
 ##  - target estimand: ATT</code></pre>
 <pre class="r"><code>#Assess balance. See ?bal.tab for info on the arguments
 cobalt::bal.tab(treat ~ age + educ + married + race +
@@ -947,22 +934,22 @@ cobalt::bal.tab(treat ~ age + educ + married + race +
                 method = &quot;matching&quot;)</code></pre>
 <pre><code>## Balance Measures
 ##                Type Diff.Un  KS.Un Diff.Adj KS.Adj
-## age         Contin. -0.3094 0.1577   0.0181 0.2541
-## educ        Contin.  0.0550 0.1114   0.0255 0.0243
+## age         Contin. -0.3094 0.1577   0.0249 0.2514
+## educ        Contin.  0.0550 0.1114   0.0242 0.0189
 ## married      Binary -0.8263 0.3236  -0.0207 0.0081
 ## race_black   Binary  1.7615 0.6404   0.0223 0.0081
 ## race_hispan  Binary -0.3498 0.0827   0.0000 0.0000
 ## race_white   Binary -1.8819 0.5577  -0.0274 0.0081
-## nodegree     Binary  0.2450 0.1114   0.0178 0.0081
-## re74        Contin. -0.7211 0.4470  -0.0273 0.1405
-## re75        Contin. -0.2903 0.2876   0.0271 0.0405
+## nodegree     Binary  0.2450 0.1114   0.0238 0.0108
+## re74        Contin. -0.7211 0.4470  -0.0270 0.1649
+## re75        Contin. -0.2903 0.2876   0.0225 0.0378
 ## 
 ## Sample sizes
 ##                      Control Treated
-## All                   429.       185
-## Matched (ESS)          49.93     185
-## Matched (Unweighted)  121.       185
-## Unmatched             308.         0</code></pre>
+## All                    429.      185
+## Matched (ESS)           51.5     185
+## Matched (Unweighted)   120.      185
+## Unmatched              309.        0</code></pre>
 <p>We can see that after matching, the largest standardized mean difference is indeed 0.0274, well below the usual criterion of .1. That doesn’t mean the sample is fully balanced, though; some KS statistics are a bit high, suggesting that an imbalance measure that accounts for the full distribution of the covariates beyond the means might be more effective. Finally, once satisfactory balance has been found, you can estimate the treatment effect using the methods described in <code>vignette("estimating-effects", package = "MatchIt")</code>. I’ve gone on long enough so I won’t do that here.</p>
 <p>Congratulations! You’ve just done genetic matching, three ways!</p>
 </div>
@@ -1050,7 +1037,7 @@ Zhu, Yeying, Jennifer S. Savage, and Debashis Ghosh. 2018. <span>“A Kernel-Bas
       
       
       <li>
-        <a href="https://twitter.com/intent/tweet?url=https://ngreifer.github.io/blog/genetic-matching/&amp;text=Genetic%20Matching,%20from%20the%20Bottom%20Up" target="_blank" rel="noopener" class="share-btn-twitter" aria-label="twitter">
+        <a href="https://twitter.com/intent/tweet?url=https://ngreifer.github.io/blog/genetic-matching/&amp;text=Genetic%20Matching,%20from%20the%20Ground%20Up" target="_blank" rel="noopener" class="share-btn-twitter" aria-label="twitter">
           <i class="fab fa-twitter"></i>
         </a>
       </li>
@@ -1063,7 +1050,7 @@ Zhu, Yeying, Jennifer S. Savage, and Debashis Ghosh. 2018. <span>“A Kernel-Bas
       
       
       <li>
-        <a href="https://www.facebook.com/sharer.php?u=https://ngreifer.github.io/blog/genetic-matching/&amp;t=Genetic%20Matching,%20from%20the%20Bottom%20Up" target="_blank" rel="noopener" class="share-btn-facebook" aria-label="facebook">
+        <a href="https://www.facebook.com/sharer.php?u=https://ngreifer.github.io/blog/genetic-matching/&amp;t=Genetic%20Matching,%20from%20the%20Ground%20Up" target="_blank" rel="noopener" class="share-btn-facebook" aria-label="facebook">
           <i class="fab fa-facebook"></i>
         </a>
       </li>
@@ -1076,7 +1063,7 @@ Zhu, Yeying, Jennifer S. Savage, and Debashis Ghosh. 2018. <span>“A Kernel-Bas
       
       
       <li>
-        <a href="mailto:?subject=Genetic%20Matching,%20from%20the%20Bottom%20Up&amp;body=https://ngreifer.github.io/blog/genetic-matching/" target="_blank" rel="noopener" class="share-btn-email" aria-label="envelope">
+        <a href="mailto:?subject=Genetic%20Matching,%20from%20the%20Ground%20Up&amp;body=https://ngreifer.github.io/blog/genetic-matching/" target="_blank" rel="noopener" class="share-btn-email" aria-label="envelope">
           <i class="fas fa-envelope"></i>
         </a>
       </li>
@@ -1089,7 +1076,7 @@ Zhu, Yeying, Jennifer S. Savage, and Debashis Ghosh. 2018. <span>“A Kernel-Bas
       
       
       <li>
-        <a href="https://www.linkedin.com/shareArticle?url=https://ngreifer.github.io/blog/genetic-matching/&amp;title=Genetic%20Matching,%20from%20the%20Bottom%20Up" target="_blank" rel="noopener" class="share-btn-linkedin" aria-label="linkedin-in">
+        <a href="https://www.linkedin.com/shareArticle?url=https://ngreifer.github.io/blog/genetic-matching/&amp;title=Genetic%20Matching,%20from%20the%20Ground%20Up" target="_blank" rel="noopener" class="share-btn-linkedin" aria-label="linkedin-in">
           <i class="fab fa-linkedin-in"></i>
         </a>
       </li>
@@ -1102,7 +1089,7 @@ Zhu, Yeying, Jennifer S. Savage, and Debashis Ghosh. 2018. <span>“A Kernel-Bas
       
       
       <li>
-        <a href="whatsapp://send?text=Genetic%20Matching,%20from%20the%20Bottom%20Up%20https://ngreifer.github.io/blog/genetic-matching/" target="_blank" rel="noopener" class="share-btn-whatsapp" aria-label="whatsapp">
+        <a href="whatsapp://send?text=Genetic%20Matching,%20from%20the%20Ground%20Up%20https://ngreifer.github.io/blog/genetic-matching/" target="_blank" rel="noopener" class="share-btn-whatsapp" aria-label="whatsapp">
           <i class="fab fa-whatsapp"></i>
         </a>
       </li>
@@ -1115,7 +1102,7 @@ Zhu, Yeying, Jennifer S. Savage, and Debashis Ghosh. 2018. <span>“A Kernel-Bas
       
       
       <li>
-        <a href="https://service.weibo.com/share/share.php?url=https://ngreifer.github.io/blog/genetic-matching/&amp;title=Genetic%20Matching,%20from%20the%20Bottom%20Up" target="_blank" rel="noopener" class="share-btn-weibo" aria-label="weibo">
+        <a href="https://service.weibo.com/share/share.php?url=https://ngreifer.github.io/blog/genetic-matching/&amp;title=Genetic%20Matching,%20from%20the%20Ground%20Up" target="_blank" rel="noopener" class="share-btn-weibo" aria-label="weibo">
           <i class="fab fa-weibo"></i>
         </a>
       </li>
