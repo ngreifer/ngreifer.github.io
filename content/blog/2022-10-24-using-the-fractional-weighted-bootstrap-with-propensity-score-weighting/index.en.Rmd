@@ -1,0 +1,116 @@
+---
+title: Using the Fractional Weighted Bootstrap with Propensity Score Weighting
+author: R package build
+date: '2022-10-24'
+slug: using-the-fractional-weighted-bootstrap-with-propensity-score-weighting
+categories:
+  - R
+tags:
+  - propensity-scores
+subtitle: ''
+summary: ''
+authors: []
+lastmod: '2022-10-24T17:17:35-04:00'
+featured: no
+draft: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+bibliography: references.bib
+---
+
+There are a number of methods one can use to estimate the standard error of a treatment effect estimate after propensity score weighting. In practice, we often use a robust (sandwich) standard error that treats the weights as fixed. These are available in the `sandwich` and `survey` packages. This fails to take into account the variability in estimating the weights. For basic methods and when estimating the ATE, it is known that these standard errors are conservative [@robinsMarginalStructuralModels2000], which is nice. For the ATT and for more complicated methods, though, these standard errors are not always conservative, and can therefore lead to invalid inferences [@chanGloballyEfficientNonparametric2016, @reifeisVarianceTreatmentEffect2020]. The uncertainty of the estimation of the propensity scores or weights needs to be taken into account for valid inference.
+
+When a logistic regression or other parametric model is used to estimate the weights, M-estimation can be used to incorporate the uncertainty in estimating the propensity score into the standard error of the treatment effect estimate[\^Note: sometimes the standard errors resulting from M-estimation are also called "sandwich" standard errors; in each paper you read that mentions these, you will need to read in detail to figure out whether they mean sandwich standard errors that account for estimation of the propensity score (i.e., used M-estimation) or those that don't (i.e., used a robust standard error only for the outcome model).] [@luncefordStratificationWeightingPropensity2004, @zhouPropensityScoreWeighting2020a]. This is fairly limiting and in some cases requires manual programming by the analyst using a generalized estimating equations solver like `geex`. The `PSweight` package also uses M-estimation but has a limited set of propensity score models available.
+
+Because the treatment effect estimator is normally distributed, bootstrapping the whole process of estimating the weights and the treatment effect can be an effective way to capture variability in both steps of the process. It's also especially helpful when it's not immediately clear how to to set up the estimation equations for the propensity score part of the model, e.g., when a machine learning or optimization-based method is used to estimate the propensity scores. Bootstrapping involves drawing a new sample with replacement form the original sample, estimating the weights and treatment effect in each sample, and using the resulting distribution from doing this process many times as the sampling distribution of the effect estimate, from which confidence intervals can be computed. This is a popular method and tends to work well in a variety of circumstances [@austinBootstrapVsAsymptotic2022].
+
+The traditional bootstrap can have problems with sparse variables (covariates, treatment, or outcome). A potential solution is the fractional weighted bootstrap [@xuApplicationsFractionalRandomWeightBootstrap2020a; also known as the Bayesian bootstrap, @rubinBayesianBootstrap1981], which can be used instead. The fractional weighted bootstrap (FWB) involves drawing weights for each unit from a distribution of weights and computing weighted estimates within each bootstrap sample. The traditional bootstrap can be seen as a weighted bootstrap in which each unit receives an integer weight drawn from a multinomial or Poisson distribution; the FWB allows those weights to be continuously valued (i.e., "fractional"). The FWB is implemented in R in my `fwb` package, which is meant to be a drop-in for the `boot` package, which performs the traditional bootstrap.
+
+In this post, I'm going to show you how to use the FWB with propensity score weighting. It's very simple.
+
+An important limitation when using the FWB is that the weights need to be incorporated into every step of the analysis correctly. For propensity score weighting, this means that the model used to estimate the weights and the outcome need to accommodate sampling weights. Not all methods and packages do.
+
+We'll be using `WeightIt` to estimate the weights. This post can be seen as a supplement to the main `WrightIt` vignette, which describes the use of the traditional bootstrap for estimating confidence intervals. We'll use the `lalonde` dataset that comes with `cobalt` and `MatchIt`.
+
+```{r}
+library(WeightIt)
+data("lalonde", package = "cobalt")
+head(lalonde)
+```
+
+Our goal will be to estimate the average treatment effect on the treated (ATT) of the `treat` variable on the outcome `re78`, adjusting for the other variables in the dataset. Our plan will be to use weighting combined with an outcome model to adjust for confounding.
+
+The main weighting function of `WeightIt` is `weightit()`, which provides an interface to many different weighting methods. Each method has a help page devoted to it (e.g., `method_ps` for GLM propensity score weighting, `method_ebal` for entropy balancing). Each help page has a "Sampling Weights" section that describes whether sampling weights are support for the given method. In order to use the FWB, we need to make sure sampling weights are supported. For example, sampling weights are currently not supported with `method = "bart"`.
+
+We'll use energy balancing [@hulingEnergyBalancingCovariate2022], which involves estimating weights the directly balance the covariates by minimizing the "energy distance" (i.e., the difference between the joint distributions of the covariates in the groups). Because energy balancing weights are not estimated using maximum likelihood, it's not straightforward to convert their estimation into an M-estimation system of estimating equations, but they are estimated quickly, which means they can be estimated in the bootstrap without having to wait too long (unlike some machine learning methods).
+
+We'll go through the whole process of assessing balance as you normally would, but the focus here will be on the FWB. First we estimate the weights and assess balance using `cobalt::bal.tab()`.
+
+```{r}
+w.out <- weightit(treat ~ age + educ + race + married +
+                    nodegree + re74 + re75,
+                  data = lalonde, estimand = "ATT",
+                  method = "energy")
+w.out
+
+cobalt::bal.tab(w.out, stats = c("m", "ks"))
+```
+
+Balance looks pretty good, so let's estimate the treatment effect. We'll fit a linear model for the outcome and use `marginaleffects::comparisons()` to compute the ATT. We need to supply the estimated weights to the model fitting function to be sure the CBPS weights are included.
+
+```{r}
+fit <- lm(re78 ~ treat * (age + educ + race + married +
+                    nodegree + re74 + re75),
+                  data = lalonde, weights = w.out$weights)
+
+marginaleffects::avg_comparisons(
+  fit, variables = "treat", vcov = "HC3", weights = "(weights)",
+  newdata = subset(lalonde, treat == 1)
+)
+```
+
+There is our effect estimate and confidence interval estimate using a robust standard error that fails to take into account estimation of the weights[\^I'll explain some of the arguments to `comparisons()` here. The `vcov` argument lets you request a special type of standard error; here I requested the HC3 robust sandwich standard error. This is the most straightforward way to get robust standard errors. The `weights` argument is superfluous here because we are estimating the ATT (and all weights for the treated are equal to 1), but it's good practice to include it. Setting `weights = "(weights)"` ensure that the exact weights that were used in the regression model are used to compute the average marginal effect. Finally, the `newdata` argument allows use to request that the ATT be estimated by restricting the computation of the marginal effects to the treated units before averaging them. For more details, see the `marginaleffects` website and documentation.].
+
+Now let's move on to the bootstrap. First, we have to write a function that takes in a dataset and a set of weights and returns an effect estimate. In this function, we estimate the weights, fit the outcome model with the weights, and compute an average marginal effect to be used as our ATT. It's critical that the bootstrap weights be supplied to the `s.weights` argument of `weightit()` to ensure they are incorporated into estimation of the weights. In effect estimation, the weights need to be multiplied by the weights returned by `weightit()` before being used in the outcome model.
+
+```{r}
+fwb_fun <- function(data, w) {
+  #Estimate the weights
+  w.out <- weightit(treat ~ age + educ + race + married +
+                    nodegree + re74 + re75,
+                  data = data, estimand = "ATT",
+                  method = "energy", s.weights = w)
+  
+  #Fit the outcome model
+  fit <- lm(re78 ~ treat * (age + educ + race + married +
+                    nodegree + re74 + re75),
+                  data = data,
+            weights = w.out$weights * w)
+  
+  #Estimate the marginal effects; no vcov required
+  ame <- marginaleffects::avg_comparisons(
+    fit, variables = "treat", vcov = FALSE, weights = "(weights)",
+    newdata = subset(data, treat == 1)
+  )
+  
+  #Return the estimate
+  ame$estimate
+}
+```
+
+If we supply the original dataset and a vector of unit weights, we get back our original estimate:
+
+```{r}
+fwb_fun(lalonde, rep(1, nrow(lalonde)))
+```
+
+Now let's run this 2000 times to get our distribution of effects. We'll use `fwb::fwb()`, which takes in a dataset and a bootstrap function. We need to set a seed to ensure our results are replicable.
+
+```{r}
+set.seed(654, "L'Ecuyer-CMRG")
+fwb_out <- fwb::fwb(lalonde, fwb_fun, R = 20,
+                    cl = 4)
+```

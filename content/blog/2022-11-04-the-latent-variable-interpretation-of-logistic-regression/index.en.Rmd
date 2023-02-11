@@ -1,0 +1,22 @@
+---
+title: The Latent Variable Interpretation of Logistic Regression
+author: Noah Greifer
+date: '2022-11-04'
+slug: the-latent-variable-interpretation-of-logistic-regression
+categories: []
+tags:
+  - logistic regression
+subtitle: ''
+summary: ''
+authors: []
+lastmod: '2022-11-04T23:47:33-04:00'
+featured: no
+draft: true
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+$$P(y = 1) = P(y^* > 0) = P(X\beta + \varepsilon^* > 0) = P(\varepsilon^*>-X\beta)$$

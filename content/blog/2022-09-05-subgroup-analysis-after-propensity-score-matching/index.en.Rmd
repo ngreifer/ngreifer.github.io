@@ -147,7 +147,7 @@ matched_data <- rbind(matched_data_b,
 names(matched_data)
 ```
 
-Next, we can fit the outcome model. The choice of which model to fit should depend primarily on the best model for the outcome, though in some cases it can be useful to parameterize the model to get a quantity you want for free. We'll focus on using a good basic model; because we have a binary outcome, we'll use logistic regression.
+Next, we can fit the outcome model. The choice of which model to fit should depend primarily on the best model for the outcome; because we have a binary outcome, we'll use logistic regression.
 
 It's usually a good idea to include covariates in the outcome model. It's also usually a good idea to allow the treatment to interact with the covariates in the outcome model. It's also usually a good idea to fit separate models within each subgroup. Combining this all yields a pretty complicated model, which is why it will be so important to use a marginal effects procedure rather than trying to interpret the model's coefficients. Here's how we fit this model:
 
@@ -164,16 +164,15 @@ For a linear model, you can use `lm()` and remove the `family` argument. We used
 
 ## Step 4: Estimate the Treatment Effects
 
-Finally, we can estimate the treatment effects. To do so, we'll use an average marginal effects procedure as implemented in `{marginaleffects}`. First, we'll estimate the average marginal effect overall, averaging across the subgroups. Again, we're hoping for a negative treatment effect, which indicates the risk of having zero income decreased among those who received the treatment. Because we are estimating the ATT, we need to subset the data for which the average marginal effects are computed to just the treated units, which we do using the `newdata` argument (which can be omitted when the ATE is the target estimand). We also need to supply pair membership to ensure the standard errors are correctly computed, which we do by supplying the `subclass` variable containing pair membership to the `vcov` argument. In general, we need to supply the weights to the `wts` argument of `comparisons()` as well (though, in this case, because we are estimating the ATT and all weights are 1 for the treated group, it doesn't make a difference).
+Finally, we can estimate the treatment effects. To do so, we'll use an average marginal effects procedure as implemented in `{marginaleffects}`^[This requires version 0.9.0 ore greater of `{marginaleffects}`.]. First, we'll estimate the average marginal effect overall, averaging across the subgroups. Again, we're hoping for a negative treatment effect, which indicates the risk of having zero income decreased among those who received the treatment. Because we are estimating the ATT, we need to subset the data for which the average marginal effects are computed to just the treated units, which we do using the `newdata` argument (which can be omitted when the ATE is the target estimand). We also need to supply pair membership to ensure the standard errors are correctly computed, which we do by supplying the `subclass` variable containing pair membership to the `vcov` argument. In general, we need to supply the weights to the `wts` argument of `avg_comparisons()` as well (though, in this case, because we are estimating the ATT and all weights are 1 for the treated group, it doesn't make a difference).
 
 ```{r}
 library("marginaleffects")
 
 #Estimate the overall ATT
-comparisons(fit, variables = "treat",
-            newdata = subset(matched_data, treat == 1),
-            vcov = ~subclass, wts = "weights") |>
-  summary()
+avg_comparisons(fit, variables = "treat",
+                newdata = subset(matched_data, treat == 1),
+                vcov = ~subclass, wts = "weights")
 ```
 
 The estimated risk difference is 0.02305 with a high p-value and a confidence interval containing 0, indicating no evidence of an effect overall. (Note: this doesn't mean there is no effect! The data are compatible with effects anywhere within the confidence interval, which includes negative and positive effects of a moderate size!)
@@ -181,32 +180,30 @@ The estimated risk difference is 0.02305 with a high p-value and a confidence in
 New, let's estimate the subgroup-specific effects by supplying the subgrouping variable, `"race"`, to the `by` argument:
 
 ```{r}
-comparisons(fit, variables = "treat",
-            newdata = subset(matched_data, treat == 1),
-            vcov = ~subclass, wts = "weights",
-            by = "race") |>
-  summary()
+avg_comparisons(fit, variables = "treat",
+                newdata = subset(matched_data, treat == 1),
+                vcov = ~subclass, wts = "weights",
+                by = "race")
 ```
 
 Here, we see that actually there is evidence of treatment effects within subgroups! In the subgroups `hispan` and `white`, we see moderately sized negative effects with small p-values and confidence intervals excluding 0, suggesting that there treatment effects in these subgroups.
 
-We can also test whether the treatment effects differ between groups using the `hypothesis` argument of `comparisons()`:
+We can also test whether the treatment effects differ between groups using the `hypothesis` argument of `avg_comparisons()`:
 
 ```{r}
-comparisons(fit, variables = "treat",
-            newdata = subset(matched_data, treat == 1),
-            vcov = ~subclass, wts = "weights",
-            by = "race", hypothesis = "pairwise") |>
-  summary()
+avg_comparisons(fit, variables = "treat",
+                newdata = subset(matched_data, treat == 1),
+                vcov = ~subclass, wts = "weights",
+                by = "race", hypothesis = "pairwise")
 ```
 
-We can see evidence that the treatment effect differs between the `black` (`Row 1`) and `hispan` (`Row 2`) groups, and between the `black` and `white` (`Row 3`) groups. With many subgroups, it might be useful to adjust your p-values for multiple comparisons, which we can do using `p.adjust()`, e.g.,
+We can see evidence that the treatment effect differs between the `black` and `hispan` groups, and between the `black` and `white` groups. With many subgroups, it might be useful to adjust your p-values for multiple comparisons, which we can do using `p.adjust()`, e.g.,
 
 ```{r, eval = FALSE}
 p.adjust(comp$p.value, method = "holm")
 ```
 
-if `comp` contained the `comparisons() |> summary()` output above.
+if `comp` contained the `avg_comparisons()` output above.
 
 Congratulations! You've done a subgroup analysis!
 
