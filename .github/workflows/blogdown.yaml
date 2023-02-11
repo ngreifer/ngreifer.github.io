@@ -30,7 +30,7 @@ jobs:
 
       - name: Install hugo
         run: install.packages("blogdown")
-        run: blogdown::install_hugo()}
+        run: blogdown::install_hugo()
         shell: Rscript {0}
 
       - name: Build site
