@@ -190,7 +190,7 @@ To compute the risk ratio, we can use `transform()`:
 sim.att <- transform(sim.att, RR = `E[Y(1)]`/`E[Y(0)]`)
 ```
 
-Finally, we can compute out confidence intervals and p-values around the estimated marginal risks and risk ratio using `summary()`:
+Finally, we can compute our confidence intervals and p-values around the estimated marginal risks and risk ratio using `summary()`:
 
 ```{r}
 summary(sim.att, null = c(RR = 1))
