@@ -107,15 +107,15 @@ Control | Treated
 \sum_{s\in S}{\frac{n_{1s}}{n_1}\left(\frac{1}{n_{0s}}\sum_{i:s_i=s}1\{A_i=0\}Y_i \right)}
 \]</span></p>
 <p>Doing some rearranging, we find this is equal to</p>
-<p>$$
-<em>{sS}{(</em>{i:s_i=s}1{A_i=1}Y_i )} = _{i}{1{A_i=0}Y_i }</p>
-<p>$$</p>
-<p>This is just the Horvitz-Thompson estimator of the potential outcome mean for the treated using weights of <span class="math inline">\(\frac{n_{1s_i}}{n_{0s_i}}\)</span>, which are exactly the ATT weights for control units.</p>
-<p>For the ATE, we have that the estimated potential outcomes for treated units is</p>
+<p><span class="math display">\[
+\frac{1}{n_1}\sum_{s\in S}{\left(\sum_{i:s_i=s}\frac{n_{1s_i}}{n_{0s_i}}1\{A_i=1\}Y_i \right)} = \frac{1}{n_1}\sum_{i}{\frac{n_{1s_i}}{n_{0s_i}}1\{A_i=0\}Y_i }
+\]</span></p>
+<p>This is just the Horvitz-Thompson estimator of the potential outcome mean for the control units under treatment using weights of <span class="math inline">\(\frac{n_{1s_i}}{n_{0s_i}}\)</span>, which are exactly the ATT weights for control units.</p>
+<p>For the ATE, we have that the estimated potential outcome mean under treatment is</p>
 <p><span class="math display">\[
 \frac{1}{n}\sum_{s\in S}{n_s\left(\frac{1}{n_{1s}}\sum_{i:s_i=s}1\{A_i=1\}Y_i \right)} = \frac{1}{n}\sum_{i}{\frac{n_{s_i}}{n_{1s_i}}1\{A_i=1\}Y_i }
 \]</span></p>
-<p>which is the Horvitz-Thompson estimator of the potential outcome for the control under the treated using weights of <span class="math inline">\(\frac{n_{s_i}}{n_{1s_i}}\)</span>, which are exactly the ATE weights for treated units. We find an analogous expression for the control units.</p>
+<p>which is the Horvitz-Thompson estimator of the potential outcome mean using weights of <span class="math inline">\(\frac{n_{s_i}}{n_{1s_i}}\)</span>, which are exactly the ATE weights for treated units. We find an analogous expression for the control units.</p>
 </div>
 <div id="k1-matching-weights-austin-2008" class="section level3">
 <h3><span class="math inline">\(k\)</span>:1 Matching Weights (Austin, 2008)</h3>
@@ -123,16 +123,16 @@ Control | Treated
 <ul>
 <li>ATT: Control units receive a weight equal to the reciprocal of the number of control units in their matched set, i.e., <span class="math inline">\(\frac{1}{n_{0s_i}}\)</span>.</li>
 </ul>
-<p>Our formula for ATT weights is <span class="math inline">\(\frac{n_{1s_i}}{n_{1s_i}}\)</span>, but in <span class="math inline">\(k\)</span>:1 matching, <span class="math inline">\(n_{1s_i}=1\)</span> (i.e., there is only one treated unit in each matched set), so Austin’s formula is consistent with ours.</p>
+<p>Our formula for ATT weights is <span class="math inline">\(\frac{n_{1s_i}}{n_{0s_i}}\)</span>, but in <span class="math inline">\(k\)</span>:1 matching, <span class="math inline">\(n_{1s_i}=1\)</span> (i.e., there is only one treated unit in each matched set), so Austin’s formula is consistent with ours.</p>
 </div>
 <div id="matching-imputation-with-replacement-abadie-and-imbens-2006" class="section level3">
 <h3>Matching Imputation with Replacement (Abadie and Imbens, 2006)</h3>
-<p><span class="citation">Abadie and Imbens (<a href="#ref-abadie2006" role="doc-biblioref">2006</a>)</span> describe matching imputation, which is generally equivalent to but conceptually distinct from matching as nonparametric preprocessing. Rather than preprocess the data by forming a matched sample upon which other analyses take place, matching imputation involve imputing the value of each unit’s missing potential outcome using an average of the observed outcomes of it matched units. <span class="citation">Abadie and Imbens (<a href="#ref-abadie2006" role="doc-biblioref">2006</a>)</span>, though, do provide weights that can be used to compute a weighted difference in means that is equal to the matching imputation estimator.</p>
+<p><span class="citation">Abadie and Imbens (<a href="#ref-abadie2006" role="doc-biblioref">2006</a>)</span> describe matching imputation, which is generally equivalent to but conceptually distinct from matching as nonparametric preprocessing. Rather than preprocessing the data by forming a matched sample upon which other analyses take place, matching imputation involves imputing the value of each unit’s missing potential outcome using an average of the observed outcomes of its matched units. <span class="citation">Abadie and Imbens (<a href="#ref-abadie2006" role="doc-biblioref">2006</a>)</span>, though, do provide weights that can be used to compute a weighted difference in means that is equal to the matching imputation estimator.</p>
 <ul>
 <li><p>ATT: Each control unit <span class="math inline">\(i\)</span> receives a weight equal to <span class="math inline">\(K_M (i)\)</span>, where <span class="math inline">\(K_M (i)=\sum_{l=1}^N{1\{i\in J_M(l)\}\frac{1}{\#J_M(l)}}\)</span>, <span class="math inline">\(J_M(l)\)</span> is the set of units matched to unit <span class="math inline">\(l\)</span>, and <span class="math inline">\(\#J_M(l)\)</span> is the size of that set.</p></li>
 <li><p>ATE: Each unit <span class="math inline">\(i\)</span> receives a weight equal to <span class="math inline">\(1 + K_M(i)\)</span> with <span class="math inline">\(K_M (i)\)</span> as defined above.</p></li>
 </ul>
-<p>These equations are hard to parse, but essentially, <span class="math inline">\(1\{i\in J_M(l)\}\frac{1}{\#J_M(l)}\)</span> should be read as the reciprocal of the number of controls matched to the same treated unit control unit <span class="math inline">\(i\)</span> is matched to, and this is summed across all treated units <span class="math inline">\(l\)</span> for each control unit <span class="math inline">\(i\)</span>. The ATT weights are more closely related to our matching weights: using the equivalence described above for <span class="math inline">\(k\)</span>:1 matching, each time a control unit is matched, it get a weight equal to the reciprocal of the number of control units in its matched set, and then those weights are summed to arrive at a final weight for that unit. The formulas described in <span class="citation">Abadie and Imbens (<a href="#ref-abadie2006" role="doc-biblioref">2006</a>)</span> describe that method symbolically. The ATE weights for control units in <span class="citation">Abadie and Imbens (<a href="#ref-abadie2006" role="doc-biblioref">2006</a>)</span> are just 1 plus the ATT weights, and since ATC weights are equal to 1 for control units, these weights are equivalent to our weights. (The analogous connection works for treated units.)</p>
+<p>These equations are hard to parse, but essentially, <span class="math inline">\(1\{i\in J_M(l)\}\frac{1}{\#J_M(l)}\)</span> should be read as the reciprocal of the number of control units matched to the same treated unit control unit <span class="math inline">\(i\)</span> is matched to, and this is summed across all treated units <span class="math inline">\(l\)</span> for each control unit <span class="math inline">\(i\)</span>. The ATT weights are more closely related to our matching weights: using the equivalence described above for <span class="math inline">\(k\)</span>:1 matching, each time a control unit is matched, it get a weight equal to the reciprocal of the number of control units in its matched set, and then those weights are summed to arrive at a final weight for that unit. The formulas in <span class="citation">Abadie and Imbens (<a href="#ref-abadie2006" role="doc-biblioref">2006</a>)</span> describe that method symbolically. The ATE weights for control units in <span class="citation">Abadie and Imbens (<a href="#ref-abadie2006" role="doc-biblioref">2006</a>)</span> are just 1 plus the ATT weights, and since ATC weights are equal to 1 for control units, these weights are equivalent to our weights. (The analogous connection works for treated units.)</p>
 </div>
 </div>
 <div id="conclusion" class="section level2">
