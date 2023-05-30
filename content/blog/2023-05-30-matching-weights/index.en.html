@@ -1,0 +1,205 @@
+---
+title: "Matching Weights are Propensity Score Weights"
+author: Noah Greifer
+date: '2023-05-30'
+slug: matching-weights
+tags:
+  - matching
+  - propensity-scores
+lastmod: Sys.time()
+share: true
+bibliography: references.bib
+---
+
+
+
+<p>I’m <a href="https://github.com/kosukeimai/MatchIt/issues/155">often</a> <a href="https://stats.stackexchange.com/q/536197/116195">asked</a> how the matching weights produced by <code>MatchIt</code> are computed. The weights are necessary for estimating the treatment effect in the matched sample; indeed, the weights <em>determine</em> the matched sample. While the weights for simple methods like 1:1 matching are straightforward (i.e., 1 if matched and 0 if unmatched), for more complicated scenarios, like full matching, matching with replacement, and variable ratio matching, the weights take on variable values and are critical to include in the analysis of the matched dataset. For example, full matching doesn’t discard any units (by default), but failing to include the matching weights in the estimation of the treatment effect would be like doing no matching at all.</p>
+<p>There is very little guidance in the literature on how to compute matching weights. We have a few clues that have been scattered across different fields, but they have yet to describe a unifying method of computing these weights<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a>. In this post, I’ll describe how matching weights are computed in <code>MatchIt</code> and how this unifying method relates to the few strategies described in the literature.</p>
+<p>The main theses of this post are that <strong>matching is a nonparametric method for estimating propensity scores</strong>, and <strong>matching weights are propensity score weights</strong>. This framework unifies existing approaches for computing weights after matching, applies to all forms of matching (including <span class="math inline">\(k\)</span>:1 matching, full matching, and stratification), and is straightforward to implement.</p>
+<div id="matching-as-nonparametric-estimation-of-propensity-scores" class="section level2">
+<h2>Matching as Nonparametric Estimation of Propensity Scores</h2>
+<p>The first step in understanding how matching weights are computed is to consider how matching is a nonparametric estimator of the propensity score. When I talk about matching here, I’m really talking about the assignment of units into pairs, strata, or matched sets <span class="citation">(<a href="#ref-greiferMatchingMethodsConfounder2021a" role="doc-biblioref">Greifer and Stuart 2021</a>)</span>. For example, 1:1 pair matching assigns treated and control units into pairs, each with one treated and one control unit. Optimal full matching assigns all units into matched sets, each with either exactly one treated unit and one or more control units or with exactly one control units and one or more treated units <span class="citation">(<a href="#ref-hansenOptimalFullMatching2006" role="doc-biblioref">Hansen and Klopfer 2006</a>)</span>. Propensity score subclassification and coarsened exact matching assign units into strata based on their values of the propensity score or covariates, respectively <span class="citation">(<a href="#ref-rosenbaumReducingBiasObservational1984" role="doc-biblioref">Rosenbaum and Rubin 1984</a>; <a href="#ref-iacusCausalInferenceBalance2012" role="doc-biblioref">Iacus, King, and Porro 2012</a>)</span>. I do want to note that matching with replacement is a slightly different beast, so I will save my discussion of it till later, though how it fits into this framework is straightforward.</p>
+<div id="computing-stratum-propensity-scores" class="section level3">
+<h3>Computing stratum propensity scores</h3>
+<p>For matched units, we can compute a new “stratum” propensity score, <span class="math inline">\(\hat{e}^*_i\)</span> as <span class="math display">\[
+\hat{e}^*_i = P(A = 1|S=s_i)
+\]</span>where <span class="math inline">\(A\)</span> is the treatment (0 for control, 1 for treated) and <span class="math inline">\(S\)</span> is stratum/pair membership indexed by strata <span class="math inline">\(s\)</span>. Put in words, the <strong>stratum propensity score</strong> <span class="math inline">\(\hat{e}^*_i\)</span> <strong>for each member of a matched stratum is the proportion of treated units in that stratum</strong>. We can also write this formula as <span class="math display">\[
+\hat{e}^*_i = \frac{n_{1s_i}}{n_{s_i}}
+\]</span> where <span class="math inline">\(n_{1s_i}\)</span> is the number of treated units in stratum <span class="math inline">\(s_i\)</span> and <span class="math inline">\(n_{s_i}\)</span> is the total number of units in stratum <span class="math inline">\(s_i\)</span>.</p>
+<p>Note that <span class="math inline">\(\hat{e}^*_i\)</span> is distinct from the usual propensity score, <span class="math inline">\(\hat{e}_i = P(A=1|X = x_i)\)</span>, which is estimated from the treatment and covariates using, e.g., logistic regression or a machine learning model. <span class="math inline">\(\hat{e}_i\)</span> may be used to perform the matching or subclassification, but it is <span class="math inline">\(\hat{e}^*_i\)</span>, the subject of this post, that arises <em>from</em> matching or subclassification. It is critical to keep these two propensity scores distinct; one is used to match (<span class="math inline">\(\hat{e}_i\)</span>), and the other results from matching (<span class="math inline">\(\hat{e}^*_i\)</span>).</p>
+<p>This method of estimating stratum propensity scores is nonparametric in the sense that no model is used and no functional form assumption are made, once units have been assigned into strata. It may be that a model was used to assign units into strata (e.g., when matching or subclassifying based on a propensity score estimated with a model of treatment given the covariates), but, given the matching, this new propensity score is nonparametric. It is agnostic to how the matching was done.</p>
+<p>Intuitively, we can think of stratum membership as a proxy for the covariates that are usually included in a propensity score specification. That is, if all units in a stratum have the same values of the covariates, conditioning on stratum membership is the same as conditioning on the covariates.</p>
+</div>
+<div id="examples" class="section level3">
+<h3>Examples</h3>
+<p>In full matching, we may have some matched sets that have, for example, 1 treated unit and 7 control units. All units in that stratum would receive a stratum propensity score of <span class="math inline">\(1/8\)</span>. We might have another matched set that has 5 treated units and 1 control unit. All units in that stratum would receive a stratum propensity score of <span class="math inline">\(5/6\)</span>.</p>
+<p>In 1:1 matching, the situation is more trivial; all matched units, which are each in strata with 1 treated unit and 1 control unit, receive a stratum propensity score of <span class="math inline">\(1/2\)</span>.</p>
+<p>In propensity score subclassification, we might have more than one unit from each treatment group; for example, a propensity score quintile might contain 56 treated units and 73 control units; all units in that subclass would receive stratum propensity scores of <span class="math inline">\(56/129\)</span>.</p>
+</div>
+</div>
+<div id="matching-weights-as-propensity-score-weights" class="section level2">
+<h2>Matching Weights as Propensity Score Weights</h2>
+<p>To get matching weights from the stratum propensity scores, we can simply apply the usual propensity score weighting formulas that correspond to the desired estimand to these propensity scores. As reminder, the formulas for weights given a generic propensity score <span class="math inline">\(e_i\)</span> are <span class="math display">\[
+\begin{align}
+w_{ATE}&amp;=\frac{A_i}{e_i} + \frac{1-A}{1-e_i} \\
+w_{ATT}&amp;=A_i + (1-A_i)\frac{e_i}{1-e_i} = e_i \times w_{ATE}\\
+w_{ATC}&amp;=A_i \frac{1-e_i}{e_i} + (1-A) = (1-e_i)\times w_{ATE}
+\end{align}
+\]</span></p>
+<p>(Note: we also sometimes “stabilize” the weights by multiplying them by the stabilization factor <span class="math inline">\(A_iP(A+1) + (1-A_i)P(A=0)\)</span>; this will come up later.) So, we simply feed stratum propensity scores <span class="math inline">\(\hat{e}^*_i\)</span> into these formulas, and that’s how we get the matching weights. To my knowledge, this procedure has never been described in the literature. I included it in the <code>MatchIt</code> documentation once I became its maintainer starting with version 4.0.0.</p>
+<p>Let’s see these weights in action:</p>
+<p>For full matching and propensity score subclassification, one has the choice between the ATE, ATT, or ATC. This choice doesn’t necessarily affect the matching<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a>, though it does affect how the weights are computed. Each unit receives a stratum propensity score based on their stratum membership, which will likely vary across strata (otherwise the matching is not functioning right). That stratum propensity score is then used to compute the matching weights.</p>
+<p>For the ATT, treated units receive a weight of 1, and control units receive a weight of <span class="math inline">\(\frac{\hat{e}^*_i}{1-\hat{e}^*_i} = \frac{\frac{n_{1s_i}}{n_{s_i}}}{1-\frac{n_{1s_i}}{n_{s_i}}}=\frac{n_{1s_i}}{n_{s_i}-n_{1s_i}}=\frac{n_{1s_i}}{n_{0s_i}}\)</span>. That is, control units receive a weight equal to ratio of treated units to control units in their stratum.</p>
+<p>For the ATE, treated units receive a weight of <span class="math inline">\(\frac{1}{\hat{e}^*_i}=\frac{n_{s_i}}{n_{1s_i}}\)</span> and control units receive a weight of <span class="math inline">\(\frac{1}{1-\hat{e}^*_i}=\frac{n_{s_i}}{n_{0s_i}}\)</span>.</p>
+<p>For 1:1 matching for the ATT, the case is much simpler. We expect both treated and matched control units to receive a weight of 1; we’ll see that applying the formulas does indeed yield this result. Remember that for all matched units, <span class="math inline">\(\hat{e}^*_i=1/2\)</span> because each pair has 1 treated unit and 1 control unit. Using the ATT formula, treated units receive a weight of 1 and control units receive a weight of <span class="math inline">\(\frac{\hat{e}^*_i}{1-\hat{e}^*_i}=\frac{\frac{1}{2}}{1-\frac{1}{2}}=1\)</span>, as we expected. So, even for this simple case, applying the single unifying formula produces the expected results<a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a>.</p>
+<div id="matching-with-replacement" class="section level3">
+<h3>Matching with replacement</h3>
+<p>Earlier, I alluded to the fact that matching with replacement works the same way but with some slight variation. In matching with replacement for the ATT, each control unit may be part of more than one matched pair. For example, our resulting matching matrix for 3:1 matching with replacement and a caliper might look like the following:</p>
+<pre><code>Treated | Control
+--------|--------
+      A | C D
+      B | C E F</code></pre>
+<p>Control unit <code>C</code> is matched to both treated units <code>A</code> and <code>B</code>, each of which have a different number of matches (e.g., because of a caliper that restricted the number of matches <code>A</code> could get).</p>
+<p>Each unit receives a stratum propensity score and matching weight for each time it appears in a match. So, unit <code>C</code> receives a stratum propensity score of <span class="math inline">\(1/3\)</span> from the first matched set and a stratum propensity score of <span class="math inline">\(1/4\)</span> from the second matched set. We apply the usual weighting formula for the ATT to each stratum propensity score, which gives unit <code>C</code> a matching of weight of <span class="math inline">\(1/2\)</span> for the first matched set and a matching weight of <span class="math inline">\(1/3\)</span> for the second matched set. Finally, we add together the weights (<strong>not</strong> the stratum propensity scores!) for each unit to get their final weight, which gives unit <code>C</code> a matching weight of <span class="math inline">\(1/2 + 1/3 = 5/6\)</span>.</p>
+<p>Matching with replacement for the ATE is not available in <code>MatchIt</code>, but it is in other software such as the <code>Matching</code> package and Stata <code>teffects nnmatch</code>. The way this works is each treated unit receives a matched control unit, and, independently, each control unit receives a matched treated unit. So, you would have a matching matrix for 2:1 matching with replacement and a caliper that would look like the following:</p>
+<pre class="r"><code>Treated | Control
+--------|--------
+      A | C D
+      B | C E
+--------|--------
+Control | Treated
+--------|--------
+      C | A B
+      D | A
+      E | B
+      F | B</code></pre>
+<p>We use a slightly different procedure for calculating the ATE weights that relies on the observation that <span class="math inline">\(w_{ATE}=w_{ATT}+w_{ATC}\)</span><a href="#fn4" class="footnote-ref" id="fnref4"><sup>4</sup></a>. For each unit, we compute the weights where the unit is in the focal group (i.e., the group being matched to) and where the unit is in the nonfocal group (i.e., the group being used as matches), and add them up.</p>
+<p>For example, for unit <code>B</code>, which is a treated unit, we compute the ATT weights when <code>B</code> is matched to and the ATC weights when <code>B</code> is used as a match. <code>B</code> is matched to by <code>C</code> and <code>E</code> (top of the table), so it gets an ATT weight of 1. <code>B</code> is used as a match for <code>C</code>, <code>E</code>, and <code>F</code>, and gets stratum propensity scores of <span class="math inline">\(2/3\)</span>, <span class="math inline">\(1/2\)</span>, and <span class="math inline">\(1/2\)</span>, and weights of <span class="math inline">\(1/2\)</span>, <span class="math inline">\(1\)</span>, and <span class="math inline">\(1\)</span>, respectively. Adding up the ATT weight and the ATC weights, we arrive at a final ATE weight of <span class="math inline">\(1 + 1/2+1+1 =7/2\)</span>.</p>
+<p>For unit <code>C</code>, which is a control unit, we compute the ATC weights when <code>C</code> is matched to and the ATT weights when <code>C</code> is used as a match. <code>C</code> is matched to by <code>A</code> and <code>B</code> (bottom of the table), so it gets an ATC weight of 1. <code>C</code> is used as a matched for <code>A</code> and <code>B</code>, and gets stratum propensity scores of <span class="math inline">\(1/3\)</span> and <span class="math inline">\(1/3\)</span>, and weights of <span class="math inline">\(1/2\)</span> and <span class="math inline">\(1/2\)</span>, respectively. Adding up the ATC weight and the ATT weights, we arrive at a final ATE weight of <span class="math inline">\(1 + 1/2+1/2=2\)</span>.</p>
+</div>
+</div>
+<div id="matching-weights-in-the-literature" class="section level2">
+<h2>Matching weights in the literature</h2>
+<p>There have been some descriptions of methods to compute weights from matching or stratification in the literature. Here we discuss those approaches and demonstrate how they are related to our unified procedure described above.</p>
+<div id="marginal-mean-weighting-through-stratification-mmws-hong-2010" class="section level3">
+<h3>Marginal Mean Weighting Through Stratification (MMWS; Hong, 2010)</h3>
+<p><span class="citation">Hong (<a href="#ref-hong2010" role="doc-biblioref">2010</a>)</span> describes marginal mean weighting through stratification (MMWS), which is a method of computing weights after propensity score stratification for use in estimating marginal treatment effects (i.e., rather than subclass-specific effects). Hong’s formulas for the MMWS weights are as follows:</p>
+<ul>
+<li><p>ATT: Control units receive a weight of <span class="math inline">\(\frac{n_{1s_i}}{n_{0s_i}}\frac{1-\text{pr}(A=1)}{\text{pr}(A=1)}\)</span>, where <span class="math inline">\(\text{pr}(A=a)\)</span> is the overall proportion of units in treatment group <span class="math inline">\(a\)</span>.</p></li>
+<li><p>ATE: Units in treatment group <span class="math inline">\(a\)</span> receive weights of <span class="math inline">\(\frac{n_{s_i}}{n_{a s_i}}\text{pr}(A=a_i)\)</span>.</p></li>
+</ul>
+<p>The above formulas are the same as the matching weights formulas we described above except that they include a scaling factor, <span class="math inline">\(\frac{1-\text{pr}(A=1)}{\text{pr}(A=1)}\)</span> for the ATT weights and <span class="math inline">\(\text{pr}(A=a_i)\)</span> for the ATE weights. The ATE scaling factor is equal to the usual stabilization factor for propensity score weighting. In practice, the scaling factors do not affect balance statistics or the weighted outcome means, and so their inclusion here doesn’t change the properties of the weights<a href="#fn5" class="footnote-ref" id="fnref5"><sup>5</sup></a>.</p>
+</div>
+<div id="fine-stratification-weights-desai-et-al.-2017" class="section level3">
+<h3>Fine Stratification Weights (Desai et al., 2017)</h3>
+<p><span class="citation">Desai et al. (<a href="#ref-desai2017" role="doc-biblioref">2017</a>)</span> describe a method they call “fine stratification”, which is an alternative to traditional propensity score subclassification and which uses many strata (e.g., close to 100 rather than the traditional 5). <span class="citation">Desai and Franklin (<a href="#ref-desai2019" role="doc-biblioref">2019</a>)</span> provide the following formulas for fine stratification weights for the ATT and ATE:</p>
+<ul>
+<li><p>ATT: Control units receive a weight of <span class="math inline">\(\frac{n_{1s_i}}{n_1} / \frac{n_{0s_i}}{n_0}\)</span>.</p></li>
+<li><p>ATE: Treated units receive a weight of <span class="math inline">\(\frac{n_{s_i}}{n} / \frac{n_{1s_i}}{n_1}\)</span>, and control units receive a weight of <span class="math inline">\(\frac{n_{s_i}}{n} / \frac{n_{0s_i}}{n_0}\)</span>.</p></li>
+</ul>
+<p>Doing a little math reveals that the ATE formula is the same as ours except with a scaling factor of <span class="math inline">\(\frac{n_a}{n}\)</span> for units in treatment group <span class="math inline">\(a\)</span>, which is the same scaling factor used by <span class="citation">Hong (<a href="#ref-hong2010" role="doc-biblioref">2010</a>)</span>. The formula for the ATT weights is also the same as ours with the same scaling factor, <span class="math inline">\(\frac{n_0}{n_1}\)</span>, used by <span class="citation">Hong (<a href="#ref-hong2010" role="doc-biblioref">2010</a>)</span>.</p>
+</div>
+<div id="averaging-means-across-subclasses-lunceford-and-davidian-2004" class="section level3">
+<h3>Averaging Means across Subclasses (Lunceford and Davidian, 2004)</h3>
+<p>An early approach for computing treatment effects after propensity score subclassification was to compute the subclass-specific means for each treatment group and then compute a weighted average of those means to arrive at a single mean for each treatment group, where the weights were equal to the number of units in each subclass (for the ATE) <span class="citation">(<a href="#ref-lunceford2004" role="doc-biblioref">Lunceford and Davidian 2004</a>)</span> or the number of treated units in each subclass (for the ATT) <span class="citation">(<a href="#ref-stuart2010" role="doc-biblioref">Stuart 2010</a>)</span>. This procedure is also recommended for estimating effects after full matching <span class="citation">(<a href="#ref-stuartUsingFullMatching2008" role="doc-biblioref">Stuart and Green 2008</a>; <a href="#ref-hansenFullMatchingObservational2004" role="doc-biblioref">Hansen 2004</a>)</span>.</p>
+<p>So, for the ATT, the estimated potential outcome mean for control units is equal to</p>
+<p><span class="math display">\[
+\sum_{s\in S}{\frac{n_{1s}}{n_1}\left(\frac{1}{n_{0s}}\sum_{i:s_i=s}1\{A_i=0\}Y_i \right)}
+\]</span></p>
+<p>Doing some rearranging, we find this is equal to</p>
+<p>$$
+<em>{sS}{(</em>{i:s_i=s}1{A_i=1}Y_i )} = _{i}{1{A_i=0}Y_i }</p>
+<p>$$</p>
+<p>This is just the Horvitz-Thompson estimator of the potential outcome mean for the treated using weights of <span class="math inline">\(\frac{n_{1s_i}}{n_{0s_i}}\)</span>, which are exactly the ATT weights for control units.</p>
+<p>For the ATE, we have that the estimated potential outcomes for treated units is</p>
+<p><span class="math display">\[
+\frac{1}{n}\sum_{s\in S}{n_s\left(\frac{1}{n_{1s}}\sum_{i:s_i=s}1\{A_i=1\}Y_i \right)} = \frac{1}{n}\sum_{i}{\frac{n_{s_i}}{n_{1s_i}}1\{A_i=1\}Y_i }
+\]</span></p>
+<p>which is the Horvitz-Thompson estimator of the potential outcome for the control under the treated using weights of <span class="math inline">\(\frac{n_{s_i}}{n_{1s_i}}\)</span>, which are exactly the ATE weights for treated units. We find an analogous expression for the control units.</p>
+</div>
+<div id="k1-matching-weights-austin-2008" class="section level3">
+<h3><span class="math inline">\(k\)</span>:1 Matching Weights (Austin, 2008)</h3>
+<p><span class="citation">Austin (<a href="#ref-austin2008" role="doc-biblioref">2008</a>)</span> explains how to assess balance on (variable) <span class="math inline">\(k\)</span>:1 matched samples matched without replacement. The described procedure involves computing matching weights and using those to compute weighted balance statistics. He only provides formulas for the ATT:</p>
+<ul>
+<li>ATT: Control units receive a weight equal to the reciprocal of the number of control units in their matched set, i.e., <span class="math inline">\(\frac{1}{n_{0s_i}}\)</span>.</li>
+</ul>
+<p>Our formula for ATT weights is <span class="math inline">\(\frac{n_{1s_i}}{n_{1s_i}}\)</span>, but in <span class="math inline">\(k\)</span>:1 matching, <span class="math inline">\(n_{1s_i}=1\)</span> (i.e., there is only one treated unit in each matched set), so Austin’s formula is consistent with ours.</p>
+</div>
+<div id="matching-imputation-with-replacement-abadie-and-imbens-2006" class="section level3">
+<h3>Matching Imputation with Replacement (Abadie and Imbens, 2006)</h3>
+<p><span class="citation">Abadie and Imbens (<a href="#ref-abadie2006" role="doc-biblioref">2006</a>)</span> describe matching imputation, which is generally equivalent to but conceptually distinct from matching as nonparametric preprocessing. Rather than preprocess the data by forming a matched sample upon which other analyses take place, matching imputation involve imputing the value of each unit’s missing potential outcome using an average of the observed outcomes of it matched units. <span class="citation">Abadie and Imbens (<a href="#ref-abadie2006" role="doc-biblioref">2006</a>)</span>, though, do provide weights that can be used to compute a weighted difference in means that is equal to the matching imputation estimator.</p>
+<ul>
+<li><p>ATT: Each control unit <span class="math inline">\(i\)</span> receives a weight equal to <span class="math inline">\(K_M (i)\)</span>, where <span class="math inline">\(K_M (i)=\sum_{l=1}^N{1\{i\in J_M(l)\}\frac{1}{\#J_M(l)}}\)</span>, <span class="math inline">\(J_M(l)\)</span> is the set of units matched to unit <span class="math inline">\(l\)</span>, and <span class="math inline">\(\#J_M(l)\)</span> is the size of that set.</p></li>
+<li><p>ATE: Each unit <span class="math inline">\(i\)</span> receives a weight equal to <span class="math inline">\(1 + K_M(i)\)</span> with <span class="math inline">\(K_M (i)\)</span> as defined above.</p></li>
+</ul>
+<p>These equations are hard to parse, but essentially, <span class="math inline">\(1\{i\in J_M(l)\}\frac{1}{\#J_M(l)}\)</span> should be read as the reciprocal of the number of controls matched to the same treated unit control unit <span class="math inline">\(i\)</span> is matched to, and this is summed across all treated units <span class="math inline">\(l\)</span> for each control unit <span class="math inline">\(i\)</span>. The ATT weights are more closely related to our matching weights: using the equivalence described above for <span class="math inline">\(k\)</span>:1 matching, each time a control unit is matched, it get a weight equal to the reciprocal of the number of control units in its matched set, and then those weights are summed to arrive at a final weight for that unit. The formulas described in <span class="citation">Abadie and Imbens (<a href="#ref-abadie2006" role="doc-biblioref">2006</a>)</span> describe that method symbolically. The ATE weights for control units in <span class="citation">Abadie and Imbens (<a href="#ref-abadie2006" role="doc-biblioref">2006</a>)</span> are just 1 plus the ATT weights, and since ATC weights are equal to 1 for control units, these weights are equivalent to our weights. (The analogous connection works for treated units.)</p>
+</div>
+</div>
+<div id="conclusion" class="section level2">
+<h2>Conclusion</h2>
+<p>I proposed that matching (including stratification) can be seen as a nonparametric method of estimating propensity scores, and those propensity scores can be used with traditional propensity score weighting formulas to arrive at matching weights. These weights are equivalent to other weights described in the literature, though it seems no other authors have made this explicit connection with such generality. There have been some close calls, though: it is clear <span class="citation">Hong (<a href="#ref-hong2010" role="doc-biblioref">2010</a>)</span> and <span class="citation">Desai and Franklin (<a href="#ref-desai2019" role="doc-biblioref">2019</a>)</span> were inspired by the formulas for the ATE and ATT when deriving their subclassification weights, perhaps even making the connection themselves, though without explicitly stating these relationships. <span class="citation">Lin, Ding, and Han (<a href="#ref-lin2021" role="doc-biblioref">2021</a>)</span> also connect matching to propensity score weighting by noting that <span class="math inline">\(K_M(i)\)</span> as defined above approaches the ATT propensity score weight for control units and the ATC propensity score weight for treated units.</p>
+<p>Beyond just computing matching weights, this framework suggests new extensions of matching to other estimators that involve propensity scores. For example, general weighting formulas for various weighted estimands as described by <span class="citation">F. Li, Morgan, and Zaslavsky (<a href="#ref-li2018" role="doc-biblioref">2018</a>)</span> could be used with these matching weights, expanding the estimable estimands of matching methods (especially subclassification and full matching). There has been no research applying the ATO formulas to stratum propensity scores, but these may prove to enhance the precision of matching estimators. This framework also allows matching methods to be used with estimators that involve the propensity score, such as targeted minimum loss-based estimation (TMLE), augmented inverse probability weighting (AIPW), or g-computation with the propensity score as a covariate, all of which have proven to be highly effective methods for estimating treatment effects.</p>
+</div>
+<div id="references" class="section level2 unnumbered">
+<h2>References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-abadie2006" class="csl-entry">
+Abadie, Alberto, and Guido W. Imbens. 2006. <span>“Large Sample Properties of Matching Estimators for Average Treatment Effects.”</span> <em>Econometrica</em> 74 (1): 235–67. <a href="https://doi.org/10.1111/j.1468-0262.2006.00655.x">https://doi.org/10.1111/j.1468-0262.2006.00655.x</a>.
+</div>
+<div id="ref-austin2008" class="csl-entry">
+Austin, Peter C. 2008. <span>“Assessing Balance in Measured Baseline Covariates When Using Many-to-One Matching on the Propensity-Score.”</span> <em>Pharmacoepidemiology and Drug Safety</em> 17 (12): 1218–25. <a href="https://doi.org/10.1002/pds.1674">https://doi.org/10.1002/pds.1674</a>.
+</div>
+<div id="ref-desai2019" class="csl-entry">
+Desai, Rishi J., and Jessica M. Franklin. 2019. <span>“Alternative Approaches for Confounding Adjustment in Observational Studies Using Weighting Based on the Propensity Score: A Primer for Practitioners.”</span> <em>BMJ</em> 367 (October): l5657. <a href="https://doi.org/10.1136/bmj.l5657">https://doi.org/10.1136/bmj.l5657</a>.
+</div>
+<div id="ref-desai2017" class="csl-entry">
+Desai, Rishi J., Kenneth J. Rothman, Brian .T Bateman, Sonia Hernandez-Diaz, and Krista F. Huybrechts. 2017. <span>“A Propensity-Score-Based Fine Stratification Approach for Confounding Adjustment When Exposure Is Infrequent:”</span> <em>Epidemiology</em> 28 (2): 249–57. <a href="https://doi.org/10.1097/EDE.0000000000000595">https://doi.org/10.1097/EDE.0000000000000595</a>.
+</div>
+<div id="ref-greiferMatchingMethodsConfounder2021a" class="csl-entry">
+Greifer, Noah, and Elizabeth A Stuart. 2021. <span>“Matching Methods for Confounder Adjustment: An Addition to the Epidemiologist<span>’</span>s Toolbox.”</span> <em>Epidemiologic Reviews</em>, June, mxab003. <a href="https://doi.org/10.1093/epirev/mxab003">https://doi.org/10.1093/epirev/mxab003</a>.
+</div>
+<div id="ref-hansenFullMatchingObservational2004" class="csl-entry">
+Hansen, Ben B. 2004. <span>“Full Matching in an Observational Study of Coaching for the SAT.”</span> <em>Journal of the American Statistical Association</em> 99 (467): 609–18. <a href="https://doi.org/10.1198/016214504000000647">https://doi.org/10.1198/016214504000000647</a>.
+</div>
+<div id="ref-hansenOptimalFullMatching2006" class="csl-entry">
+Hansen, Ben B, and Stephanie Olsen Klopfer. 2006. <span>“Optimal <span>Full Matching</span> and <span>Related Designs</span> via <span>Network Flows</span>.”</span> <em>Journal of Computational and Graphical Statistics</em> 15 (3): 609–27. <a href="https://doi.org/10.1198/106186006X137047">https://doi.org/10.1198/106186006X137047</a>.
+</div>
+<div id="ref-hong2010" class="csl-entry">
+Hong, Guanglei. 2010. <span>“Marginal Mean Weighting Through Stratification: Adjustment for Selection Bias in Multilevel Data.”</span> <em>Journal of Educational and Behavioral Statistics</em> 35 (5): 499–531. <a href="https://doi.org/10.3102/1076998609359785">https://doi.org/10.3102/1076998609359785</a>.
+</div>
+<div id="ref-iacusCausalInferenceBalance2012" class="csl-entry">
+Iacus, Stefano M., Gary King, and Giuseppe Porro. 2012. <span>“Causal <span>Inference</span> Without <span>Balance Checking</span>: <span>Coarsened Exact Matching</span>.”</span> <em>Political Analysis</em> 20 (1): 1–24. <a href="https://doi.org/10.1093/pan/mpr013">https://doi.org/10.1093/pan/mpr013</a>.
+</div>
+<div id="ref-li2018" class="csl-entry">
+Li, Fan, Kari Lock Morgan, and Alan M. Zaslavsky. 2018. <span>“Balancing Covariates via Propensity Score Weighting.”</span> <em>Journal of the American Statistical Association</em> 113 (521): 390–400. <a href="https://doi.org/10.1080/01621459.2016.1260466">https://doi.org/10.1080/01621459.2016.1260466</a>.
+</div>
+<div id="ref-liWeightingAnaloguePair2013" class="csl-entry">
+Li, Liang, and Tom Greene. 2013. <span>“A Weighting Analogue to Pair Matching in Propensity Score Analysis.”</span> <em>The International Journal of Biostatistics</em> 9 (2). <a href="https://doi.org/10.1515/ijb-2012-0030">https://doi.org/10.1515/ijb-2012-0030</a>.
+</div>
+<div id="ref-lin2021" class="csl-entry">
+Lin, Zhexiao, Peng Ding, and Fang Han. 2021. <span>“Estimation Based on Nearest Neighbor Matching: From Density Ratio to Average Treatment Effect.”</span> <em>arXiv:2112.13506 [Econ, Math, Stat]</em>, December. <a href="http://arxiv.org/abs/2112.13506">http://arxiv.org/abs/2112.13506</a>.
+</div>
+<div id="ref-lunceford2004" class="csl-entry">
+Lunceford, Jared K., and Marie Davidian. 2004. <span>“Stratification and Weighting via the Propensity Score in Estimation of Causal Treatment Effects: A Comparative Study.”</span> <em>Statistics in Medicine</em> 23 (19): 29372960. <a href="http://onlinelibrary.wiley.com/doi/10.1002/sim.1903/full">http://onlinelibrary.wiley.com/doi/10.1002/sim.1903/full</a>.
+</div>
+<div id="ref-rosenbaumReducingBiasObservational1984" class="csl-entry">
+Rosenbaum, Paul R., and Donald B. Rubin. 1984. <span>“Reducing <span>Bias</span> in <span>Observational Studies Using Subclassification</span> on the <span>Propensity Score</span>.”</span> <em>Journal of the American Statistical Association</em> 79 (387): 516–24. <a href="https://doi.org/10.2307/2288398">https://doi.org/10.2307/2288398</a>.
+</div>
+<div id="ref-stuart2010" class="csl-entry">
+Stuart, Elizabeth A. 2010. <span>“Matching Methods for Causal Inference: A Review and a Look Forward.”</span> <em>Statistical Science</em> 25 (1): 1–21. <a href="https://doi.org/10.1214/09-STS313">https://doi.org/10.1214/09-STS313</a>.
+</div>
+<div id="ref-stuartUsingFullMatching2008" class="csl-entry">
+Stuart, Elizabeth A., and Kerry M. Green. 2008. <span>“Using Full Matching to Estimate Causal Effects in Nonexperimental Studies: Examining the Relationship Between Adolescent Marijuana Use and Adult Outcomes.”</span> <em>Developmental Psychology</em>, New methods for new questions in developmental psychology, 44 (2): 395–406. <a href="https://doi.org/10.1037/0012-1649.44.2.395">https://doi.org/10.1037/0012-1649.44.2.395</a>.
+</div>
+</div>
+</div>
+<div class="footnotes footnotes-end-of-document">
+<hr />
+<ol>
+<li id="fn1"><p>Note: by matching weights, I mean weights resulting from matching, not the matching weights of <span class="citation">L. Li and Greene (<a href="#ref-liWeightingAnaloguePair2013" role="doc-biblioref">2013</a>)</span>, which will not be discussed here.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+<li id="fn2"><p>Subclassification often tries to balance the number of treated units across subclasses for the ATT, etc., as recommended by <span class="citation">Desai et al. (<a href="#ref-desai2017" role="doc-biblioref">2017</a>)</span>.<a href="#fnref2" class="footnote-back">↩︎</a></p></li>
+<li id="fn3"><p>Note that we need to add the additional statement that unmatched units have an undefined propensity score and receive weight of 0.<a href="#fnref3" class="footnote-back">↩︎</a></p></li>
+<li id="fn4"><p>For treated units: <span class="math inline">\(w_{ATE}=\frac{1}{\hat{e}^*_i} = \frac{\hat{e}^*_i + 1-\hat{e}^*_i}{\hat{e}^*_i} = 1 + \frac{1-\hat{e}^*_i}{\hat{e}^*_i}=w_{ATT}+w_{ATC}\)</span>. For control units: <span class="math inline">\(w_{ATE}=\frac{1}{1-\hat{e}^*_i} = \frac{\hat{e}^*_i + 1-\hat{e}^*_i}{1-\hat{e}^*_i} = \frac{\hat{e}^*_i}{1-\hat{e}^*_i}+1=w_{ATT}+w_{ATC}\)</span>. Or, more simply, <span class="math inline">\(w_{ATT} + w_{ATC} = e_i \times w_{ATE} + (1-e_i)\times w_{ATE} = w_{ATE}\)</span>.<a href="#fnref4" class="footnote-back">↩︎</a></p></li>
+<li id="fn5"><p>The only time the scaling factor affects the effect estimates are when a model that includes covariates but doesn’t fully interact treatment and covariates is used to estimate the treatment effect.<a href="#fnref5" class="footnote-back">↩︎</a></p></li>
+</ol>
+</div>
