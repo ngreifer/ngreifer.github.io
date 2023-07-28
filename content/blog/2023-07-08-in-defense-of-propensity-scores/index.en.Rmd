@@ -21,10 +21,6 @@ draft: true
 bibliography: references.bib
 ---
 
-```{r, include=F}
-1 + 1
-```
-
 Or, *Why "Why Propensity Scores Should Not Be Used for Matching" Should Be Used to Avoid Propensity Score Matching*.
 
 Propensity scores get a lot of hate. They get hate on Twitter, on CrossValidated, and in the literature. They are hated by trialists, epidemiologists, and economists. Among the many papers hating on propensity scores, perhaps the most famous is @kingWhyPropensityScores2019, "Why Propensity Scores Should Not Be Used for Matching", a paper with a title so clear, it seems hardly necessary to read the actual paper, right?
