@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>multiple-imputation | Noah Greifer</title>
+    <link>https://ngreifer.github.io/tag/multiple-imputation/</link>
+      <atom:link href="https://ngreifer.github.io/tag/multiple-imputation/index.xml" rel="self" type="application/rss+xml" />
+    <description>multiple-imputation</description>
+    <generator>Wowchemy (https://wowchemy.com)</generator><language>en-us</language><lastBuildDate>Fri, 10 Feb 2023 00:00:00 +0000</lastBuildDate>
+    <image>
+      <url>https://ngreifer.github.io/media/sharing.jpg</url>
+      <title>multiple-imputation</title>
+      <link>https://ngreifer.github.io/tag/multiple-imputation/</link>
+    </image>
+    
+    <item>
+      <title>Estimating Treatment Effects After Weighting with Multiply Imputed Data</title>
+      <link>https://ngreifer.github.io/blog/treatment-effects-mi/</link>
+      <pubDate>Fri, 10 Feb 2023 00:00:00 +0000</pubDate>
+      <guid>https://ngreifer.github.io/blog/treatment-effects-mi/</guid>
+      <description>
+
+
+&lt;p&gt;Multiply imputed data always makes things a little harder. Essentially, you have to perform each step of the analysis in each imputed dataset and then combine the results together in a special way. For basic regression analysis, the &lt;code&gt;mice&lt;/code&gt; package makes fitting models and combining estimates simple. But when we want to do propensity score matching or weighting before fitting our regression models, and when the quantity we want to estimate is not just a coefficient in a regression model, things get a bit harder.&lt;/p&gt;
+&lt;p&gt;For doing matching or weighting in multiply imputed data, the R package &lt;code&gt;{MatchThem}&lt;/code&gt; does the job. It essentially provides wrappers for &lt;code&gt;MatchIt::matchit()&lt;/code&gt; and &lt;code&gt;WeightIt::weightit()&lt;/code&gt; for multiply imputed data. It extends &lt;code&gt;{mice}&lt;/code&gt;’s functionality for fitting regression models in multiply imputed data by automatically incorporating the matched or weighted structure into the estimation of the outcome models. It uses &lt;code&gt;mice::pool()&lt;/code&gt; to pool estimates across multiply imputed data.&lt;/p&gt;
+&lt;p&gt;But for estimating treatment effects, it’s often not as simple as using a regression coefficient. If we include covariates in our outcome model but want a marginal effect, we need to use an average marginal effects procedure (i.e., g-computation) to compute it within each imputed dataset, and then combine the results afterward. The &lt;code&gt;{marginaleffects}&lt;/code&gt; package provides a wonderful interface for performing g-computation, but for multiply imputed data, it can require some programming by the analyst. In this guide, I’ll show you how to do that programming to combine treatment effect estimates across multiple imputed datasets.&lt;/p&gt;
+&lt;p&gt;An alternative to using &lt;code&gt;{marginaleffects}&lt;/code&gt; is to use the &lt;code&gt;{clarify}&lt;/code&gt; package. &lt;code&gt;{clarify}&lt;/code&gt; can also be used to perform g-computation, but it uses simulation-based inference to compute the uncertainty bounds for the estimate. An advantage of simulation-based inference for multiply imputed data is that combining estimates across imputed datasets is much more straightforward. In this guide, I’ll also show you how to use &lt;code&gt;{clarify}&lt;/code&gt; to combine treatment effect estimates across imputed datasets.&lt;/p&gt;
+&lt;div id=&#34;packages-well-need&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Packages we’ll need&lt;/h3&gt;
+&lt;p&gt;We will need the following packages for this demonstration: &lt;code&gt;cobalt&lt;/code&gt;, &lt;code&gt;mice&lt;/code&gt;, &lt;code&gt;MatchThem&lt;/code&gt;, &lt;code&gt;WeightIt&lt;/code&gt;, &lt;code&gt;marginaleffects&lt;/code&gt;, and &lt;code&gt;clarify&lt;/code&gt;.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;the-data&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;The data&lt;/h3&gt;
+&lt;p&gt;As usual, we’ll be using a version of the &lt;code&gt;lalonde&lt;/code&gt; dataset. Here will use the &lt;code&gt;lalonde_mis&lt;/code&gt; dataset in &lt;code&gt;{cobalt}&lt;/code&gt;, which has missing values.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;data(&amp;quot;lalonde_mis&amp;quot;, package = &amp;quot;cobalt&amp;quot;)
+
+summary(lalonde_mis)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##      treat             age             educ           race        married          nodegree           re74              re75              re78        
+##  Min.   :0.0000   Min.   :16.00   Min.   : 0.00   black :243   Min.   :0.0000   Min.   :0.0000   Min.   :    0.0   Min.   :    0.0   Min.   :    0.0  
+##  1st Qu.:0.0000   1st Qu.:20.00   1st Qu.: 9.00   hispan: 72   1st Qu.:0.0000   1st Qu.:0.0000   1st Qu.:    0.0   1st Qu.:    0.0   1st Qu.:  238.3  
+##  Median :0.0000   Median :25.00   Median :11.00   white :299   Median :0.0000   Median :1.0000   Median :  984.5   Median :  585.4   Median : 4759.0  
+##  Mean   :0.3013   Mean   :27.36   Mean   :10.27                Mean   :0.4158   Mean   :0.6303   Mean   : 4420.2   Mean   : 2170.3   Mean   : 6792.8  
+##  3rd Qu.:1.0000   3rd Qu.:32.00   3rd Qu.:12.00                3rd Qu.:1.0000   3rd Qu.:1.0000   3rd Qu.: 7626.9   3rd Qu.: 3202.0   3rd Qu.:10893.6  
+##  Max.   :1.0000   Max.   :55.00   Max.   :18.00                Max.   :1.0000   Max.   :1.0000   Max.   :35040.1   Max.   :25142.2   Max.   :60307.9  
+##                                                                NA&amp;#39;s   :20                        NA&amp;#39;s   :40        NA&amp;#39;s   :39&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;You can see there are some missing values in &lt;code&gt;married&lt;/code&gt;, &lt;code&gt;re74&lt;/code&gt;, and &lt;code&gt;re75&lt;/code&gt;.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;imputing-the-data&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Imputing the data&lt;/h3&gt;
+&lt;p&gt;Here, we’ll use &lt;code&gt;{mice}&lt;/code&gt; to impute the data. Although typically something like 20 imputation is sufficient, for the method &lt;code&gt;{clarify}&lt;/code&gt; uses, it needs way more, so we’ll use 50. We’ll use the default settings, but you should tailor the imputation to fit the needs of your dataset. (I always like to use a machine learning method for my imputations). We’ll also set a seed to ensure replicability.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(&amp;quot;mice&amp;quot;)
+set.seed(12345)
+imp &amp;lt;- mice(lalonde_mis, m = 50, printFlag = FALSE)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;code&gt;mice()&lt;/code&gt; returns a &lt;code&gt;mids&lt;/code&gt; object, which contains the imputed datasets. Although we could extract the datasets using &lt;code&gt;complete()&lt;/code&gt;, we’ll supply this object directly to our function for estimating the propensity score weights.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;weighting-the-imputed-data&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Weighting the imputed data&lt;/h3&gt;
+&lt;p&gt;We’ll use &lt;code&gt;MatchThem::weightthem()&lt;/code&gt; to estimate propensity score weights in the imputed datasets. We could also use &lt;code&gt;MatchThem::matchthem()&lt;/code&gt; to do matching; the process is basically identical&lt;a href=&#34;#fn1&#34; class=&#34;footnote-ref&#34; id=&#34;fnref1&#34;&gt;&lt;sup&gt;1&lt;/sup&gt;&lt;/a&gt;. Here we’ll use logistic regression (🤢) to estimate ATT weights to keep things quick and simple.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(&amp;quot;MatchThem&amp;quot;)
+w.imp &amp;lt;- weightthem(treat ~ age + educ + race + married + nodegree +
+                      re74 + re75, data = imp, method = &amp;quot;ps&amp;quot;,
+                    estimand = &amp;quot;ATT&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Let’s assess balance using &lt;code&gt;{cobalt}&lt;/code&gt;.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(&amp;quot;cobalt&amp;quot;)
+bal.tab(w.imp, stats = c(&amp;quot;m&amp;quot;, &amp;quot;ks&amp;quot;), abs = TRUE)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## Balance summary across all imputations
+##                 Type Mean.Diff.Adj Max.Diff.Adj Mean.KS.Adj Max.KS.Adj
+## prop.score  Distance        0.0235       0.0379      0.1166     0.1327
+## age          Contin.        0.1120       0.1343      0.3053     0.3146
+## educ         Contin.        0.0352       0.0485      0.0369     0.0412
+## race_black    Binary        0.0024       0.0036      0.0024     0.0036
+## race_hispan   Binary        0.0003       0.0007      0.0003     0.0007
+## race_white    Binary        0.0022       0.0030      0.0022     0.0030
+## married       Binary        0.0168       0.0236      0.0168     0.0236
+## nodegree      Binary        0.0191       0.0250      0.0191     0.0250
+## re74         Contin.        0.0097       0.0281      0.2027     0.2261
+## re75         Contin.        0.0075       0.0286      0.1388     0.1648
+## 
+## Average effective sample sizes across imputations
+##                 0   1
+## Unadjusted 429.   185
+## Adjusted   100.19 185&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Balance could be a bit better on &lt;code&gt;age&lt;/code&gt;, but we’re going to move on because we have things to do.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;fitting-the-outcome-models&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Fitting the outcome models&lt;/h3&gt;
+&lt;p&gt;Our next step is to fit the outcome model in each imputed dataset. Here, our outcome will be &lt;code&gt;re78 == 0&lt;/code&gt;, i.e., whether a unit’s earnings in 1978 were 0. Ideally, treatment reduces this risk. Although our estimand will be a risk ratio, because we’re doing g-computation, we can fit a model for the outcome that actually makes sense rather than choosing one based on the convenient interpretation of its coefficients. So, we’ll fit a probit outcome model to really hit home that we need a post-estimation method to estimate our quantity of interest and can’t rely on our model coefficients.&lt;/p&gt;
+&lt;p&gt;Although &lt;code&gt;{MatchThem}&lt;/code&gt; has functionality for fitting models to the imputed datasets that incorporate the weights, for our purposes, it is better to extract the imputed datasets and fit each model manually in a loop. We’ll use &lt;code&gt;glm()&lt;/code&gt; to do so, though the &lt;code&gt;{MatchThem}&lt;/code&gt; and &lt;code&gt;{WeightIt}&lt;/code&gt; documentation may recommend &lt;code&gt;survey::svyglm()&lt;/code&gt; because it correctly computes the robust standard errors. We’ll do that later using &lt;code&gt;{marginaleffects}&lt;/code&gt; and &lt;code&gt;{clarify}&lt;/code&gt; functions so it’s okay that we don’t do it now. We’ll use a quasi-binomial model because we have weights.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;fits &amp;lt;- lapply(complete(w.imp, &amp;quot;all&amp;quot;), function(d) {
+  glm(I(re78 == 0) ~ treat + age + educ + married + race +
+        nodegree + re74 + re75, data = d,
+      weights = weights, family = quasibinomial(&amp;quot;probit&amp;quot;))
+})&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;If we wanted to interpret the pooled coefficients from our outcome model (and we had included correct estimation of the standard errors, which we didn’t here), we could use &lt;code&gt;pool(fits) |&amp;gt; summary()&lt;/code&gt; to get them. But none of that is true here so we’ll move on and save the pooling till after we estimate the quantity of interest.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;the-marginaleffects-workflow&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;The &lt;code&gt;{marginaleffects}&lt;/code&gt; workflow&lt;/h2&gt;
+&lt;p&gt;Now we have our list of models. Our next step is to estimate the ATT risk ratio in each one (with the correct standard error) and pool the results. If the only quantity we want is the treatment effect, this is easy. We can use &lt;code&gt;marginaleffects::avg_comparisons()&lt;/code&gt; on each model and then use &lt;code&gt;mice::pool()&lt;/code&gt; to pool the results. In our call to &lt;code&gt;avg_comparisons()&lt;/code&gt;, we need to subset the data used to fit each model to just the treated units and supply this to &lt;code&gt;newdata&lt;/code&gt;, supply the name of the variable containing the weights to &lt;code&gt;wts&lt;/code&gt;&lt;a href=&#34;#fn2&#34; class=&#34;footnote-ref&#34; id=&#34;fnref2&#34;&gt;&lt;sup&gt;2&lt;/sup&gt;&lt;/a&gt;, supply the robust standard error type (HC3) to &lt;code&gt;vcov&lt;/code&gt;, and specify that we want the log risk ratio of the average estimated potential outcomes by supplying &lt;code&gt;&#34;lnratioavg&#34;&lt;/code&gt; to &lt;code&gt;transform_pre&lt;/code&gt;&lt;a href=&#34;#fn3&#34; class=&#34;footnote-ref&#34; id=&#34;fnref3&#34;&gt;&lt;sup&gt;3&lt;/sup&gt;&lt;/a&gt;.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(&amp;quot;marginaleffects&amp;quot;)
+comp.imp &amp;lt;- lapply(fits, function(fit) {
+  avg_comparisons(fit, newdata = subset(fit$data, treat == 1),
+                  variables = &amp;quot;treat&amp;quot;, wts = &amp;quot;weights&amp;quot;, vcov = &amp;quot;HC3&amp;quot;,
+                  transform_pre = &amp;quot;lnratioavg&amp;quot;)
+})
+
+pooled.comp &amp;lt;- mice::pool(comp.imp)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Finally, we can use &lt;code&gt;summary()&lt;/code&gt; on the resulting object, adding the arguments &lt;code&gt;conf.int = TRUE&lt;/code&gt; to request confidence intervals and &lt;code&gt;exponentiate = TRUE&lt;/code&gt; to get the risk ratio from the log risk ratio.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;summary(pooled.comp, conf.int = TRUE,
+        exponentiate = TRUE)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##    term              contrast  estimate std.error  statistic       df  p.value    2.5 %   97.5 %
+## 1 treat ln(mean(1) / mean(0)) 0.9321569 0.2097534 -0.3349366 610.5055 0.737788 0.617436 1.407298&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We find a risk ratio of approximately 0.932, 95% CI: [0.617, 1.407], indicating that in our sample, the risk of having zero earnings in 1978 decreased slightly for those who received treatment, but we don’t have strong evidence for such an effect in the population.&lt;/p&gt;
+&lt;p&gt;Although this is nice and simple, things get a bit more complicated when we want to estimate multiple comparisons at the same time, estimate the marginal risks, or perform a more complex analysis. Additional programming is required to make &lt;code&gt;mice::pool()&lt;/code&gt; compatible with these more complex quantities. We’ll demonstrate how to hack &lt;code&gt;{marginaleffects}&lt;/code&gt; to make it work using the instructions in the &lt;code&gt;{marginaleffects}&lt;/code&gt; &lt;a href=&#34;https://vincentarelbundock.github.io/marginaleffects/articles/multiple_imputation.html&#34;&gt;vignette on multiple imputation&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;We’ll be using &lt;code&gt;avg_predictions()&lt;/code&gt; on each model to compute the marginal risks under each treatment level, which uses a similar syntax to &lt;code&gt;comparisons()&lt;/code&gt;. The challenge comes in that &lt;code&gt;avg_predictions()&lt;/code&gt; produces two rows of output (one for each treatment level), which are not correctly distinguished by &lt;code&gt;mice::pool()&lt;/code&gt;. So, we’ll have to create a new custom class and write a new &lt;code&gt;tidy()&lt;/code&gt; method for our class.&lt;/p&gt;
+&lt;p&gt;First, we’ll generate our marginal risks and assign the output our new class, which is arbitrary but which I will call &lt;code&gt;&#34;pred_imp_custom&#34;&lt;/code&gt;.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;pred.imp &amp;lt;- lapply(fits, function(fit) {
+  out &amp;lt;- avg_predictions(fit, newdata = subset(fit$data, treat == 1),
+                         variables = &amp;quot;treat&amp;quot;, wts = &amp;quot;weights&amp;quot;,
+                         vcov = &amp;quot;HC3&amp;quot;, by = &amp;quot;treat&amp;quot;)
+  
+  # the next line assigns our custom class
+  class(out) &amp;lt;- c(&amp;quot;pred_imp_custom&amp;quot;, class(out))
+  return(out)
+})&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Next, we’ll write our new &lt;code&gt;tidy()&lt;/code&gt; method. (Make sure to replace &lt;code&gt;treat&lt;/code&gt; everywhere you see it with the name of your treatment variable.) We won’t actually be using this function at all; it is called internally by &lt;code&gt;mice::pool()&lt;/code&gt;.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;tidy.pred_imp_custom &amp;lt;- function(x, ...) {
+    out &amp;lt;- marginaleffects:::tidy.predictions(x, ...)
+    out$term &amp;lt;- paste(&amp;quot;treat =&amp;quot;, out$treat)
+    return(out)
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Finally, we can use &lt;code&gt;mice::pool()&lt;/code&gt; and &lt;code&gt;summary()&lt;/code&gt; to get our marginal risks:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;mice::pool(pred.imp) |&amp;gt; summary(conf.int = TRUE)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##        term  estimate  std.error statistic       df      p.value     2.5 %    97.5 %
+## 1 treat = 0 0.2607090 0.04264062  6.114100 609.4350 1.734761e-09 0.1769686 0.3444494
+## 2 treat = 1 0.2430092 0.03197686  7.599534 611.9484 1.120645e-13 0.1802115 0.3058069&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Taking the ratio of these risks gives us the risk ratio we computed above.&lt;/p&gt;
+&lt;p&gt;Note that you have to customize the &lt;code&gt;tidy()&lt;/code&gt; method in a slightly different way when you are estimating treatment effects in subgroups. I’ll leave that as an exercise to the reader, or you can hire me to do it for you :)&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;the-clarify-workflow&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;The &lt;code&gt;{clarify}&lt;/code&gt; workflow&lt;/h2&gt;
+&lt;p&gt;The &lt;code&gt;{clarify}&lt;/code&gt; workflow for multiply imputed data is very similar to its workflow for regular data. How simulation-based inference works broadly is that sets of parameters are drawn from a distribution after fitting the model; this distribution is often assumed to be multivariate normal with the mean vector equal to the estimated coefficients and the covariance equal to the asymptotic covariance matrix of the coefficients. Many (e.g., 1000) sets of coefficients are drawn, and a quantity of interest is computed using each set, forming a “posterior” distribution of the quantity of interest. This posterior is then used for inference: its standard deviation can be used as the quantity’s standard error, and its quantiles can be used as confidence intervals. For more information on this methodology, see the &lt;code&gt;{clarify}&lt;/code&gt; &lt;a href=&#34;https://iqss.github.io/clarify/&#34;&gt;website&lt;/a&gt; and its references.&lt;/p&gt;
+&lt;p&gt;With multiply imputed data, this process is done for the model fit to each imputed dataset, and then the distributions of the quantities of interest are simply combined to form a single distribution, which is used for inference. In Bayesian terms, this would be called “mixing draws”. The variance of this mixture distribution approaches the variance of the estimate computed using Rubin’s rules when the number of imputations is high.&lt;/p&gt;
+&lt;p&gt;To use &lt;code&gt;{clarify}&lt;/code&gt;, we supply the list of fitted models to &lt;code&gt;clarify::misim()&lt;/code&gt;, which draws the coefficients from their implied distributions from each model. We also need to specify the method for computing the covariance matrix (here, using the same HC3 robust covariance we used with &lt;code&gt;{marginaleffects}&lt;/code&gt; to account for the weights). We will only request 200 replications per fitted model since we have 50 imputations, which gives us 10,000 replicates (likely more than enough for stable inference).&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(&amp;quot;clarify&amp;quot;)
+
+sim.imp &amp;lt;- misim(fits, n = 200, vcov = &amp;quot;HC3&amp;quot;)
+sim.imp&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## A `clarify_misim` object
+##  - 10 coefficients, 50 imputations with 200 simulated values each
+##  - sampled distributions: multivariate t(604)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;(Note: because we used a quasi-binomial model, a scaled t-distribution was used to draw the coefficients. In practice this will give similar draws to a normal distribution.)&lt;/p&gt;
+&lt;p&gt;The output of &lt;code&gt;misim()&lt;/code&gt; is then fed to a function for computing the quantity of interest in each draw; here, we’ll be using &lt;code&gt;clarify::sim_ame()&lt;/code&gt;, which is appropriate for computing marginal risks in a subset of the data (i.e., the ATT risk ratio). We supply the treatment variable to &lt;code&gt;var&lt;/code&gt; and subset the data to just the treated units using &lt;code&gt;subset&lt;/code&gt; to request the ATT. Although we can use the &lt;code&gt;contrast&lt;/code&gt; argument to request the (log) risk ratio, we can compute that afterward quickly from the marginal risks. (Using &lt;code&gt;cl = 3&lt;/code&gt; uses parallel computing with 3 cores but only if you are on a Mac. See the &lt;code&gt;sim_ame()&lt;/code&gt; documentation for more information on how to use the &lt;code&gt;cl&lt;/code&gt; argument.)&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;sim.att &amp;lt;- sim_ame(sim.imp, var = &amp;quot;treat&amp;quot;,
+                   subset = treat == 1, cl = 3,
+                   verbose = FALSE)
+sim.att&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## A `clarify_est` object (from `sim_ame()`)
+##  - Average marginal effect of `treat`
+##  - 10000 simulated values
+##  - 2 quantities estimated:                  
+##  E[Y(0)] 0.2605322
+##  E[Y(1)] 0.2428401&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;To compute the risk ratio, we can use &lt;code&gt;transform()&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;sim.att &amp;lt;- transform(sim.att, RR = `E[Y(1)]`/`E[Y(0)]`)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Finally, we can compute out confidence intervals and p-values around the estimated marginal risks and risk ratio using &lt;code&gt;summary()&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;summary(sim.att, null = c(RR = 1))&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##         Estimate 2.5 % 97.5 % P-value
+## E[Y(0)]    0.261 0.187  0.354       .
+## E[Y(1)]    0.243 0.188  0.313       .
+## RR         0.932 0.630  1.421    0.76&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Here, we find a risk ratio of approximately 0.932, 95% CI: [0.63, 1.421]. The estimates, confidence intervals, and p-values we get from the two methods line up well.&lt;/p&gt;
+&lt;p&gt;By default, &lt;code&gt;{clarify}&lt;/code&gt; uses quantile-based confidence intervals and computes the p-values by inverting them (i.e., finding the largest confidence level that yields an interval that excludes the null value and computing the p-value as one minus that level). Wald confidence intervals and p-values can also be request by setting &lt;code&gt;method = &#34;wald&#34;&lt;/code&gt; in the call to &lt;code&gt;summary()&lt;/code&gt;, but these are only recommended if the quantity has a normal distribution (which the risk ratio does not).&lt;/p&gt;
+&lt;div id=&#34;explaining-differences-between-the-approaches&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Explaining differences between the approaches&lt;/h3&gt;
+&lt;p&gt;Both the delta method- and simulation-based inference approaches are valid, but sometimes you will get results that disagree. The estimates of the quantities of interest may disagree because of how &lt;code&gt;mice::pool()&lt;/code&gt; and &lt;code&gt;clarify::sim_ame()&lt;/code&gt; combine estimates across imputations.&lt;/p&gt;
+&lt;p&gt;Rubin’s rules involve simply taking the mean of the estimates across imputations. This works well when the quantity is collapsible, linear, or has a symmetric (ideally normal) distribution. If the quantity of interest is none of those but can be transformed from a quantity that does have those properties, Rubin’s rules can be apply to this intermediate quantity before transforming the estimate to get the final results. This is exactly what we did in the &lt;code&gt;{marginaleffects}&lt;/code&gt; workflow when we computed the log risk ratio before pooling and then exponentiating the pooled log risk ratio to arrive at the risk ratio. If we had gone straight into pooling the risk ratio, the resulting estimate might not have been consistent.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;{clarify}&lt;/code&gt; works by first using Rubin’s pooling rules on the model coefficients, which we assume to be normally distributed, and then computing the quantity of interest in each imputed dataset using draws from the pooled coefficients. A benefit of this strategy is that we don’t have to wonder whether the quantity of interest satisfies the above properties. The resulting estimates will be consistent because no pooling is done on them; the pooling happens only in the first step.&lt;/p&gt;
+&lt;p&gt;Confidence intervals may differ slightly between the two methods, and this could be due to two reasons: 1) the delta method and simulation-based inferences naturally compute confidence intervals in different ways, with the delta method using a first-order Taylor series approximation and assuming normality of the quantity of interest, and simulation-based inference using simulation to generate a “posterior” for the quantity of interest and using its quantiles as the interval; and 2) simulation-based inference requires many imputations for the variance of the posterior to equal the variance of the Rubin’s rules pooled estimate. More imputations is always better for both methods, so do as many as you can.&lt;/p&gt;
+&lt;p&gt;How should you choose between the delta method and simulation-based inference? Use whichever will get you published, of course! (Just kidding.) Use the one you find most trustworthy, that your audience will find the most trustworthy, and that balances the assumptions you are willing to make with the desired precision of the estimate. You might also use the one that seems more natural to you, either conceptually or in terms of usability. Frankly, I find &lt;code&gt;{clarify}&lt;/code&gt; to be easier to use when the quantity of interest is more complicated than a single comparison (e.g., for subgroup analysis or for computing average marginal risks), but &lt;code&gt;{marginaleffects}&lt;/code&gt; can be faster, doesn’t rely on a stochastic process, and is better-backed by statistical theory. Confirming you get similar results with both methods is always a good idea, and the plotting diagnostics in &lt;code&gt;{clarify}&lt;/code&gt; can be used to determine whether any difference might be due to the failure of the delta method due to violation of one of its assumptions.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&#34;footnotes footnotes-end-of-document&#34;&gt;
+&lt;hr /&gt;
+&lt;ol&gt;
+&lt;li id=&#34;fn1&#34;&gt;&lt;p&gt;The key differences is that pair membership needs to be accounted for in estimation of the variance of the outcome model coefficients; this is usually as simply as specifying &lt;code&gt;vcov = ~subclass&lt;/code&gt; to functions in &lt;code&gt;{marginaleffects}&lt;/code&gt; or &lt;code&gt;{clarify}&lt;/code&gt;.&lt;a href=&#34;#fnref1&#34; class=&#34;footnote-back&#34;&gt;↩︎&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;li id=&#34;fn2&#34;&gt;&lt;p&gt;This actually isn’t necessary for the ATT but it’s walys good practice.&lt;a href=&#34;#fnref2&#34; class=&#34;footnote-back&#34;&gt;↩︎&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;li id=&#34;fn3&#34;&gt;&lt;p&gt;Note: we need the log risk ratio because Rubin’s pooling rules don’t apply to the risk ratio but do to the log risk ratio. We will exponentiate the log risk ratio and its confidence interval after pooling.&lt;a href=&#34;#fnref3&#34; class=&#34;footnote-back&#34;&gt;↩︎&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

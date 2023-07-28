@@ -1,0 +1,1254 @@
+<!DOCTYPE html><html lang="en-us" >
+
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  
+  
+  
+    <meta name="generator" content="Wowchemy 5.5.0 for Hugo" />
+  
+
+  
+  
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+  
+  
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  
+
+  
+  
+  
+    
+      
+      <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Roboto+Mono&family=Roboto:wght@400;700&display=swap">
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Roboto+Mono&family=Roboto:wght@400;700&display=swap" media="print" onload="this.media='all'">
+    
+  
+
+  
+    <meta name="google-site-verification" content="ZWBIxYyx89sPR8cWppV98s52niwEhHNRqXlIU9D4B14" />
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Noah Greifer" />
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Multiply imputed data always makes things a little harder. Essentially, you have to perform each step of the analysis in each imputed dataset and then combine the results together in a special way." />
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://ngreifer.github.io/blog/treatment-effects-mi/" />
+
+  
+  
+  
+    <meta name="theme-color" content="#1565c0" />
+  
+
+  
+  
+    
+    <script src="/js/mathjax-config.js"></script>
+  
+
+  
+
+  <link rel="stylesheet" href="/css/vendor-bundle.min.c7b8d9abd591ba2253ea42747e3ac3f5.css" media="print" onload="this.media='all'">
+
+  
+  
+  
+    
+    
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/academicons@1.9.1/css/academicons.min.css" integrity="sha512-W0xM4mr6dEP9nREo7Z9z+9X70wytKvMGeDsj7ps2+xg5QPrEBXC8tAW1IFnzjR6eoJ90JmCnFzerQJTLzIEHjA==" crossorigin="anonymous" media="print" onload="this.media='all'">
+    
+
+    
+    
+    
+    
+      
+      
+    
+    
+    
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@10.2.1/build/styles/github.min.css" crossorigin="anonymous" title="hl-light" media="print" onload="this.media='all'">
+          <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@10.2.1/build/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" media="print" onload="this.media='all'" disabled>
+        
+      
+    
+
+    
+    
+    
+
+    
+
+    
+    
+      
+      
+
+      
+      
+
+      
+    
+      
+      
+
+      
+      
+
+      
+    
+      
+      
+
+      
+      
+
+      
+    
+      
+      
+
+      
+      
+
+      
+    
+      
+      
+
+      
+      
+
+      
+    
+      
+      
+
+      
+      
+
+      
+    
+      
+      
+
+      
+      
+
+      
+    
+      
+      
+
+      
+      
+
+      
+    
+      
+      
+
+      
+      
+
+      
+    
+      
+      
+
+      
+      
+
+      
+    
+      
+      
+
+      
+      
+
+      
+    
+      
+      
+
+      
+      
+
+      
+    
+      
+      
+
+      
+      
+
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" integrity="" crossorigin="anonymous" async></script>
+      
+    
+      
+      
+
+      
+      
+
+      
+    
+      
+      
+
+      
+      
+
+      
+    
+  
+
+  
+  
+  
+  
+  
+  <link rel="stylesheet" href="/css/wowchemy.306aeb887f7c1338455c74dc805fe1bc.css" />
+
+  
+
+
+
+  
+
+
+  
+
+
+  
+
+
+
+
+  
+  
+  
+
+  
+
+  
+    <link rel="manifest" href="/manifest.webmanifest" />
+  
+
+  <link rel="icon" type="image/png" href="/media/icon_huc587dcc5401d36981f4ca7feddf736f3_375856_32x32_fill_lanczos_center_3.png" />
+  <link rel="apple-touch-icon" type="image/png" href="/media/icon_huc587dcc5401d36981f4ca7feddf736f3_375856_180x180_fill_lanczos_center_3.png" />
+
+  <link rel="canonical" href="https://ngreifer.github.io/blog/treatment-effects-mi/" />
+
+  
+  
+  
+  
+  
+  
+  
+  
+    
+  
+  
+
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary_large_image" />
+  
+    <meta property="twitter:site" content="@noah_greifer" />
+    <meta property="twitter:creator" content="@noah_greifer" />
+  
+  <meta property="og:site_name" content="Noah Greifer" />
+  <meta property="og:url" content="https://ngreifer.github.io/blog/treatment-effects-mi/" />
+  <meta property="og:title" content="Estimating Treatment Effects After Weighting with Multiply Imputed Data | Noah Greifer" />
+  <meta property="og:description" content="Multiply imputed data always makes things a little harder. Essentially, you have to perform each step of the analysis in each imputed dataset and then combine the results together in a special way." /><meta property="og:image" content="https://ngreifer.github.io/media/sharing.jpg" />
+    <meta property="twitter:image" content="https://ngreifer.github.io/media/sharing.jpg" /><meta property="og:locale" content="en-us" />
+  
+    
+      <meta
+        property="article:published_time"
+        content="2023-02-10T00:00:00&#43;00:00"
+      />
+    
+    <meta property="article:modified_time" content="2023-02-10T00:00:00&#43;00:00">
+  
+
+  
+
+
+
+  
+
+  
+
+  
+
+
+
+
+
+  <title>Estimating Treatment Effects After Weighting with Multiply Imputed Data | Noah Greifer</title>
+</head>
+
+
+<body id="top" data-spy="scroll" data-offset="70" data-target="#TableOfContents" class="page-wrapper   " data-wc-page-id="234eb4b23fdb18962d30bce146912cbd" >
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  <script src="/js/wowchemy-init.min.2ed908358299dd7ab553faae685c746c.js"></script>
+
+  
+
+
+<aside class="search-modal" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#" aria-label="Close"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        <input name="q" id="search-query" placeholder="Search..." autocapitalize="off"
+        autocomplete="off" autocorrect="off" spellcheck="false" type="search" class="form-control"
+        aria-label="Search...">
+        
+      </div>
+
+      
+      
+
+      
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+
+  <div class="page-header">
+    
+
+
+
+
+
+
+
+
+
+
+
+
+<header class="header--fixed">
+  <nav class="navbar navbar-expand-lg navbar-light compensate-for-scrollbar" id="navbar-main">
+    <div class="container-xl">
+
+      
+      <div class="d-none d-lg-inline-flex">
+        <a class="navbar-brand" href="/">Noah Greifer</a>
+      </div>
+      
+
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse"
+              data-target="#navbar-content" aria-controls="navbar-content" aria-expanded="false" aria-label="Toggle navigation">
+      <span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+      
+      <div class="navbar-brand-mobile-wrapper d-inline-flex d-lg-none">
+        <a class="navbar-brand" href="/">Noah Greifer</a>
+      </div>
+      
+
+      
+      
+      <div class="navbar-collapse main-menu-item collapse justify-content-start" id="navbar-content">
+
+        
+        <ul class="navbar-nav d-md-inline-flex">
+          
+
+          
+
+          
+          
+          
+
+          
+
+          
+          
+          
+          
+
+          
+            
+            
+          
+
+          <li class="nav-item">
+            <a class="nav-link " href="/"><span>Home</span></a>
+          </li>
+
+          
+          
+
+          
+
+          
+          
+          
+            
+          
+
+          
+
+          
+          
+          
+          
+
+          
+            
+              
+              
+            
+            
+          
+
+          <li class="nav-item">
+            <a class="nav-link  active" href="/blog"><span>Blog</span></a>
+          </li>
+
+          
+          
+
+          
+
+          
+          
+          
+            
+          
+
+          
+
+          
+          
+          
+          
+
+          
+            
+              
+              
+            
+            
+          
+
+          <li class="nav-item">
+            <a class="nav-link " href="/software"><span>Software</span></a>
+          </li>
+
+          
+          
+
+        
+
+          
+        </ul>
+      </div>
+
+      <ul class="nav-icons navbar-nav flex-row ml-auto d-flex pl-md-2">
+
+        
+        
+          
+        
+
+        
+        
+        <li class="nav-item">
+          <a class="nav-link js-search" href="#" aria-label="Search"><i class="fas fa-search" aria-hidden="true"></i></a>
+        </li>
+        
+
+        
+        
+        
+        <li class="nav-item dropdown theme-dropdown">
+          <a href="#" class="nav-link" data-toggle="dropdown" aria-haspopup="true" aria-label="Display preferences">
+            <i class="fas fa-moon" aria-hidden="true"></i>
+          </a>
+          <div class="dropdown-menu">
+            <a href="#" class="dropdown-item js-set-theme-light">
+              <span>Light</span>
+            </a>
+            <a href="#" class="dropdown-item js-set-theme-dark">
+              <span>Dark</span>
+            </a>
+            <a href="#" class="dropdown-item js-set-theme-auto">
+              <span>Automatic</span>
+            </a>
+          </div>
+        </li>
+        
+
+        
+        
+
+      </ul>
+
+    </div>
+  </nav>
+</header>
+
+
+  </div>
+
+  <div class="page-body">
+    
+    
+    
+
+    <article class="article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+  
+  
+<div class="article-container pt-3">
+  <h1>Estimating Treatment Effects After Weighting with Multiply Imputed Data</h1>
+
+  
+
+  
+    
+
+
+<div class="article-metadata">
+
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+    
+    Feb 10, 2023
+  </span>
+  
+
+  
+
+  
+
+  
+  
+  
+  
+
+  
+  
+  <span class="middot-divider"></span>
+  <span class="article-categories">
+    <i class="fas fa-folder mr-1"></i><a href="/category/r/">R</a></span>
+  
+
+</div>
+
+    
+
+
+
+
+
+  
+</div>
+
+
+
+  <div class="article-container">
+
+    <div class="article-style">
+      
+
+
+<p>Multiply imputed data always makes things a little harder. Essentially, you have to perform each step of the analysis in each imputed dataset and then combine the results together in a special way. For basic regression analysis, the <code>mice</code> package makes fitting models and combining estimates simple. But when we want to do propensity score matching or weighting before fitting our regression models, and when the quantity we want to estimate is not just a coefficient in a regression model, things get a bit harder.</p>
+<p>For doing matching or weighting in multiply imputed data, the R package <code>{MatchThem}</code> does the job. It essentially provides wrappers for <code>MatchIt::matchit()</code> and <code>WeightIt::weightit()</code> for multiply imputed data. It extends <code>{mice}</code>’s functionality for fitting regression models in multiply imputed data by automatically incorporating the matched or weighted structure into the estimation of the outcome models. It uses <code>mice::pool()</code> to pool estimates across multiply imputed data.</p>
+<p>But for estimating treatment effects, it’s often not as simple as using a regression coefficient. If we include covariates in our outcome model but want a marginal effect, we need to use an average marginal effects procedure (i.e., g-computation) to compute it within each imputed dataset, and then combine the results afterward. The <code>{marginaleffects}</code> package provides a wonderful interface for performing g-computation, but for multiply imputed data, it can require some programming by the analyst. In this guide, I’ll show you how to do that programming to combine treatment effect estimates across multiple imputed datasets.</p>
+<p>An alternative to using <code>{marginaleffects}</code> is to use the <code>{clarify}</code> package. <code>{clarify}</code> can also be used to perform g-computation, but it uses simulation-based inference to compute the uncertainty bounds for the estimate. An advantage of simulation-based inference for multiply imputed data is that combining estimates across imputed datasets is much more straightforward. In this guide, I’ll also show you how to use <code>{clarify}</code> to combine treatment effect estimates across imputed datasets.</p>
+<div id="packages-well-need" class="section level3">
+<h3>Packages we’ll need</h3>
+<p>We will need the following packages for this demonstration: <code>cobalt</code>, <code>mice</code>, <code>MatchThem</code>, <code>WeightIt</code>, <code>marginaleffects</code>, and <code>clarify</code>.</p>
+</div>
+<div id="the-data" class="section level3">
+<h3>The data</h3>
+<p>As usual, we’ll be using a version of the <code>lalonde</code> dataset. Here will use the <code>lalonde_mis</code> dataset in <code>{cobalt}</code>, which has missing values.</p>
+<pre class="r"><code>data(&quot;lalonde_mis&quot;, package = &quot;cobalt&quot;)
+
+summary(lalonde_mis)</code></pre>
+<pre><code>##      treat             age             educ           race        married          nodegree           re74              re75              re78        
+##  Min.   :0.0000   Min.   :16.00   Min.   : 0.00   black :243   Min.   :0.0000   Min.   :0.0000   Min.   :    0.0   Min.   :    0.0   Min.   :    0.0  
+##  1st Qu.:0.0000   1st Qu.:20.00   1st Qu.: 9.00   hispan: 72   1st Qu.:0.0000   1st Qu.:0.0000   1st Qu.:    0.0   1st Qu.:    0.0   1st Qu.:  238.3  
+##  Median :0.0000   Median :25.00   Median :11.00   white :299   Median :0.0000   Median :1.0000   Median :  984.5   Median :  585.4   Median : 4759.0  
+##  Mean   :0.3013   Mean   :27.36   Mean   :10.27                Mean   :0.4158   Mean   :0.6303   Mean   : 4420.2   Mean   : 2170.3   Mean   : 6792.8  
+##  3rd Qu.:1.0000   3rd Qu.:32.00   3rd Qu.:12.00                3rd Qu.:1.0000   3rd Qu.:1.0000   3rd Qu.: 7626.9   3rd Qu.: 3202.0   3rd Qu.:10893.6  
+##  Max.   :1.0000   Max.   :55.00   Max.   :18.00                Max.   :1.0000   Max.   :1.0000   Max.   :35040.1   Max.   :25142.2   Max.   :60307.9  
+##                                                                NA&#39;s   :20                        NA&#39;s   :40        NA&#39;s   :39</code></pre>
+<p>You can see there are some missing values in <code>married</code>, <code>re74</code>, and <code>re75</code>.</p>
+</div>
+<div id="imputing-the-data" class="section level3">
+<h3>Imputing the data</h3>
+<p>Here, we’ll use <code>{mice}</code> to impute the data. Although typically something like 20 imputation is sufficient, for the method <code>{clarify}</code> uses, it needs way more, so we’ll use 50. We’ll use the default settings, but you should tailor the imputation to fit the needs of your dataset. (I always like to use a machine learning method for my imputations). We’ll also set a seed to ensure replicability.</p>
+<pre class="r"><code>library(&quot;mice&quot;)
+set.seed(12345)
+imp &lt;- mice(lalonde_mis, m = 50, printFlag = FALSE)</code></pre>
+<p><code>mice()</code> returns a <code>mids</code> object, which contains the imputed datasets. Although we could extract the datasets using <code>complete()</code>, we’ll supply this object directly to our function for estimating the propensity score weights.</p>
+</div>
+<div id="weighting-the-imputed-data" class="section level3">
+<h3>Weighting the imputed data</h3>
+<p>We’ll use <code>MatchThem::weightthem()</code> to estimate propensity score weights in the imputed datasets. We could also use <code>MatchThem::matchthem()</code> to do matching; the process is basically identical<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a>. Here we’ll use logistic regression (🤢) to estimate ATT weights to keep things quick and simple.</p>
+<pre class="r"><code>library(&quot;MatchThem&quot;)
+w.imp &lt;- weightthem(treat ~ age + educ + race + married + nodegree +
+                      re74 + re75, data = imp, method = &quot;ps&quot;,
+                    estimand = &quot;ATT&quot;)</code></pre>
+<p>Let’s assess balance using <code>{cobalt}</code>.</p>
+<pre class="r"><code>library(&quot;cobalt&quot;)
+bal.tab(w.imp, stats = c(&quot;m&quot;, &quot;ks&quot;), abs = TRUE)</code></pre>
+<pre><code>## Balance summary across all imputations
+##                 Type Mean.Diff.Adj Max.Diff.Adj Mean.KS.Adj Max.KS.Adj
+## prop.score  Distance        0.0235       0.0379      0.1166     0.1327
+## age          Contin.        0.1120       0.1343      0.3053     0.3146
+## educ         Contin.        0.0352       0.0485      0.0369     0.0412
+## race_black    Binary        0.0024       0.0036      0.0024     0.0036
+## race_hispan   Binary        0.0003       0.0007      0.0003     0.0007
+## race_white    Binary        0.0022       0.0030      0.0022     0.0030
+## married       Binary        0.0168       0.0236      0.0168     0.0236
+## nodegree      Binary        0.0191       0.0250      0.0191     0.0250
+## re74         Contin.        0.0097       0.0281      0.2027     0.2261
+## re75         Contin.        0.0075       0.0286      0.1388     0.1648
+## 
+## Average effective sample sizes across imputations
+##                 0   1
+## Unadjusted 429.   185
+## Adjusted   100.19 185</code></pre>
+<p>Balance could be a bit better on <code>age</code>, but we’re going to move on because we have things to do.</p>
+</div>
+<div id="fitting-the-outcome-models" class="section level3">
+<h3>Fitting the outcome models</h3>
+<p>Our next step is to fit the outcome model in each imputed dataset. Here, our outcome will be <code>re78 == 0</code>, i.e., whether a unit’s earnings in 1978 were 0. Ideally, treatment reduces this risk. Although our estimand will be a risk ratio, because we’re doing g-computation, we can fit a model for the outcome that actually makes sense rather than choosing one based on the convenient interpretation of its coefficients. So, we’ll fit a probit outcome model to really hit home that we need a post-estimation method to estimate our quantity of interest and can’t rely on our model coefficients.</p>
+<p>Although <code>{MatchThem}</code> has functionality for fitting models to the imputed datasets that incorporate the weights, for our purposes, it is better to extract the imputed datasets and fit each model manually in a loop. We’ll use <code>glm()</code> to do so, though the <code>{MatchThem}</code> and <code>{WeightIt}</code> documentation may recommend <code>survey::svyglm()</code> because it correctly computes the robust standard errors. We’ll do that later using <code>{marginaleffects}</code> and <code>{clarify}</code> functions so it’s okay that we don’t do it now. We’ll use a quasi-binomial model because we have weights.</p>
+<pre class="r"><code>fits &lt;- lapply(complete(w.imp, &quot;all&quot;), function(d) {
+  glm(I(re78 == 0) ~ treat + age + educ + married + race +
+        nodegree + re74 + re75, data = d,
+      weights = weights, family = quasibinomial(&quot;probit&quot;))
+})</code></pre>
+<p>If we wanted to interpret the pooled coefficients from our outcome model (and we had included correct estimation of the standard errors, which we didn’t here), we could use <code>pool(fits) |&gt; summary()</code> to get them. But none of that is true here so we’ll move on and save the pooling till after we estimate the quantity of interest.</p>
+</div>
+<div id="the-marginaleffects-workflow" class="section level2">
+<h2>The <code>{marginaleffects}</code> workflow</h2>
+<p>Now we have our list of models. Our next step is to estimate the ATT risk ratio in each one (with the correct standard error) and pool the results. If the only quantity we want is the treatment effect, this is easy. We can use <code>marginaleffects::avg_comparisons()</code> on each model and then use <code>mice::pool()</code> to pool the results. In our call to <code>avg_comparisons()</code>, we need to subset the data used to fit each model to just the treated units and supply this to <code>newdata</code>, supply the name of the variable containing the weights to <code>wts</code><a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a>, supply the robust standard error type (HC3) to <code>vcov</code>, and specify that we want the log risk ratio of the average estimated potential outcomes by supplying <code>"lnratioavg"</code> to <code>transform_pre</code><a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a>.</p>
+<pre class="r"><code>library(&quot;marginaleffects&quot;)
+comp.imp &lt;- lapply(fits, function(fit) {
+  avg_comparisons(fit, newdata = subset(fit$data, treat == 1),
+                  variables = &quot;treat&quot;, wts = &quot;weights&quot;, vcov = &quot;HC3&quot;,
+                  transform_pre = &quot;lnratioavg&quot;)
+})
+
+pooled.comp &lt;- mice::pool(comp.imp)</code></pre>
+<p>Finally, we can use <code>summary()</code> on the resulting object, adding the arguments <code>conf.int = TRUE</code> to request confidence intervals and <code>exponentiate = TRUE</code> to get the risk ratio from the log risk ratio.</p>
+<pre class="r"><code>summary(pooled.comp, conf.int = TRUE,
+        exponentiate = TRUE)</code></pre>
+<pre><code>##    term              contrast  estimate std.error  statistic       df  p.value    2.5 %   97.5 %
+## 1 treat ln(mean(1) / mean(0)) 0.9321569 0.2097534 -0.3349366 610.5055 0.737788 0.617436 1.407298</code></pre>
+<p>We find a risk ratio of approximately 0.932, 95% CI: [0.617, 1.407], indicating that in our sample, the risk of having zero earnings in 1978 decreased slightly for those who received treatment, but we don’t have strong evidence for such an effect in the population.</p>
+<p>Although this is nice and simple, things get a bit more complicated when we want to estimate multiple comparisons at the same time, estimate the marginal risks, or perform a more complex analysis. Additional programming is required to make <code>mice::pool()</code> compatible with these more complex quantities. We’ll demonstrate how to hack <code>{marginaleffects}</code> to make it work using the instructions in the <code>{marginaleffects}</code> <a href="https://vincentarelbundock.github.io/marginaleffects/articles/multiple_imputation.html">vignette on multiple imputation</a>.</p>
+<p>We’ll be using <code>avg_predictions()</code> on each model to compute the marginal risks under each treatment level, which uses a similar syntax to <code>comparisons()</code>. The challenge comes in that <code>avg_predictions()</code> produces two rows of output (one for each treatment level), which are not correctly distinguished by <code>mice::pool()</code>. So, we’ll have to create a new custom class and write a new <code>tidy()</code> method for our class.</p>
+<p>First, we’ll generate our marginal risks and assign the output our new class, which is arbitrary but which I will call <code>"pred_imp_custom"</code>.</p>
+<pre class="r"><code>pred.imp &lt;- lapply(fits, function(fit) {
+  out &lt;- avg_predictions(fit, newdata = subset(fit$data, treat == 1),
+                         variables = &quot;treat&quot;, wts = &quot;weights&quot;,
+                         vcov = &quot;HC3&quot;, by = &quot;treat&quot;)
+  
+  # the next line assigns our custom class
+  class(out) &lt;- c(&quot;pred_imp_custom&quot;, class(out))
+  return(out)
+})</code></pre>
+<p>Next, we’ll write our new <code>tidy()</code> method. (Make sure to replace <code>treat</code> everywhere you see it with the name of your treatment variable.) We won’t actually be using this function at all; it is called internally by <code>mice::pool()</code>.</p>
+<pre class="r"><code>tidy.pred_imp_custom &lt;- function(x, ...) {
+    out &lt;- marginaleffects:::tidy.predictions(x, ...)
+    out$term &lt;- paste(&quot;treat =&quot;, out$treat)
+    return(out)
+}</code></pre>
+<p>Finally, we can use <code>mice::pool()</code> and <code>summary()</code> to get our marginal risks:</p>
+<pre class="r"><code>mice::pool(pred.imp) |&gt; summary(conf.int = TRUE)</code></pre>
+<pre><code>##        term  estimate  std.error statistic       df      p.value     2.5 %    97.5 %
+## 1 treat = 0 0.2607090 0.04264062  6.114100 609.4350 1.734761e-09 0.1769686 0.3444494
+## 2 treat = 1 0.2430092 0.03197686  7.599534 611.9484 1.120645e-13 0.1802115 0.3058069</code></pre>
+<p>Taking the ratio of these risks gives us the risk ratio we computed above.</p>
+<p>Note that you have to customize the <code>tidy()</code> method in a slightly different way when you are estimating treatment effects in subgroups. I’ll leave that as an exercise to the reader, or you can hire me to do it for you :)</p>
+</div>
+<div id="the-clarify-workflow" class="section level2">
+<h2>The <code>{clarify}</code> workflow</h2>
+<p>The <code>{clarify}</code> workflow for multiply imputed data is very similar to its workflow for regular data. How simulation-based inference works broadly is that sets of parameters are drawn from a distribution after fitting the model; this distribution is often assumed to be multivariate normal with the mean vector equal to the estimated coefficients and the covariance equal to the asymptotic covariance matrix of the coefficients. Many (e.g., 1000) sets of coefficients are drawn, and a quantity of interest is computed using each set, forming a “posterior” distribution of the quantity of interest. This posterior is then used for inference: its standard deviation can be used as the quantity’s standard error, and its quantiles can be used as confidence intervals. For more information on this methodology, see the <code>{clarify}</code> <a href="https://iqss.github.io/clarify/">website</a> and its references.</p>
+<p>With multiply imputed data, this process is done for the model fit to each imputed dataset, and then the distributions of the quantities of interest are simply combined to form a single distribution, which is used for inference. In Bayesian terms, this would be called “mixing draws”. The variance of this mixture distribution approaches the variance of the estimate computed using Rubin’s rules when the number of imputations is high.</p>
+<p>To use <code>{clarify}</code>, we supply the list of fitted models to <code>clarify::misim()</code>, which draws the coefficients from their implied distributions from each model. We also need to specify the method for computing the covariance matrix (here, using the same HC3 robust covariance we used with <code>{marginaleffects}</code> to account for the weights). We will only request 200 replications per fitted model since we have 50 imputations, which gives us 10,000 replicates (likely more than enough for stable inference).</p>
+<pre class="r"><code>library(&quot;clarify&quot;)
+
+sim.imp &lt;- misim(fits, n = 200, vcov = &quot;HC3&quot;)
+sim.imp</code></pre>
+<pre><code>## A `clarify_misim` object
+##  - 10 coefficients, 50 imputations with 200 simulated values each
+##  - sampled distributions: multivariate t(604)</code></pre>
+<p>(Note: because we used a quasi-binomial model, a scaled t-distribution was used to draw the coefficients. In practice this will give similar draws to a normal distribution.)</p>
+<p>The output of <code>misim()</code> is then fed to a function for computing the quantity of interest in each draw; here, we’ll be using <code>clarify::sim_ame()</code>, which is appropriate for computing marginal risks in a subset of the data (i.e., the ATT risk ratio). We supply the treatment variable to <code>var</code> and subset the data to just the treated units using <code>subset</code> to request the ATT. Although we can use the <code>contrast</code> argument to request the (log) risk ratio, we can compute that afterward quickly from the marginal risks. (Using <code>cl = 3</code> uses parallel computing with 3 cores but only if you are on a Mac. See the <code>sim_ame()</code> documentation for more information on how to use the <code>cl</code> argument.)</p>
+<pre class="r"><code>sim.att &lt;- sim_ame(sim.imp, var = &quot;treat&quot;,
+                   subset = treat == 1, cl = 3,
+                   verbose = FALSE)
+sim.att</code></pre>
+<pre><code>## A `clarify_est` object (from `sim_ame()`)
+##  - Average marginal effect of `treat`
+##  - 10000 simulated values
+##  - 2 quantities estimated:                  
+##  E[Y(0)] 0.2605322
+##  E[Y(1)] 0.2428401</code></pre>
+<p>To compute the risk ratio, we can use <code>transform()</code>:</p>
+<pre class="r"><code>sim.att &lt;- transform(sim.att, RR = `E[Y(1)]`/`E[Y(0)]`)</code></pre>
+<p>Finally, we can compute out confidence intervals and p-values around the estimated marginal risks and risk ratio using <code>summary()</code>:</p>
+<pre class="r"><code>summary(sim.att, null = c(RR = 1))</code></pre>
+<pre><code>##         Estimate 2.5 % 97.5 % P-value
+## E[Y(0)]    0.261 0.187  0.354       .
+## E[Y(1)]    0.243 0.188  0.313       .
+## RR         0.932 0.630  1.421    0.76</code></pre>
+<p>Here, we find a risk ratio of approximately 0.932, 95% CI: [0.63, 1.421]. The estimates, confidence intervals, and p-values we get from the two methods line up well.</p>
+<p>By default, <code>{clarify}</code> uses quantile-based confidence intervals and computes the p-values by inverting them (i.e., finding the largest confidence level that yields an interval that excludes the null value and computing the p-value as one minus that level). Wald confidence intervals and p-values can also be request by setting <code>method = "wald"</code> in the call to <code>summary()</code>, but these are only recommended if the quantity has a normal distribution (which the risk ratio does not).</p>
+<div id="explaining-differences-between-the-approaches" class="section level3">
+<h3>Explaining differences between the approaches</h3>
+<p>Both the delta method- and simulation-based inference approaches are valid, but sometimes you will get results that disagree. The estimates of the quantities of interest may disagree because of how <code>mice::pool()</code> and <code>clarify::sim_ame()</code> combine estimates across imputations.</p>
+<p>Rubin’s rules involve simply taking the mean of the estimates across imputations. This works well when the quantity is collapsible, linear, or has a symmetric (ideally normal) distribution. If the quantity of interest is none of those but can be transformed from a quantity that does have those properties, Rubin’s rules can be apply to this intermediate quantity before transforming the estimate to get the final results. This is exactly what we did in the <code>{marginaleffects}</code> workflow when we computed the log risk ratio before pooling and then exponentiating the pooled log risk ratio to arrive at the risk ratio. If we had gone straight into pooling the risk ratio, the resulting estimate might not have been consistent.</p>
+<p><code>{clarify}</code> works by first using Rubin’s pooling rules on the model coefficients, which we assume to be normally distributed, and then computing the quantity of interest in each imputed dataset using draws from the pooled coefficients. A benefit of this strategy is that we don’t have to wonder whether the quantity of interest satisfies the above properties. The resulting estimates will be consistent because no pooling is done on them; the pooling happens only in the first step.</p>
+<p>Confidence intervals may differ slightly between the two methods, and this could be due to two reasons: 1) the delta method and simulation-based inferences naturally compute confidence intervals in different ways, with the delta method using a first-order Taylor series approximation and assuming normality of the quantity of interest, and simulation-based inference using simulation to generate a “posterior” for the quantity of interest and using its quantiles as the interval; and 2) simulation-based inference requires many imputations for the variance of the posterior to equal the variance of the Rubin’s rules pooled estimate. More imputations is always better for both methods, so do as many as you can.</p>
+<p>How should you choose between the delta method and simulation-based inference? Use whichever will get you published, of course! (Just kidding.) Use the one you find most trustworthy, that your audience will find the most trustworthy, and that balances the assumptions you are willing to make with the desired precision of the estimate. You might also use the one that seems more natural to you, either conceptually or in terms of usability. Frankly, I find <code>{clarify}</code> to be easier to use when the quantity of interest is more complicated than a single comparison (e.g., for subgroup analysis or for computing average marginal risks), but <code>{marginaleffects}</code> can be faster, doesn’t rely on a stochastic process, and is better-backed by statistical theory. Confirming you get similar results with both methods is always a good idea, and the plotting diagnostics in <code>{clarify}</code> can be used to determine whether any difference might be due to the failure of the delta method due to violation of one of its assumptions.</p>
+</div>
+</div>
+<div class="footnotes footnotes-end-of-document">
+<hr />
+<ol>
+<li id="fn1"><p>The key differences is that pair membership needs to be accounted for in estimation of the variance of the outcome model coefficients; this is usually as simply as specifying <code>vcov = ~subclass</code> to functions in <code>{marginaleffects}</code> or <code>{clarify}</code>.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+<li id="fn2"><p>This actually isn’t necessary for the ATT but it’s walys good practice.<a href="#fnref2" class="footnote-back">↩︎</a></p></li>
+<li id="fn3"><p>Note: we need the log risk ratio because Rubin’s pooling rules don’t apply to the risk ratio but do to the log risk ratio. We will exponentiate the log risk ratio and its confidence interval after pooling.<a href="#fnref3" class="footnote-back">↩︎</a></p></li>
+</ol>
+</div>
+
+    </div>
+
+    
+
+
+
+
+<div class="article-tags">
+  
+  <a class="badge badge-light" href="/tag/propensity-scores/">propensity-scores</a>
+  
+  <a class="badge badge-light" href="/tag/r/">R</a>
+  
+  <a class="badge badge-light" href="/tag/multiple-imputation/">multiple-imputation</a>
+  
+</div>
+
+
+
+<div class="share-box">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://ngreifer.github.io/blog/treatment-effects-mi/&amp;text=Estimating%20Treatment%20Effects%20After%20Weighting%20with%20Multiply%20Imputed%20Data" target="_blank" rel="noopener" class="share-btn-twitter" aria-label="twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://ngreifer.github.io/blog/treatment-effects-mi/&amp;t=Estimating%20Treatment%20Effects%20After%20Weighting%20with%20Multiply%20Imputed%20Data" target="_blank" rel="noopener" class="share-btn-facebook" aria-label="facebook">
+          <i class="fab fa-facebook"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=Estimating%20Treatment%20Effects%20After%20Weighting%20with%20Multiply%20Imputed%20Data&amp;body=https://ngreifer.github.io/blog/treatment-effects-mi/" target="_blank" rel="noopener" class="share-btn-email" aria-label="envelope">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://ngreifer.github.io/blog/treatment-effects-mi/&amp;title=Estimating%20Treatment%20Effects%20After%20Weighting%20with%20Multiply%20Imputed%20Data" target="_blank" rel="noopener" class="share-btn-linkedin" aria-label="linkedin-in">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="whatsapp://send?text=Estimating%20Treatment%20Effects%20After%20Weighting%20with%20Multiply%20Imputed%20Data%20https://ngreifer.github.io/blog/treatment-effects-mi/" target="_blank" rel="noopener" class="share-btn-whatsapp" aria-label="whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://ngreifer.github.io/blog/treatment-effects-mi/&amp;title=Estimating%20Treatment%20Effects%20After%20Weighting%20with%20Multiply%20Imputed%20Data" target="_blank" rel="noopener" class="share-btn-weibo" aria-label="weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+
+
+
+  
+  
+  
+    
+  
+  
+  
+  <div class="media author-card content-widget-hr">
+    
+      
+      <a href="https://ngreifer.github.io/"><img class="avatar mr-3 avatar-circle" src="/authors/noah-greifer/avatar_hu8cd5e2f86688deebdf424321704b109c_308340_270x270_fill_q75_lanczos_center.jpg" alt="Noah Greifer"></a>
+    
+
+    <div class="media-body">
+      <h5 class="card-title"><a href="https://ngreifer.github.io/">Noah Greifer</a></h5>
+      <h6 class="card-subtitle">Statistical Consultant and Programmer</h6>
+      
+      <ul class="network-icon" aria-hidden="true">
+  
+    
+    
+    
+      
+    
+    
+    
+    
+    
+      
+    
+    <li>
+      <a href="/#contact" >
+        <i class="fas fa-envelope"></i>
+      </a>
+    </li>
+  
+    
+    
+    
+      
+    
+    
+    
+    
+    
+      
+    
+    <li>
+      <a href="https://twitter.com/noah_greifer" target="_blank" rel="noopener">
+        <i class="fab fa-twitter"></i>
+      </a>
+    </li>
+  
+    
+    
+    
+    
+    
+    
+    
+      
+    
+    <li>
+      <a href="https://scholar.google.com/citations?user=pUqM9nkAAAAJ&amp;hl=en" target="_blank" rel="noopener">
+        <i class="ai ai-google-scholar"></i>
+      </a>
+    </li>
+  
+    
+    
+    
+      
+    
+    
+    
+    
+    
+      
+    
+    <li>
+      <a href="https://github.com/ngreifer" target="_blank" rel="noopener">
+        <i class="fab fa-github"></i>
+      </a>
+    </li>
+  
+</ul>
+
+    </div>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+</article>
+  </div>
+
+  <div class="page-footer">
+    
+    
+    <div class="container">
+      <footer class="site-footer">
+
+  
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+
+
+
+
+
+  
+  
+  
+
+  
+  
+    
+  
+  
+    
+  
+
+  
+
+  
+  <p class="powered-by copyright-license-text">
+    © 2023 Noah Greifer. This work is licensed under <a href="https://creativecommons.org/licenses/by-nc-nd/4.0" rel="noopener noreferrer" target="_blank">CC BY NC ND 4.0</a>
+  </p>
+  
+
+  <p class="powered-by footer-license-icons">
+    <a href="https://creativecommons.org/licenses/by-nc-nd/4.0" rel="noopener noreferrer" target="_blank" aria-label="Creative Commons">
+      <i class="fab fa-creative-commons fa-2x" aria-hidden="true"></i>
+      <i class="fab fa-creative-commons-by fa-2x" aria-hidden="true"></i>
+      
+        <i class="fab fa-creative-commons-nc fa-2x" aria-hidden="true"></i>
+      
+      
+        <i class="fab fa-creative-commons-nd fa-2x" aria-hidden="true"></i>
+      
+    </a>
+  </p>
+
+
+
+
+  <p class="powered-by">
+    
+    
+    
+      
+      
+      
+      
+      
+      
+      Published with <a href="https://wowchemy.com/?utm_campaign=poweredby" target="_blank" rel="noopener">Wowchemy</a> — the free, <a href="https://github.com/wowchemy/wowchemy-hugo-themes" target="_blank" rel="noopener">open source</a> website builder that empowers creators.
+    
+  </p>
+</footer>
+
+    </div>
+    
+  </div>
+
+      
+
+    
+    <script src="/js/vendor-bundle.min.53d67dc2cb1ebceb89d5e2aba2f86112.js"></script>
+
+    
+    
+    
+      
+
+      
+      
+
+      
+
+      
+        
+        <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@10.2.1/build/highlight.min.js" integrity="sha512-Ypjm0o7jOxAd4hpdoppSEN0TQOC19UtPAqD+4s5AlXmUvbmmS/YMxYqAqarQYyxTnB6/rqip9qcxlNB/3U9Wdg==" crossorigin="anonymous"></script>
+        
+        
+        <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@10.2.1/build/languages/r.min.js" crossorigin="anonymous"></script>
+        
+        <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@10.2.1/build/languages/latex.min.js" crossorigin="anonymous"></script>
+        
+      
+
+    
+
+    
+    
+    
+
+    
+    
+
+    
+    
+    
+      
+      <script id="search-hit-fuse-template" type="text/x-template">
+        <div class="search-hit" id="summary-{{key}}">
+          <div class="search-hit-content">
+            <div class="search-hit-name">
+              <a href="{{relpermalink}}">{{title}}</a>
+              <div class="article-metadata search-hit-type">{{type}}</div>
+              <p class="search-hit-description">{{snippet}}</p>
+            </div>
+          </div>
+        </div>
+      </script>
+      
+        <script src="https://cdn.jsdelivr.net/gh/krisk/Fuse@v3.2.1/dist/fuse.min.js" integrity="sha512-o38bmzBGX+hD3JHWUFCDA09btWaqrNmoJ3RXLlrysA7PP01Kgs4UlE4MhelE1v5dJR3+cxlR4qQlotsW7jKsnw==" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/gh/julmot/mark.js@8.11.1/dist/jquery.mark.min.js" integrity="sha512-mhbv5DqBMgrWL+32MmsDOt/OAvqr/cHimk6B8y/bx/xS88MVkYGPiVv2ixKVrkywF2qHplNRUvFsAHUdxZ3Krg==" crossorigin="anonymous"></script>
+      
+    
+
+    
+    
+
+    
+    
+    
+    
+
+    
+    
+      
+      
+      
+      
+      
+      
+      
+    
+
+    
+
+    
+    
+    
+    <script id="page-data" type="application/json">{"use_headroom":true}</script>
+
+    
+    
+      <script src="/js/wowchemy-headroom.c251366b4128fd5e6b046d4c97a62a51.js" type="module"></script>
+    
+    
+    
+    
+    
+    
+    
+      
+      
+    
+    
+    <script src="/en/js/wowchemy.min.ab2f2890dbe3e2e83579366d3d6e8fd9.js"></script>
+
+    
+    
+    
+    
+    
+    
+
+
+
+
+
+
+</body>
+</html>

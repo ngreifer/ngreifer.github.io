@@ -1,0 +1,704 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>propensity-scores | Noah Greifer</title>
+    <link>https://ngreifer.github.io/tag/propensity-scores/</link>
+      <atom:link href="https://ngreifer.github.io/tag/propensity-scores/index.xml" rel="self" type="application/rss+xml" />
+    <description>propensity-scores</description>
+    <generator>Wowchemy (https://wowchemy.com)</generator><language>en-us</language><lastBuildDate>Tue, 30 May 2023 00:00:00 +0000</lastBuildDate>
+    <image>
+      <url>https://ngreifer.github.io/media/sharing.jpg</url>
+      <title>propensity-scores</title>
+      <link>https://ngreifer.github.io/tag/propensity-scores/</link>
+    </image>
+    
+    <item>
+      <title>Matching Weights are Propensity Score Weights</title>
+      <link>https://ngreifer.github.io/blog/matching-weights/</link>
+      <pubDate>Tue, 30 May 2023 00:00:00 +0000</pubDate>
+      <guid>https://ngreifer.github.io/blog/matching-weights/</guid>
+      <description>
+
+
+&lt;p&gt;I’m &lt;a href=&#34;https://github.com/kosukeimai/MatchIt/issues/155&#34;&gt;often&lt;/a&gt; &lt;a href=&#34;https://stats.stackexchange.com/q/536197/116195&#34;&gt;asked&lt;/a&gt; how the matching weights produced by &lt;code&gt;MatchIt&lt;/code&gt; are computed. The weights are necessary for estimating the treatment effect in the matched sample; indeed, the weights &lt;em&gt;determine&lt;/em&gt; the matched sample. While the weights for simple methods like 1:1 matching are straightforward (i.e., 1 if matched and 0 if unmatched), for more complicated scenarios, like full matching, matching with replacement, and variable ratio matching, the weights take on variable values and are critical to include in the analysis of the matched dataset. For example, full matching doesn’t discard any units (by default), but failing to include the matching weights in the estimation of the treatment effect would be like doing no matching at all.&lt;/p&gt;
+&lt;p&gt;There is very little guidance in the literature on how to compute matching weights. We have a few clues that have been scattered across different fields, but they have yet to describe a unifying method of computing these weights&lt;a href=&#34;#fn1&#34; class=&#34;footnote-ref&#34; id=&#34;fnref1&#34;&gt;&lt;sup&gt;1&lt;/sup&gt;&lt;/a&gt;. In this post, I’ll describe how matching weights are computed in &lt;code&gt;MatchIt&lt;/code&gt; and how this unifying method relates to the few strategies described in the literature.&lt;/p&gt;
+&lt;p&gt;The main theses of this post are that &lt;strong&gt;matching is a nonparametric method for estimating propensity scores&lt;/strong&gt;, and &lt;strong&gt;matching weights are propensity score weights&lt;/strong&gt;. This framework unifies existing approaches for computing weights after matching, applies to all forms of matching (including &lt;span class=&#34;math inline&#34;&gt;\(k\)&lt;/span&gt;:1 matching, full matching, and stratification), and is straightforward to implement.&lt;/p&gt;
+&lt;div id=&#34;matching-as-nonparametric-estimation-of-propensity-scores&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Matching as Nonparametric Estimation of Propensity Scores&lt;/h2&gt;
+&lt;p&gt;The first step in understanding how matching weights are computed is to consider how matching is a nonparametric estimator of the propensity score. When I talk about matching here, I’m really talking about the assignment of units into pairs, strata, or matched sets &lt;span class=&#34;citation&#34;&gt;(&lt;a href=&#34;#ref-greiferMatchingMethodsConfounder2021a&#34; role=&#34;doc-biblioref&#34;&gt;Greifer and Stuart 2021&lt;/a&gt;)&lt;/span&gt;. For example, 1:1 pair matching assigns treated and control units into pairs, each with one treated and one control unit. Optimal full matching assigns all units into matched sets, each with either exactly one treated unit and one or more control units or with exactly one control units and one or more treated units &lt;span class=&#34;citation&#34;&gt;(&lt;a href=&#34;#ref-hansenOptimalFullMatching2006&#34; role=&#34;doc-biblioref&#34;&gt;Hansen and Klopfer 2006&lt;/a&gt;)&lt;/span&gt;. Propensity score subclassification and coarsened exact matching assign units into strata based on their values of the propensity score or covariates, respectively &lt;span class=&#34;citation&#34;&gt;(&lt;a href=&#34;#ref-rosenbaumReducingBiasObservational1984&#34; role=&#34;doc-biblioref&#34;&gt;Rosenbaum and Rubin 1984&lt;/a&gt;; &lt;a href=&#34;#ref-iacusCausalInferenceBalance2012&#34; role=&#34;doc-biblioref&#34;&gt;Iacus, King, and Porro 2012&lt;/a&gt;)&lt;/span&gt;. I do want to note that matching with replacement is a slightly different beast, so I will save my discussion of it till later, though how it fits into this framework is straightforward.&lt;/p&gt;
+&lt;div id=&#34;computing-stratum-propensity-scores&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Computing stratum propensity scores&lt;/h3&gt;
+&lt;p&gt;For matched units, we can compute a new “stratum” propensity score, &lt;span class=&#34;math inline&#34;&gt;\(\hat{e}^*_i\)&lt;/span&gt; as &lt;span class=&#34;math display&#34;&gt;\[
+\hat{e}^*_i = P(A = 1|S=s_i)
+\]&lt;/span&gt;where &lt;span class=&#34;math inline&#34;&gt;\(A\)&lt;/span&gt; is the treatment (0 for control, 1 for treated) and &lt;span class=&#34;math inline&#34;&gt;\(S\)&lt;/span&gt; is stratum/pair membership indexed by strata &lt;span class=&#34;math inline&#34;&gt;\(s\)&lt;/span&gt;. Put in words, the &lt;strong&gt;stratum propensity score&lt;/strong&gt; &lt;span class=&#34;math inline&#34;&gt;\(\hat{e}^*_i\)&lt;/span&gt; &lt;strong&gt;for each member of a matched stratum is the proportion of treated units in that stratum&lt;/strong&gt;. We can also write this formula as &lt;span class=&#34;math display&#34;&gt;\[
+\hat{e}^*_i = \frac{n_{1s_i}}{n_{s_i}}
+\]&lt;/span&gt; where &lt;span class=&#34;math inline&#34;&gt;\(n_{1s_i}\)&lt;/span&gt; is the number of treated units in stratum &lt;span class=&#34;math inline&#34;&gt;\(s_i\)&lt;/span&gt; and &lt;span class=&#34;math inline&#34;&gt;\(n_{s_i}\)&lt;/span&gt; is the total number of units in stratum &lt;span class=&#34;math inline&#34;&gt;\(s_i\)&lt;/span&gt;.&lt;/p&gt;
+&lt;p&gt;Note that &lt;span class=&#34;math inline&#34;&gt;\(\hat{e}^*_i\)&lt;/span&gt; is distinct from the usual propensity score, &lt;span class=&#34;math inline&#34;&gt;\(\hat{e}_i = P(A=1|X = x_i)\)&lt;/span&gt;, which is estimated from the treatment and covariates using, e.g., logistic regression or a machine learning model. &lt;span class=&#34;math inline&#34;&gt;\(\hat{e}_i\)&lt;/span&gt; may be used to perform the matching or subclassification, but it is &lt;span class=&#34;math inline&#34;&gt;\(\hat{e}^*_i\)&lt;/span&gt;, the subject of this post, that arises &lt;em&gt;from&lt;/em&gt; matching or subclassification. It is critical to keep these two propensity scores distinct; one is used to match (&lt;span class=&#34;math inline&#34;&gt;\(\hat{e}_i\)&lt;/span&gt;), and the other results from matching (&lt;span class=&#34;math inline&#34;&gt;\(\hat{e}^*_i\)&lt;/span&gt;).&lt;/p&gt;
+&lt;p&gt;This method of estimating stratum propensity scores is nonparametric in the sense that no model is used and no functional form assumption are made, once units have been assigned into strata. It may be that a model was used to assign units into strata (e.g., when matching or subclassifying based on a propensity score estimated with a model of treatment given the covariates), but, given the matching, this new propensity score is nonparametric. It is agnostic to how the matching was done.&lt;/p&gt;
+&lt;p&gt;Intuitively, we can think of stratum membership as a proxy for the covariates that are usually included in a propensity score specification. That is, if all units in a stratum have the same values of the covariates, conditioning on stratum membership is the same as conditioning on the covariates.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;examples&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Examples&lt;/h3&gt;
+&lt;p&gt;In full matching, we may have some matched sets that have, for example, 1 treated unit and 7 control units. All units in that stratum would receive a stratum propensity score of &lt;span class=&#34;math inline&#34;&gt;\(1/8\)&lt;/span&gt;. We might have another matched set that has 5 treated units and 1 control unit. All units in that stratum would receive a stratum propensity score of &lt;span class=&#34;math inline&#34;&gt;\(5/6\)&lt;/span&gt;.&lt;/p&gt;
+&lt;p&gt;In 1:1 matching, the situation is more trivial; all matched units, which are each in strata with 1 treated unit and 1 control unit, receive a stratum propensity score of &lt;span class=&#34;math inline&#34;&gt;\(1/2\)&lt;/span&gt;.&lt;/p&gt;
+&lt;p&gt;In propensity score subclassification, we might have more than one unit from each treatment group; for example, a propensity score quintile might contain 56 treated units and 73 control units; all units in that subclass would receive stratum propensity scores of &lt;span class=&#34;math inline&#34;&gt;\(56/129\)&lt;/span&gt;.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id=&#34;matching-weights-as-propensity-score-weights&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Matching Weights as Propensity Score Weights&lt;/h2&gt;
+&lt;p&gt;To get matching weights from the stratum propensity scores, we can simply apply the usual propensity score weighting formulas that correspond to the desired estimand to these propensity scores. As reminder, the formulas for weights given a generic propensity score &lt;span class=&#34;math inline&#34;&gt;\(e_i\)&lt;/span&gt; are &lt;span class=&#34;math display&#34;&gt;\[
+\begin{align}
+w_{ATE}&amp;amp;=\frac{A_i}{e_i} + \frac{1-A}{1-e_i} \\
+w_{ATT}&amp;amp;=A_i + (1-A_i)\frac{e_i}{1-e_i} = e_i \times w_{ATE}\\
+w_{ATC}&amp;amp;=A_i \frac{1-e_i}{e_i} + (1-A) = (1-e_i)\times w_{ATE}
+\end{align}
+\]&lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;(Note: we also sometimes “stabilize” the weights by multiplying them by the stabilization factor &lt;span class=&#34;math inline&#34;&gt;\(A_iP(A+1) + (1-A_i)P(A=0)\)&lt;/span&gt;; this will come up later.) So, we simply feed stratum propensity scores &lt;span class=&#34;math inline&#34;&gt;\(\hat{e}^*_i\)&lt;/span&gt; into these formulas, and that’s how we get the matching weights. To my knowledge, this procedure has never been described in the literature. I included it in the &lt;code&gt;MatchIt&lt;/code&gt; documentation once I became its maintainer starting with version 4.0.0.&lt;/p&gt;
+&lt;p&gt;Let’s see these weights in action:&lt;/p&gt;
+&lt;p&gt;For full matching and propensity score subclassification, one has the choice between the ATE, ATT, or ATC. This choice doesn’t necessarily affect the matching&lt;a href=&#34;#fn2&#34; class=&#34;footnote-ref&#34; id=&#34;fnref2&#34;&gt;&lt;sup&gt;2&lt;/sup&gt;&lt;/a&gt;, though it does affect how the weights are computed. Each unit receives a stratum propensity score based on their stratum membership, which will likely vary across strata (otherwise the matching is not functioning right). That stratum propensity score is then used to compute the matching weights.&lt;/p&gt;
+&lt;p&gt;For the ATT, treated units receive a weight of 1, and control units receive a weight of &lt;span class=&#34;math inline&#34;&gt;\(\frac{\hat{e}^*_i}{1-\hat{e}^*_i} = \frac{\frac{n_{1s_i}}{n_{s_i}}}{1-\frac{n_{1s_i}}{n_{s_i}}}=\frac{n_{1s_i}}{n_{s_i}-n_{1s_i}}=\frac{n_{1s_i}}{n_{0s_i}}\)&lt;/span&gt;. That is, control units receive a weight equal to ratio of treated units to control units in their stratum.&lt;/p&gt;
+&lt;p&gt;For the ATE, treated units receive a weight of &lt;span class=&#34;math inline&#34;&gt;\(\frac{1}{\hat{e}^*_i}=\frac{n_{s_i}}{n_{1s_i}}\)&lt;/span&gt; and control units receive a weight of &lt;span class=&#34;math inline&#34;&gt;\(\frac{1}{1-\hat{e}^*_i}=\frac{n_{s_i}}{n_{0s_i}}\)&lt;/span&gt;.&lt;/p&gt;
+&lt;p&gt;For 1:1 matching for the ATT, the case is much simpler. We expect both treated and matched control units to receive a weight of 1; we’ll see that applying the formulas does indeed yield this result. Remember that for all matched units, &lt;span class=&#34;math inline&#34;&gt;\(\hat{e}^*_i=1/2\)&lt;/span&gt; because each pair has 1 treated unit and 1 control unit. Using the ATT formula, treated units receive a weight of 1 and control units receive a weight of &lt;span class=&#34;math inline&#34;&gt;\(\frac{\hat{e}^*_i}{1-\hat{e}^*_i}=\frac{\frac{1}{2}}{1-\frac{1}{2}}=1\)&lt;/span&gt;, as we expected. So, even for this simple case, applying the single unifying formula produces the expected results&lt;a href=&#34;#fn3&#34; class=&#34;footnote-ref&#34; id=&#34;fnref3&#34;&gt;&lt;sup&gt;3&lt;/sup&gt;&lt;/a&gt;.&lt;/p&gt;
+&lt;div id=&#34;matching-with-replacement&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Matching with replacement&lt;/h3&gt;
+&lt;p&gt;Earlier, I alluded to the fact that matching with replacement works the same way but with some slight variation. In matching with replacement for the ATT, each control unit may be part of more than one matched pair. For example, our resulting matching matrix for 3:1 matching with replacement and a caliper might look like the following:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;Treated | Control
+--------|--------
+      A | C D
+      B | C E F&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Control unit &lt;code&gt;C&lt;/code&gt; is matched to both treated units &lt;code&gt;A&lt;/code&gt; and &lt;code&gt;B&lt;/code&gt;, each of which have a different number of matches (e.g., because of a caliper that restricted the number of matches &lt;code&gt;A&lt;/code&gt; could get).&lt;/p&gt;
+&lt;p&gt;Each unit receives a stratum propensity score and matching weight for each time it appears in a match. So, unit &lt;code&gt;C&lt;/code&gt; receives a stratum propensity score of &lt;span class=&#34;math inline&#34;&gt;\(1/3\)&lt;/span&gt; from the first matched set and a stratum propensity score of &lt;span class=&#34;math inline&#34;&gt;\(1/4\)&lt;/span&gt; from the second matched set. We apply the usual weighting formula for the ATT to each stratum propensity score, which gives unit &lt;code&gt;C&lt;/code&gt; a matching of weight of &lt;span class=&#34;math inline&#34;&gt;\(1/2\)&lt;/span&gt; for the first matched set and a matching weight of &lt;span class=&#34;math inline&#34;&gt;\(1/3\)&lt;/span&gt; for the second matched set. Finally, we add together the weights (&lt;strong&gt;not&lt;/strong&gt; the stratum propensity scores!) for each unit to get their final weight, which gives unit &lt;code&gt;C&lt;/code&gt; a matching weight of &lt;span class=&#34;math inline&#34;&gt;\(1/2 + 1/3 = 5/6\)&lt;/span&gt;.&lt;/p&gt;
+&lt;p&gt;Matching with replacement for the ATE is not available in &lt;code&gt;MatchIt&lt;/code&gt;, but it is in other software such as the &lt;code&gt;Matching&lt;/code&gt; package and Stata &lt;code&gt;teffects nnmatch&lt;/code&gt;. The way this works is each treated unit receives a matched control unit, and, independently, each control unit receives a matched treated unit. So, you would have a matching matrix for 2:1 matching with replacement and a caliper that would look like the following:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;Treated | Control
+--------|--------
+      A | C D
+      B | C E
+--------|--------
+Control | Treated
+--------|--------
+      C | A B
+      D | A
+      E | B
+      F | B&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We use a slightly different procedure for calculating the ATE weights that relies on the observation that &lt;span class=&#34;math inline&#34;&gt;\(w_{ATE}=w_{ATT}+w_{ATC}\)&lt;/span&gt;&lt;a href=&#34;#fn4&#34; class=&#34;footnote-ref&#34; id=&#34;fnref4&#34;&gt;&lt;sup&gt;4&lt;/sup&gt;&lt;/a&gt;. For each unit, we compute the weights where the unit is in the focal group (i.e., the group being matched to) and where the unit is in the nonfocal group (i.e., the group being used as matches), and add them up.&lt;/p&gt;
+&lt;p&gt;For example, for unit &lt;code&gt;B&lt;/code&gt;, which is a treated unit, we compute the ATT weights when &lt;code&gt;B&lt;/code&gt; is matched to and the ATC weights when &lt;code&gt;B&lt;/code&gt; is used as a match. &lt;code&gt;B&lt;/code&gt; is matched to by &lt;code&gt;C&lt;/code&gt; and &lt;code&gt;E&lt;/code&gt; (top of the table), so it gets an ATT weight of 1. &lt;code&gt;B&lt;/code&gt; is used as a match for &lt;code&gt;C&lt;/code&gt;, &lt;code&gt;E&lt;/code&gt;, and &lt;code&gt;F&lt;/code&gt;, and gets stratum propensity scores of &lt;span class=&#34;math inline&#34;&gt;\(2/3\)&lt;/span&gt;, &lt;span class=&#34;math inline&#34;&gt;\(1/2\)&lt;/span&gt;, and &lt;span class=&#34;math inline&#34;&gt;\(1/2\)&lt;/span&gt;, and weights of &lt;span class=&#34;math inline&#34;&gt;\(1/2\)&lt;/span&gt;, &lt;span class=&#34;math inline&#34;&gt;\(1\)&lt;/span&gt;, and &lt;span class=&#34;math inline&#34;&gt;\(1\)&lt;/span&gt;, respectively. Adding up the ATT weight and the ATC weights, we arrive at a final ATE weight of &lt;span class=&#34;math inline&#34;&gt;\(1 + 1/2+1+1 =7/2\)&lt;/span&gt;.&lt;/p&gt;
+&lt;p&gt;For unit &lt;code&gt;C&lt;/code&gt;, which is a control unit, we compute the ATC weights when &lt;code&gt;C&lt;/code&gt; is matched to and the ATT weights when &lt;code&gt;C&lt;/code&gt; is used as a match. &lt;code&gt;C&lt;/code&gt; is matched to by &lt;code&gt;A&lt;/code&gt; and &lt;code&gt;B&lt;/code&gt; (bottom of the table), so it gets an ATC weight of 1. &lt;code&gt;C&lt;/code&gt; is used as a matched for &lt;code&gt;A&lt;/code&gt; and &lt;code&gt;B&lt;/code&gt;, and gets stratum propensity scores of &lt;span class=&#34;math inline&#34;&gt;\(1/3\)&lt;/span&gt; and &lt;span class=&#34;math inline&#34;&gt;\(1/3\)&lt;/span&gt;, and weights of &lt;span class=&#34;math inline&#34;&gt;\(1/2\)&lt;/span&gt; and &lt;span class=&#34;math inline&#34;&gt;\(1/2\)&lt;/span&gt;, respectively. Adding up the ATC weight and the ATT weights, we arrive at a final ATE weight of &lt;span class=&#34;math inline&#34;&gt;\(1 + 1/2+1/2=2\)&lt;/span&gt;.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id=&#34;matching-weights-in-the-literature&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Matching weights in the literature&lt;/h2&gt;
+&lt;p&gt;There have been some descriptions of methods to compute weights from matching or stratification in the literature. Here we discuss those approaches and demonstrate how they are related to our unified procedure described above.&lt;/p&gt;
+&lt;div id=&#34;marginal-mean-weighting-through-stratification-mmws-hong-2010&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Marginal Mean Weighting Through Stratification (MMWS; Hong, 2010)&lt;/h3&gt;
+&lt;p&gt;&lt;span class=&#34;citation&#34;&gt;Hong (&lt;a href=&#34;#ref-hong2010&#34; role=&#34;doc-biblioref&#34;&gt;2010&lt;/a&gt;)&lt;/span&gt; describes marginal mean weighting through stratification (MMWS), which is a method of computing weights after propensity score stratification for use in estimating marginal treatment effects (i.e., rather than subclass-specific effects). Hong’s formulas for the MMWS weights are as follows:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;ATT: Control units receive a weight of &lt;span class=&#34;math inline&#34;&gt;\(\frac{n_{1s_i}}{n_{0s_i}}\frac{1-\text{pr}(A=1)}{\text{pr}(A=1)}\)&lt;/span&gt;, where &lt;span class=&#34;math inline&#34;&gt;\(\text{pr}(A=a)\)&lt;/span&gt; is the overall proportion of units in treatment group &lt;span class=&#34;math inline&#34;&gt;\(a\)&lt;/span&gt;.&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;ATE: Units in treatment group &lt;span class=&#34;math inline&#34;&gt;\(a\)&lt;/span&gt; receive weights of &lt;span class=&#34;math inline&#34;&gt;\(\frac{n_{s_i}}{n_{a s_i}}\text{pr}(A=a_i)\)&lt;/span&gt;.&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The above formulas are the same as the matching weights formulas we described above except that they include a scaling factor, &lt;span class=&#34;math inline&#34;&gt;\(\frac{1-\text{pr}(A=1)}{\text{pr}(A=1)}\)&lt;/span&gt; for the ATT weights and &lt;span class=&#34;math inline&#34;&gt;\(\text{pr}(A=a_i)\)&lt;/span&gt; for the ATE weights. The ATE scaling factor is equal to the usual stabilization factor for propensity score weighting. In practice, the scaling factors do not affect balance statistics or the weighted outcome means, and so their inclusion here doesn’t change the properties of the weights&lt;a href=&#34;#fn5&#34; class=&#34;footnote-ref&#34; id=&#34;fnref5&#34;&gt;&lt;sup&gt;5&lt;/sup&gt;&lt;/a&gt;.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;fine-stratification-weights-desai-et-al.-2017&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Fine Stratification Weights (Desai et al., 2017)&lt;/h3&gt;
+&lt;p&gt;&lt;span class=&#34;citation&#34;&gt;Desai et al. (&lt;a href=&#34;#ref-desai2017&#34; role=&#34;doc-biblioref&#34;&gt;2017&lt;/a&gt;)&lt;/span&gt; describe a method they call “fine stratification”, which is an alternative to traditional propensity score subclassification and which uses many strata (e.g., close to 100 rather than the traditional 5). &lt;span class=&#34;citation&#34;&gt;Desai and Franklin (&lt;a href=&#34;#ref-desai2019&#34; role=&#34;doc-biblioref&#34;&gt;2019&lt;/a&gt;)&lt;/span&gt; provide the following formulas for fine stratification weights for the ATT and ATE:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;ATT: Control units receive a weight of &lt;span class=&#34;math inline&#34;&gt;\(\frac{n_{1s_i}}{n_1} / \frac{n_{0s_i}}{n_0}\)&lt;/span&gt;.&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;ATE: Treated units receive a weight of &lt;span class=&#34;math inline&#34;&gt;\(\frac{n_{s_i}}{n} / \frac{n_{1s_i}}{n_1}\)&lt;/span&gt;, and control units receive a weight of &lt;span class=&#34;math inline&#34;&gt;\(\frac{n_{s_i}}{n} / \frac{n_{0s_i}}{n_0}\)&lt;/span&gt;.&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Doing a little math reveals that the ATE formula is the same as ours except with a scaling factor of &lt;span class=&#34;math inline&#34;&gt;\(\frac{n_a}{n}\)&lt;/span&gt; for units in treatment group &lt;span class=&#34;math inline&#34;&gt;\(a\)&lt;/span&gt;, which is the same scaling factor used by &lt;span class=&#34;citation&#34;&gt;Hong (&lt;a href=&#34;#ref-hong2010&#34; role=&#34;doc-biblioref&#34;&gt;2010&lt;/a&gt;)&lt;/span&gt;. The formula for the ATT weights is also the same as ours with the same scaling factor, &lt;span class=&#34;math inline&#34;&gt;\(\frac{n_0}{n_1}\)&lt;/span&gt;, used by &lt;span class=&#34;citation&#34;&gt;Hong (&lt;a href=&#34;#ref-hong2010&#34; role=&#34;doc-biblioref&#34;&gt;2010&lt;/a&gt;)&lt;/span&gt;.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;averaging-means-across-subclasses-lunceford-and-davidian-2004&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Averaging Means across Subclasses (Lunceford and Davidian, 2004)&lt;/h3&gt;
+&lt;p&gt;An early approach for computing treatment effects after propensity score subclassification was to compute the subclass-specific means for each treatment group and then compute a weighted average of those means to arrive at a single mean for each treatment group, where the weights were equal to the number of units in each subclass (for the ATE) &lt;span class=&#34;citation&#34;&gt;(&lt;a href=&#34;#ref-lunceford2004&#34; role=&#34;doc-biblioref&#34;&gt;Lunceford and Davidian 2004&lt;/a&gt;)&lt;/span&gt; or the number of treated units in each subclass (for the ATT) &lt;span class=&#34;citation&#34;&gt;(&lt;a href=&#34;#ref-stuart2010&#34; role=&#34;doc-biblioref&#34;&gt;Stuart 2010&lt;/a&gt;)&lt;/span&gt;. This procedure is also recommended for estimating effects after full matching &lt;span class=&#34;citation&#34;&gt;(&lt;a href=&#34;#ref-stuartUsingFullMatching2008&#34; role=&#34;doc-biblioref&#34;&gt;Stuart and Green 2008&lt;/a&gt;; &lt;a href=&#34;#ref-hansenFullMatchingObservational2004&#34; role=&#34;doc-biblioref&#34;&gt;Hansen 2004&lt;/a&gt;)&lt;/span&gt;.&lt;/p&gt;
+&lt;p&gt;So, for the ATT, the estimated potential outcome mean for control units is equal to&lt;/p&gt;
+&lt;p&gt;&lt;span class=&#34;math display&#34;&gt;\[
+\sum_{s\in S}{\frac{n_{1s}}{n_1}\left(\frac{1}{n_{0s}}\sum_{i:s_i=s}1\{A_i=0\}Y_i \right)}
+\]&lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;Doing some rearranging, we find this is equal to&lt;/p&gt;
+&lt;p&gt;&lt;span class=&#34;math display&#34;&gt;\[
+\frac{1}{n_1}\sum_{s\in S}{\left(\sum_{i:s_i=s}\frac{n_{1s_i}}{n_{0s_i}}1\{A_i=1\}Y_i \right)} = \frac{1}{n_1}\sum_{i}{\frac{n_{1s_i}}{n_{0s_i}}1\{A_i=0\}Y_i }
+\]&lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;This is just the Horvitz-Thompson estimator of the potential outcome mean for the control units under treatment using weights of &lt;span class=&#34;math inline&#34;&gt;\(\frac{n_{1s_i}}{n_{0s_i}}\)&lt;/span&gt;, which are exactly the ATT weights for control units.&lt;/p&gt;
+&lt;p&gt;For the ATE, we have that the estimated potential outcome mean under treatment is&lt;/p&gt;
+&lt;p&gt;&lt;span class=&#34;math display&#34;&gt;\[
+\frac{1}{n}\sum_{s\in S}{n_s\left(\frac{1}{n_{1s}}\sum_{i:s_i=s}1\{A_i=1\}Y_i \right)} = \frac{1}{n}\sum_{i}{\frac{n_{s_i}}{n_{1s_i}}1\{A_i=1\}Y_i }
+\]&lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;which is the Horvitz-Thompson estimator of the potential outcome mean using weights of &lt;span class=&#34;math inline&#34;&gt;\(\frac{n_{s_i}}{n_{1s_i}}\)&lt;/span&gt;, which are exactly the ATE weights for treated units. We find an analogous expression for the control units.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;k1-matching-weights-austin-2008&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;&lt;span class=&#34;math inline&#34;&gt;\(k\)&lt;/span&gt;:1 Matching Weights (Austin, 2008)&lt;/h3&gt;
+&lt;p&gt;&lt;span class=&#34;citation&#34;&gt;Austin (&lt;a href=&#34;#ref-austin2008&#34; role=&#34;doc-biblioref&#34;&gt;2008&lt;/a&gt;)&lt;/span&gt; explains how to assess balance on (variable) &lt;span class=&#34;math inline&#34;&gt;\(k\)&lt;/span&gt;:1 matched samples matched without replacement. The described procedure involves computing matching weights and using those to compute weighted balance statistics. He only provides formulas for the ATT:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;ATT: Control units receive a weight equal to the reciprocal of the number of control units in their matched set, i.e., &lt;span class=&#34;math inline&#34;&gt;\(\frac{1}{n_{0s_i}}\)&lt;/span&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Our formula for ATT weights is &lt;span class=&#34;math inline&#34;&gt;\(\frac{n_{1s_i}}{n_{0s_i}}\)&lt;/span&gt;, but in &lt;span class=&#34;math inline&#34;&gt;\(k\)&lt;/span&gt;:1 matching, &lt;span class=&#34;math inline&#34;&gt;\(n_{1s_i}=1\)&lt;/span&gt; (i.e., there is only one treated unit in each matched set), so Austin’s formula is consistent with ours.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;matching-imputation-with-replacement-abadie-and-imbens-2006&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Matching Imputation with Replacement (Abadie and Imbens, 2006)&lt;/h3&gt;
+&lt;p&gt;&lt;span class=&#34;citation&#34;&gt;Abadie and Imbens (&lt;a href=&#34;#ref-abadie2006&#34; role=&#34;doc-biblioref&#34;&gt;2006&lt;/a&gt;)&lt;/span&gt; describe matching imputation, which is generally equivalent to but conceptually distinct from matching as nonparametric preprocessing. Rather than preprocessing the data by forming a matched sample upon which other analyses take place, matching imputation involves imputing the value of each unit’s missing potential outcome using an average of the observed outcomes of its matched units. &lt;span class=&#34;citation&#34;&gt;Abadie and Imbens (&lt;a href=&#34;#ref-abadie2006&#34; role=&#34;doc-biblioref&#34;&gt;2006&lt;/a&gt;)&lt;/span&gt;, though, do provide weights that can be used to compute a weighted difference in means that is equal to the matching imputation estimator.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;ATT: Each control unit &lt;span class=&#34;math inline&#34;&gt;\(i\)&lt;/span&gt; receives a weight equal to &lt;span class=&#34;math inline&#34;&gt;\(K_M (i)\)&lt;/span&gt;, where &lt;span class=&#34;math inline&#34;&gt;\(K_M (i)=\sum_{l=1}^N{1\{i\in J_M(l)\}\frac{1}{\#J_M(l)}}\)&lt;/span&gt;, &lt;span class=&#34;math inline&#34;&gt;\(J_M(l)\)&lt;/span&gt; is the set of units matched to unit &lt;span class=&#34;math inline&#34;&gt;\(l\)&lt;/span&gt;, and &lt;span class=&#34;math inline&#34;&gt;\(\#J_M(l)\)&lt;/span&gt; is the size of that set.&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;ATE: Each unit &lt;span class=&#34;math inline&#34;&gt;\(i\)&lt;/span&gt; receives a weight equal to &lt;span class=&#34;math inline&#34;&gt;\(1 + K_M(i)\)&lt;/span&gt; with &lt;span class=&#34;math inline&#34;&gt;\(K_M (i)\)&lt;/span&gt; as defined above.&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;These equations are hard to parse, but essentially, &lt;span class=&#34;math inline&#34;&gt;\(1\{i\in J_M(l)\}\frac{1}{\#J_M(l)}\)&lt;/span&gt; should be read as the reciprocal of the number of control units matched to the same treated unit control unit &lt;span class=&#34;math inline&#34;&gt;\(i\)&lt;/span&gt; is matched to, and this is summed across all treated units &lt;span class=&#34;math inline&#34;&gt;\(l\)&lt;/span&gt; for each control unit &lt;span class=&#34;math inline&#34;&gt;\(i\)&lt;/span&gt;. The ATT weights are more closely related to our matching weights: using the equivalence described above for &lt;span class=&#34;math inline&#34;&gt;\(k\)&lt;/span&gt;:1 matching, each time a control unit is matched, it get a weight equal to the reciprocal of the number of control units in its matched set, and then those weights are summed to arrive at a final weight for that unit. The formulas in &lt;span class=&#34;citation&#34;&gt;Abadie and Imbens (&lt;a href=&#34;#ref-abadie2006&#34; role=&#34;doc-biblioref&#34;&gt;2006&lt;/a&gt;)&lt;/span&gt; describe that method symbolically. The ATE weights for control units in &lt;span class=&#34;citation&#34;&gt;Abadie and Imbens (&lt;a href=&#34;#ref-abadie2006&#34; role=&#34;doc-biblioref&#34;&gt;2006&lt;/a&gt;)&lt;/span&gt; are just 1 plus the ATT weights, and since ATC weights are equal to 1 for control units, these weights are equivalent to our weights. (The analogous connection works for treated units.)&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id=&#34;conclusion&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Conclusion&lt;/h2&gt;
+&lt;p&gt;I proposed that matching (including stratification) can be seen as a nonparametric method of estimating propensity scores, and those propensity scores can be used with traditional propensity score weighting formulas to arrive at matching weights. These weights are equivalent to other weights described in the literature, though it seems no other authors have made this explicit connection with such generality. There have been some close calls, though: it is clear &lt;span class=&#34;citation&#34;&gt;Hong (&lt;a href=&#34;#ref-hong2010&#34; role=&#34;doc-biblioref&#34;&gt;2010&lt;/a&gt;)&lt;/span&gt; and &lt;span class=&#34;citation&#34;&gt;Desai and Franklin (&lt;a href=&#34;#ref-desai2019&#34; role=&#34;doc-biblioref&#34;&gt;2019&lt;/a&gt;)&lt;/span&gt; were inspired by the formulas for the ATE and ATT when deriving their subclassification weights, perhaps even making the connection themselves, though without explicitly stating these relationships. &lt;span class=&#34;citation&#34;&gt;Lin, Ding, and Han (&lt;a href=&#34;#ref-lin2021&#34; role=&#34;doc-biblioref&#34;&gt;2021&lt;/a&gt;)&lt;/span&gt; also connect matching to propensity score weighting by noting that &lt;span class=&#34;math inline&#34;&gt;\(K_M(i)\)&lt;/span&gt; as defined above approaches the ATT propensity score weight for control units and the ATC propensity score weight for treated units.&lt;/p&gt;
+&lt;p&gt;Beyond just computing matching weights, this framework suggests new extensions of matching to other estimators that involve propensity scores. For example, general weighting formulas for various weighted estimands as described by &lt;span class=&#34;citation&#34;&gt;F. Li, Morgan, and Zaslavsky (&lt;a href=&#34;#ref-li2018&#34; role=&#34;doc-biblioref&#34;&gt;2018&lt;/a&gt;)&lt;/span&gt; could be used with these matching weights, expanding the estimable estimands of matching methods (especially subclassification and full matching). There has been no research applying the ATO formulas to stratum propensity scores, but these may prove to enhance the precision of matching estimators. This framework also allows matching methods to be used with estimators that involve the propensity score, such as targeted minimum loss-based estimation (TMLE), augmented inverse probability weighting (AIPW), or g-computation with the propensity score as a covariate, all of which have proven to be highly effective methods for estimating treatment effects.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;references&#34; class=&#34;section level2 unnumbered&#34;&gt;
+&lt;h2&gt;References&lt;/h2&gt;
+&lt;div id=&#34;refs&#34; class=&#34;references csl-bib-body hanging-indent&#34;&gt;
+&lt;div id=&#34;ref-abadie2006&#34; class=&#34;csl-entry&#34;&gt;
+Abadie, Alberto, and Guido W. Imbens. 2006. &lt;span&gt;“Large Sample Properties of Matching Estimators for Average Treatment Effects.”&lt;/span&gt; &lt;em&gt;Econometrica&lt;/em&gt; 74 (1): 235–67. &lt;a href=&#34;https://doi.org/10.1111/j.1468-0262.2006.00655.x&#34;&gt;https://doi.org/10.1111/j.1468-0262.2006.00655.x&lt;/a&gt;.
+&lt;/div&gt;
+&lt;div id=&#34;ref-austin2008&#34; class=&#34;csl-entry&#34;&gt;
+Austin, Peter C. 2008. &lt;span&gt;“Assessing Balance in Measured Baseline Covariates When Using Many-to-One Matching on the Propensity-Score.”&lt;/span&gt; &lt;em&gt;Pharmacoepidemiology and Drug Safety&lt;/em&gt; 17 (12): 1218–25. &lt;a href=&#34;https://doi.org/10.1002/pds.1674&#34;&gt;https://doi.org/10.1002/pds.1674&lt;/a&gt;.
+&lt;/div&gt;
+&lt;div id=&#34;ref-desai2019&#34; class=&#34;csl-entry&#34;&gt;
+Desai, Rishi J., and Jessica M. Franklin. 2019. &lt;span&gt;“Alternative Approaches for Confounding Adjustment in Observational Studies Using Weighting Based on the Propensity Score: A Primer for Practitioners.”&lt;/span&gt; &lt;em&gt;BMJ&lt;/em&gt; 367 (October): l5657. &lt;a href=&#34;https://doi.org/10.1136/bmj.l5657&#34;&gt;https://doi.org/10.1136/bmj.l5657&lt;/a&gt;.
+&lt;/div&gt;
+&lt;div id=&#34;ref-desai2017&#34; class=&#34;csl-entry&#34;&gt;
+Desai, Rishi J., Kenneth J. Rothman, Brian .T Bateman, Sonia Hernandez-Diaz, and Krista F. Huybrechts. 2017. &lt;span&gt;“A Propensity-Score-Based Fine Stratification Approach for Confounding Adjustment When Exposure Is Infrequent:”&lt;/span&gt; &lt;em&gt;Epidemiology&lt;/em&gt; 28 (2): 249–57. &lt;a href=&#34;https://doi.org/10.1097/EDE.0000000000000595&#34;&gt;https://doi.org/10.1097/EDE.0000000000000595&lt;/a&gt;.
+&lt;/div&gt;
+&lt;div id=&#34;ref-greiferMatchingMethodsConfounder2021a&#34; class=&#34;csl-entry&#34;&gt;
+Greifer, Noah, and Elizabeth A Stuart. 2021. &lt;span&gt;“Matching Methods for Confounder Adjustment: An Addition to the Epidemiologist&lt;span&gt;’&lt;/span&gt;s Toolbox.”&lt;/span&gt; &lt;em&gt;Epidemiologic Reviews&lt;/em&gt;, June, mxab003. &lt;a href=&#34;https://doi.org/10.1093/epirev/mxab003&#34;&gt;https://doi.org/10.1093/epirev/mxab003&lt;/a&gt;.
+&lt;/div&gt;
+&lt;div id=&#34;ref-hansenFullMatchingObservational2004&#34; class=&#34;csl-entry&#34;&gt;
+Hansen, Ben B. 2004. &lt;span&gt;“Full Matching in an Observational Study of Coaching for the SAT.”&lt;/span&gt; &lt;em&gt;Journal of the American Statistical Association&lt;/em&gt; 99 (467): 609–18. &lt;a href=&#34;https://doi.org/10.1198/016214504000000647&#34;&gt;https://doi.org/10.1198/016214504000000647&lt;/a&gt;.
+&lt;/div&gt;
+&lt;div id=&#34;ref-hansenOptimalFullMatching2006&#34; class=&#34;csl-entry&#34;&gt;
+Hansen, Ben B, and Stephanie Olsen Klopfer. 2006. &lt;span&gt;“Optimal &lt;span&gt;Full Matching&lt;/span&gt; and &lt;span&gt;Related Designs&lt;/span&gt; via &lt;span&gt;Network Flows&lt;/span&gt;.”&lt;/span&gt; &lt;em&gt;Journal of Computational and Graphical Statistics&lt;/em&gt; 15 (3): 609–27. &lt;a href=&#34;https://doi.org/10.1198/106186006X137047&#34;&gt;https://doi.org/10.1198/106186006X137047&lt;/a&gt;.
+&lt;/div&gt;
+&lt;div id=&#34;ref-hong2010&#34; class=&#34;csl-entry&#34;&gt;
+Hong, Guanglei. 2010. &lt;span&gt;“Marginal Mean Weighting Through Stratification: Adjustment for Selection Bias in Multilevel Data.”&lt;/span&gt; &lt;em&gt;Journal of Educational and Behavioral Statistics&lt;/em&gt; 35 (5): 499–531. &lt;a href=&#34;https://doi.org/10.3102/1076998609359785&#34;&gt;https://doi.org/10.3102/1076998609359785&lt;/a&gt;.
+&lt;/div&gt;
+&lt;div id=&#34;ref-iacusCausalInferenceBalance2012&#34; class=&#34;csl-entry&#34;&gt;
+Iacus, Stefano M., Gary King, and Giuseppe Porro. 2012. &lt;span&gt;“Causal &lt;span&gt;Inference&lt;/span&gt; Without &lt;span&gt;Balance Checking&lt;/span&gt;: &lt;span&gt;Coarsened Exact Matching&lt;/span&gt;.”&lt;/span&gt; &lt;em&gt;Political Analysis&lt;/em&gt; 20 (1): 1–24. &lt;a href=&#34;https://doi.org/10.1093/pan/mpr013&#34;&gt;https://doi.org/10.1093/pan/mpr013&lt;/a&gt;.
+&lt;/div&gt;
+&lt;div id=&#34;ref-li2018&#34; class=&#34;csl-entry&#34;&gt;
+Li, Fan, Kari Lock Morgan, and Alan M. Zaslavsky. 2018. &lt;span&gt;“Balancing Covariates via Propensity Score Weighting.”&lt;/span&gt; &lt;em&gt;Journal of the American Statistical Association&lt;/em&gt; 113 (521): 390–400. &lt;a href=&#34;https://doi.org/10.1080/01621459.2016.1260466&#34;&gt;https://doi.org/10.1080/01621459.2016.1260466&lt;/a&gt;.
+&lt;/div&gt;
+&lt;div id=&#34;ref-liWeightingAnaloguePair2013&#34; class=&#34;csl-entry&#34;&gt;
+Li, Liang, and Tom Greene. 2013. &lt;span&gt;“A Weighting Analogue to Pair Matching in Propensity Score Analysis.”&lt;/span&gt; &lt;em&gt;The International Journal of Biostatistics&lt;/em&gt; 9 (2). &lt;a href=&#34;https://doi.org/10.1515/ijb-2012-0030&#34;&gt;https://doi.org/10.1515/ijb-2012-0030&lt;/a&gt;.
+&lt;/div&gt;
+&lt;div id=&#34;ref-lin2021&#34; class=&#34;csl-entry&#34;&gt;
+Lin, Zhexiao, Peng Ding, and Fang Han. 2021. &lt;span&gt;“Estimation Based on Nearest Neighbor Matching: From Density Ratio to Average Treatment Effect.”&lt;/span&gt; &lt;em&gt;arXiv:2112.13506 [Econ, Math, Stat]&lt;/em&gt;, December. &lt;a href=&#34;http://arxiv.org/abs/2112.13506&#34;&gt;http://arxiv.org/abs/2112.13506&lt;/a&gt;.
+&lt;/div&gt;
+&lt;div id=&#34;ref-lunceford2004&#34; class=&#34;csl-entry&#34;&gt;
+Lunceford, Jared K., and Marie Davidian. 2004. &lt;span&gt;“Stratification and Weighting via the Propensity Score in Estimation of Causal Treatment Effects: A Comparative Study.”&lt;/span&gt; &lt;em&gt;Statistics in Medicine&lt;/em&gt; 23 (19): 29372960. &lt;a href=&#34;http://onlinelibrary.wiley.com/doi/10.1002/sim.1903/full&#34;&gt;http://onlinelibrary.wiley.com/doi/10.1002/sim.1903/full&lt;/a&gt;.
+&lt;/div&gt;
+&lt;div id=&#34;ref-rosenbaumReducingBiasObservational1984&#34; class=&#34;csl-entry&#34;&gt;
+Rosenbaum, Paul R., and Donald B. Rubin. 1984. &lt;span&gt;“Reducing &lt;span&gt;Bias&lt;/span&gt; in &lt;span&gt;Observational Studies Using Subclassification&lt;/span&gt; on the &lt;span&gt;Propensity Score&lt;/span&gt;.”&lt;/span&gt; &lt;em&gt;Journal of the American Statistical Association&lt;/em&gt; 79 (387): 516–24. &lt;a href=&#34;https://doi.org/10.2307/2288398&#34;&gt;https://doi.org/10.2307/2288398&lt;/a&gt;.
+&lt;/div&gt;
+&lt;div id=&#34;ref-stuart2010&#34; class=&#34;csl-entry&#34;&gt;
+Stuart, Elizabeth A. 2010. &lt;span&gt;“Matching Methods for Causal Inference: A Review and a Look Forward.”&lt;/span&gt; &lt;em&gt;Statistical Science&lt;/em&gt; 25 (1): 1–21. &lt;a href=&#34;https://doi.org/10.1214/09-STS313&#34;&gt;https://doi.org/10.1214/09-STS313&lt;/a&gt;.
+&lt;/div&gt;
+&lt;div id=&#34;ref-stuartUsingFullMatching2008&#34; class=&#34;csl-entry&#34;&gt;
+Stuart, Elizabeth A., and Kerry M. Green. 2008. &lt;span&gt;“Using Full Matching to Estimate Causal Effects in Nonexperimental Studies: Examining the Relationship Between Adolescent Marijuana Use and Adult Outcomes.”&lt;/span&gt; &lt;em&gt;Developmental Psychology&lt;/em&gt;, New methods for new questions in developmental psychology, 44 (2): 395–406. &lt;a href=&#34;https://doi.org/10.1037/0012-1649.44.2.395&#34;&gt;https://doi.org/10.1037/0012-1649.44.2.395&lt;/a&gt;.
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&#34;footnotes footnotes-end-of-document&#34;&gt;
+&lt;hr /&gt;
+&lt;ol&gt;
+&lt;li id=&#34;fn1&#34;&gt;&lt;p&gt;Note: by matching weights, I mean weights resulting from matching, not the matching weights of &lt;span class=&#34;citation&#34;&gt;L. Li and Greene (&lt;a href=&#34;#ref-liWeightingAnaloguePair2013&#34; role=&#34;doc-biblioref&#34;&gt;2013&lt;/a&gt;)&lt;/span&gt;, which will not be discussed here.&lt;a href=&#34;#fnref1&#34; class=&#34;footnote-back&#34;&gt;↩︎&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;li id=&#34;fn2&#34;&gt;&lt;p&gt;Subclassification often tries to balance the number of treated units across subclasses for the ATT, etc., as recommended by &lt;span class=&#34;citation&#34;&gt;Desai et al. (&lt;a href=&#34;#ref-desai2017&#34; role=&#34;doc-biblioref&#34;&gt;2017&lt;/a&gt;)&lt;/span&gt;.&lt;a href=&#34;#fnref2&#34; class=&#34;footnote-back&#34;&gt;↩︎&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;li id=&#34;fn3&#34;&gt;&lt;p&gt;Note that we need to add the additional statement that unmatched units have an undefined propensity score and receive weight of 0.&lt;a href=&#34;#fnref3&#34; class=&#34;footnote-back&#34;&gt;↩︎&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;li id=&#34;fn4&#34;&gt;&lt;p&gt;For treated units: &lt;span class=&#34;math inline&#34;&gt;\(w_{ATE}=\frac{1}{\hat{e}^*_i} = \frac{\hat{e}^*_i + 1-\hat{e}^*_i}{\hat{e}^*_i} = 1 + \frac{1-\hat{e}^*_i}{\hat{e}^*_i}=w_{ATT}+w_{ATC}\)&lt;/span&gt;. For control units: &lt;span class=&#34;math inline&#34;&gt;\(w_{ATE}=\frac{1}{1-\hat{e}^*_i} = \frac{\hat{e}^*_i + 1-\hat{e}^*_i}{1-\hat{e}^*_i} = \frac{\hat{e}^*_i}{1-\hat{e}^*_i}+1=w_{ATT}+w_{ATC}\)&lt;/span&gt;. Or, more simply, &lt;span class=&#34;math inline&#34;&gt;\(w_{ATT} + w_{ATC} = e_i \times w_{ATE} + (1-e_i)\times w_{ATE} = w_{ATE}\)&lt;/span&gt;.&lt;a href=&#34;#fnref4&#34; class=&#34;footnote-back&#34;&gt;↩︎&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;li id=&#34;fn5&#34;&gt;&lt;p&gt;The only time the scaling factor affects the effect estimates are when a model that includes covariates but doesn’t fully interact treatment and covariates is used to estimate the treatment effect.&lt;a href=&#34;#fnref5&#34; class=&#34;footnote-back&#34;&gt;↩︎&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Estimating Treatment Effects After Weighting with Multiply Imputed Data</title>
+      <link>https://ngreifer.github.io/blog/treatment-effects-mi/</link>
+      <pubDate>Fri, 10 Feb 2023 00:00:00 +0000</pubDate>
+      <guid>https://ngreifer.github.io/blog/treatment-effects-mi/</guid>
+      <description>
+
+
+&lt;p&gt;Multiply imputed data always makes things a little harder. Essentially, you have to perform each step of the analysis in each imputed dataset and then combine the results together in a special way. For basic regression analysis, the &lt;code&gt;mice&lt;/code&gt; package makes fitting models and combining estimates simple. But when we want to do propensity score matching or weighting before fitting our regression models, and when the quantity we want to estimate is not just a coefficient in a regression model, things get a bit harder.&lt;/p&gt;
+&lt;p&gt;For doing matching or weighting in multiply imputed data, the R package &lt;code&gt;{MatchThem}&lt;/code&gt; does the job. It essentially provides wrappers for &lt;code&gt;MatchIt::matchit()&lt;/code&gt; and &lt;code&gt;WeightIt::weightit()&lt;/code&gt; for multiply imputed data. It extends &lt;code&gt;{mice}&lt;/code&gt;’s functionality for fitting regression models in multiply imputed data by automatically incorporating the matched or weighted structure into the estimation of the outcome models. It uses &lt;code&gt;mice::pool()&lt;/code&gt; to pool estimates across multiply imputed data.&lt;/p&gt;
+&lt;p&gt;But for estimating treatment effects, it’s often not as simple as using a regression coefficient. If we include covariates in our outcome model but want a marginal effect, we need to use an average marginal effects procedure (i.e., g-computation) to compute it within each imputed dataset, and then combine the results afterward. The &lt;code&gt;{marginaleffects}&lt;/code&gt; package provides a wonderful interface for performing g-computation, but for multiply imputed data, it can require some programming by the analyst. In this guide, I’ll show you how to do that programming to combine treatment effect estimates across multiple imputed datasets.&lt;/p&gt;
+&lt;p&gt;An alternative to using &lt;code&gt;{marginaleffects}&lt;/code&gt; is to use the &lt;code&gt;{clarify}&lt;/code&gt; package. &lt;code&gt;{clarify}&lt;/code&gt; can also be used to perform g-computation, but it uses simulation-based inference to compute the uncertainty bounds for the estimate. An advantage of simulation-based inference for multiply imputed data is that combining estimates across imputed datasets is much more straightforward. In this guide, I’ll also show you how to use &lt;code&gt;{clarify}&lt;/code&gt; to combine treatment effect estimates across imputed datasets.&lt;/p&gt;
+&lt;div id=&#34;packages-well-need&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Packages we’ll need&lt;/h3&gt;
+&lt;p&gt;We will need the following packages for this demonstration: &lt;code&gt;cobalt&lt;/code&gt;, &lt;code&gt;mice&lt;/code&gt;, &lt;code&gt;MatchThem&lt;/code&gt;, &lt;code&gt;WeightIt&lt;/code&gt;, &lt;code&gt;marginaleffects&lt;/code&gt;, and &lt;code&gt;clarify&lt;/code&gt;.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;the-data&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;The data&lt;/h3&gt;
+&lt;p&gt;As usual, we’ll be using a version of the &lt;code&gt;lalonde&lt;/code&gt; dataset. Here will use the &lt;code&gt;lalonde_mis&lt;/code&gt; dataset in &lt;code&gt;{cobalt}&lt;/code&gt;, which has missing values.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;data(&amp;quot;lalonde_mis&amp;quot;, package = &amp;quot;cobalt&amp;quot;)
+
+summary(lalonde_mis)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##      treat             age             educ           race        married          nodegree           re74              re75              re78        
+##  Min.   :0.0000   Min.   :16.00   Min.   : 0.00   black :243   Min.   :0.0000   Min.   :0.0000   Min.   :    0.0   Min.   :    0.0   Min.   :    0.0  
+##  1st Qu.:0.0000   1st Qu.:20.00   1st Qu.: 9.00   hispan: 72   1st Qu.:0.0000   1st Qu.:0.0000   1st Qu.:    0.0   1st Qu.:    0.0   1st Qu.:  238.3  
+##  Median :0.0000   Median :25.00   Median :11.00   white :299   Median :0.0000   Median :1.0000   Median :  984.5   Median :  585.4   Median : 4759.0  
+##  Mean   :0.3013   Mean   :27.36   Mean   :10.27                Mean   :0.4158   Mean   :0.6303   Mean   : 4420.2   Mean   : 2170.3   Mean   : 6792.8  
+##  3rd Qu.:1.0000   3rd Qu.:32.00   3rd Qu.:12.00                3rd Qu.:1.0000   3rd Qu.:1.0000   3rd Qu.: 7626.9   3rd Qu.: 3202.0   3rd Qu.:10893.6  
+##  Max.   :1.0000   Max.   :55.00   Max.   :18.00                Max.   :1.0000   Max.   :1.0000   Max.   :35040.1   Max.   :25142.2   Max.   :60307.9  
+##                                                                NA&amp;#39;s   :20                        NA&amp;#39;s   :40        NA&amp;#39;s   :39&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;You can see there are some missing values in &lt;code&gt;married&lt;/code&gt;, &lt;code&gt;re74&lt;/code&gt;, and &lt;code&gt;re75&lt;/code&gt;.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;imputing-the-data&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Imputing the data&lt;/h3&gt;
+&lt;p&gt;Here, we’ll use &lt;code&gt;{mice}&lt;/code&gt; to impute the data. Although typically something like 20 imputation is sufficient, for the method &lt;code&gt;{clarify}&lt;/code&gt; uses, it needs way more, so we’ll use 50. We’ll use the default settings, but you should tailor the imputation to fit the needs of your dataset. (I always like to use a machine learning method for my imputations). We’ll also set a seed to ensure replicability.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(&amp;quot;mice&amp;quot;)
+set.seed(12345)
+imp &amp;lt;- mice(lalonde_mis, m = 50, printFlag = FALSE)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;code&gt;mice()&lt;/code&gt; returns a &lt;code&gt;mids&lt;/code&gt; object, which contains the imputed datasets. Although we could extract the datasets using &lt;code&gt;complete()&lt;/code&gt;, we’ll supply this object directly to our function for estimating the propensity score weights.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;weighting-the-imputed-data&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Weighting the imputed data&lt;/h3&gt;
+&lt;p&gt;We’ll use &lt;code&gt;MatchThem::weightthem()&lt;/code&gt; to estimate propensity score weights in the imputed datasets. We could also use &lt;code&gt;MatchThem::matchthem()&lt;/code&gt; to do matching; the process is basically identical&lt;a href=&#34;#fn1&#34; class=&#34;footnote-ref&#34; id=&#34;fnref1&#34;&gt;&lt;sup&gt;1&lt;/sup&gt;&lt;/a&gt;. Here we’ll use logistic regression (🤢) to estimate ATT weights to keep things quick and simple.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(&amp;quot;MatchThem&amp;quot;)
+w.imp &amp;lt;- weightthem(treat ~ age + educ + race + married + nodegree +
+                      re74 + re75, data = imp, method = &amp;quot;ps&amp;quot;,
+                    estimand = &amp;quot;ATT&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Let’s assess balance using &lt;code&gt;{cobalt}&lt;/code&gt;.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(&amp;quot;cobalt&amp;quot;)
+bal.tab(w.imp, stats = c(&amp;quot;m&amp;quot;, &amp;quot;ks&amp;quot;), abs = TRUE)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## Balance summary across all imputations
+##                 Type Mean.Diff.Adj Max.Diff.Adj Mean.KS.Adj Max.KS.Adj
+## prop.score  Distance        0.0235       0.0379      0.1166     0.1327
+## age          Contin.        0.1120       0.1343      0.3053     0.3146
+## educ         Contin.        0.0352       0.0485      0.0369     0.0412
+## race_black    Binary        0.0024       0.0036      0.0024     0.0036
+## race_hispan   Binary        0.0003       0.0007      0.0003     0.0007
+## race_white    Binary        0.0022       0.0030      0.0022     0.0030
+## married       Binary        0.0168       0.0236      0.0168     0.0236
+## nodegree      Binary        0.0191       0.0250      0.0191     0.0250
+## re74         Contin.        0.0097       0.0281      0.2027     0.2261
+## re75         Contin.        0.0075       0.0286      0.1388     0.1648
+## 
+## Average effective sample sizes across imputations
+##                 0   1
+## Unadjusted 429.   185
+## Adjusted   100.19 185&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Balance could be a bit better on &lt;code&gt;age&lt;/code&gt;, but we’re going to move on because we have things to do.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;fitting-the-outcome-models&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Fitting the outcome models&lt;/h3&gt;
+&lt;p&gt;Our next step is to fit the outcome model in each imputed dataset. Here, our outcome will be &lt;code&gt;re78 == 0&lt;/code&gt;, i.e., whether a unit’s earnings in 1978 were 0. Ideally, treatment reduces this risk. Although our estimand will be a risk ratio, because we’re doing g-computation, we can fit a model for the outcome that actually makes sense rather than choosing one based on the convenient interpretation of its coefficients. So, we’ll fit a probit outcome model to really hit home that we need a post-estimation method to estimate our quantity of interest and can’t rely on our model coefficients.&lt;/p&gt;
+&lt;p&gt;Although &lt;code&gt;{MatchThem}&lt;/code&gt; has functionality for fitting models to the imputed datasets that incorporate the weights, for our purposes, it is better to extract the imputed datasets and fit each model manually in a loop. We’ll use &lt;code&gt;glm()&lt;/code&gt; to do so, though the &lt;code&gt;{MatchThem}&lt;/code&gt; and &lt;code&gt;{WeightIt}&lt;/code&gt; documentation may recommend &lt;code&gt;survey::svyglm()&lt;/code&gt; because it correctly computes the robust standard errors. We’ll do that later using &lt;code&gt;{marginaleffects}&lt;/code&gt; and &lt;code&gt;{clarify}&lt;/code&gt; functions so it’s okay that we don’t do it now. We’ll use a quasi-binomial model because we have weights.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;fits &amp;lt;- lapply(complete(w.imp, &amp;quot;all&amp;quot;), function(d) {
+  glm(I(re78 == 0) ~ treat + age + educ + married + race +
+        nodegree + re74 + re75, data = d,
+      weights = weights, family = quasibinomial(&amp;quot;probit&amp;quot;))
+})&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;If we wanted to interpret the pooled coefficients from our outcome model (and we had included correct estimation of the standard errors, which we didn’t here), we could use &lt;code&gt;pool(fits) |&amp;gt; summary()&lt;/code&gt; to get them. But none of that is true here so we’ll move on and save the pooling till after we estimate the quantity of interest.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;the-marginaleffects-workflow&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;The &lt;code&gt;{marginaleffects}&lt;/code&gt; workflow&lt;/h2&gt;
+&lt;p&gt;Now we have our list of models. Our next step is to estimate the ATT risk ratio in each one (with the correct standard error) and pool the results. If the only quantity we want is the treatment effect, this is easy. We can use &lt;code&gt;marginaleffects::avg_comparisons()&lt;/code&gt; on each model and then use &lt;code&gt;mice::pool()&lt;/code&gt; to pool the results. In our call to &lt;code&gt;avg_comparisons()&lt;/code&gt;, we need to subset the data used to fit each model to just the treated units and supply this to &lt;code&gt;newdata&lt;/code&gt;, supply the name of the variable containing the weights to &lt;code&gt;wts&lt;/code&gt;&lt;a href=&#34;#fn2&#34; class=&#34;footnote-ref&#34; id=&#34;fnref2&#34;&gt;&lt;sup&gt;2&lt;/sup&gt;&lt;/a&gt;, supply the robust standard error type (HC3) to &lt;code&gt;vcov&lt;/code&gt;, and specify that we want the log risk ratio of the average estimated potential outcomes by supplying &lt;code&gt;&#34;lnratioavg&#34;&lt;/code&gt; to &lt;code&gt;transform_pre&lt;/code&gt;&lt;a href=&#34;#fn3&#34; class=&#34;footnote-ref&#34; id=&#34;fnref3&#34;&gt;&lt;sup&gt;3&lt;/sup&gt;&lt;/a&gt;.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(&amp;quot;marginaleffects&amp;quot;)
+comp.imp &amp;lt;- lapply(fits, function(fit) {
+  avg_comparisons(fit, newdata = subset(fit$data, treat == 1),
+                  variables = &amp;quot;treat&amp;quot;, wts = &amp;quot;weights&amp;quot;, vcov = &amp;quot;HC3&amp;quot;,
+                  transform_pre = &amp;quot;lnratioavg&amp;quot;)
+})
+
+pooled.comp &amp;lt;- mice::pool(comp.imp)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Finally, we can use &lt;code&gt;summary()&lt;/code&gt; on the resulting object, adding the arguments &lt;code&gt;conf.int = TRUE&lt;/code&gt; to request confidence intervals and &lt;code&gt;exponentiate = TRUE&lt;/code&gt; to get the risk ratio from the log risk ratio.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;summary(pooled.comp, conf.int = TRUE,
+        exponentiate = TRUE)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##    term              contrast  estimate std.error  statistic       df  p.value    2.5 %   97.5 %
+## 1 treat ln(mean(1) / mean(0)) 0.9321569 0.2097534 -0.3349366 610.5055 0.737788 0.617436 1.407298&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We find a risk ratio of approximately 0.932, 95% CI: [0.617, 1.407], indicating that in our sample, the risk of having zero earnings in 1978 decreased slightly for those who received treatment, but we don’t have strong evidence for such an effect in the population.&lt;/p&gt;
+&lt;p&gt;Although this is nice and simple, things get a bit more complicated when we want to estimate multiple comparisons at the same time, estimate the marginal risks, or perform a more complex analysis. Additional programming is required to make &lt;code&gt;mice::pool()&lt;/code&gt; compatible with these more complex quantities. We’ll demonstrate how to hack &lt;code&gt;{marginaleffects}&lt;/code&gt; to make it work using the instructions in the &lt;code&gt;{marginaleffects}&lt;/code&gt; &lt;a href=&#34;https://vincentarelbundock.github.io/marginaleffects/articles/multiple_imputation.html&#34;&gt;vignette on multiple imputation&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;We’ll be using &lt;code&gt;avg_predictions()&lt;/code&gt; on each model to compute the marginal risks under each treatment level, which uses a similar syntax to &lt;code&gt;comparisons()&lt;/code&gt;. The challenge comes in that &lt;code&gt;avg_predictions()&lt;/code&gt; produces two rows of output (one for each treatment level), which are not correctly distinguished by &lt;code&gt;mice::pool()&lt;/code&gt;. So, we’ll have to create a new custom class and write a new &lt;code&gt;tidy()&lt;/code&gt; method for our class.&lt;/p&gt;
+&lt;p&gt;First, we’ll generate our marginal risks and assign the output our new class, which is arbitrary but which I will call &lt;code&gt;&#34;pred_imp_custom&#34;&lt;/code&gt;.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;pred.imp &amp;lt;- lapply(fits, function(fit) {
+  out &amp;lt;- avg_predictions(fit, newdata = subset(fit$data, treat == 1),
+                         variables = &amp;quot;treat&amp;quot;, wts = &amp;quot;weights&amp;quot;,
+                         vcov = &amp;quot;HC3&amp;quot;, by = &amp;quot;treat&amp;quot;)
+  
+  # the next line assigns our custom class
+  class(out) &amp;lt;- c(&amp;quot;pred_imp_custom&amp;quot;, class(out))
+  return(out)
+})&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Next, we’ll write our new &lt;code&gt;tidy()&lt;/code&gt; method. (Make sure to replace &lt;code&gt;treat&lt;/code&gt; everywhere you see it with the name of your treatment variable.) We won’t actually be using this function at all; it is called internally by &lt;code&gt;mice::pool()&lt;/code&gt;.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;tidy.pred_imp_custom &amp;lt;- function(x, ...) {
+    out &amp;lt;- marginaleffects:::tidy.predictions(x, ...)
+    out$term &amp;lt;- paste(&amp;quot;treat =&amp;quot;, out$treat)
+    return(out)
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Finally, we can use &lt;code&gt;mice::pool()&lt;/code&gt; and &lt;code&gt;summary()&lt;/code&gt; to get our marginal risks:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;mice::pool(pred.imp) |&amp;gt; summary(conf.int = TRUE)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##        term  estimate  std.error statistic       df      p.value     2.5 %    97.5 %
+## 1 treat = 0 0.2607090 0.04264062  6.114100 609.4350 1.734761e-09 0.1769686 0.3444494
+## 2 treat = 1 0.2430092 0.03197686  7.599534 611.9484 1.120645e-13 0.1802115 0.3058069&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Taking the ratio of these risks gives us the risk ratio we computed above.&lt;/p&gt;
+&lt;p&gt;Note that you have to customize the &lt;code&gt;tidy()&lt;/code&gt; method in a slightly different way when you are estimating treatment effects in subgroups. I’ll leave that as an exercise to the reader, or you can hire me to do it for you :)&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;the-clarify-workflow&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;The &lt;code&gt;{clarify}&lt;/code&gt; workflow&lt;/h2&gt;
+&lt;p&gt;The &lt;code&gt;{clarify}&lt;/code&gt; workflow for multiply imputed data is very similar to its workflow for regular data. How simulation-based inference works broadly is that sets of parameters are drawn from a distribution after fitting the model; this distribution is often assumed to be multivariate normal with the mean vector equal to the estimated coefficients and the covariance equal to the asymptotic covariance matrix of the coefficients. Many (e.g., 1000) sets of coefficients are drawn, and a quantity of interest is computed using each set, forming a “posterior” distribution of the quantity of interest. This posterior is then used for inference: its standard deviation can be used as the quantity’s standard error, and its quantiles can be used as confidence intervals. For more information on this methodology, see the &lt;code&gt;{clarify}&lt;/code&gt; &lt;a href=&#34;https://iqss.github.io/clarify/&#34;&gt;website&lt;/a&gt; and its references.&lt;/p&gt;
+&lt;p&gt;With multiply imputed data, this process is done for the model fit to each imputed dataset, and then the distributions of the quantities of interest are simply combined to form a single distribution, which is used for inference. In Bayesian terms, this would be called “mixing draws”. The variance of this mixture distribution approaches the variance of the estimate computed using Rubin’s rules when the number of imputations is high.&lt;/p&gt;
+&lt;p&gt;To use &lt;code&gt;{clarify}&lt;/code&gt;, we supply the list of fitted models to &lt;code&gt;clarify::misim()&lt;/code&gt;, which draws the coefficients from their implied distributions from each model. We also need to specify the method for computing the covariance matrix (here, using the same HC3 robust covariance we used with &lt;code&gt;{marginaleffects}&lt;/code&gt; to account for the weights). We will only request 200 replications per fitted model since we have 50 imputations, which gives us 10,000 replicates (likely more than enough for stable inference).&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(&amp;quot;clarify&amp;quot;)
+
+sim.imp &amp;lt;- misim(fits, n = 200, vcov = &amp;quot;HC3&amp;quot;)
+sim.imp&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## A `clarify_misim` object
+##  - 10 coefficients, 50 imputations with 200 simulated values each
+##  - sampled distributions: multivariate t(604)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;(Note: because we used a quasi-binomial model, a scaled t-distribution was used to draw the coefficients. In practice this will give similar draws to a normal distribution.)&lt;/p&gt;
+&lt;p&gt;The output of &lt;code&gt;misim()&lt;/code&gt; is then fed to a function for computing the quantity of interest in each draw; here, we’ll be using &lt;code&gt;clarify::sim_ame()&lt;/code&gt;, which is appropriate for computing marginal risks in a subset of the data (i.e., the ATT risk ratio). We supply the treatment variable to &lt;code&gt;var&lt;/code&gt; and subset the data to just the treated units using &lt;code&gt;subset&lt;/code&gt; to request the ATT. Although we can use the &lt;code&gt;contrast&lt;/code&gt; argument to request the (log) risk ratio, we can compute that afterward quickly from the marginal risks. (Using &lt;code&gt;cl = 3&lt;/code&gt; uses parallel computing with 3 cores but only if you are on a Mac. See the &lt;code&gt;sim_ame()&lt;/code&gt; documentation for more information on how to use the &lt;code&gt;cl&lt;/code&gt; argument.)&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;sim.att &amp;lt;- sim_ame(sim.imp, var = &amp;quot;treat&amp;quot;,
+                   subset = treat == 1, cl = 3,
+                   verbose = FALSE)
+sim.att&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## A `clarify_est` object (from `sim_ame()`)
+##  - Average marginal effect of `treat`
+##  - 10000 simulated values
+##  - 2 quantities estimated:                  
+##  E[Y(0)] 0.2605322
+##  E[Y(1)] 0.2428401&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;To compute the risk ratio, we can use &lt;code&gt;transform()&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;sim.att &amp;lt;- transform(sim.att, RR = `E[Y(1)]`/`E[Y(0)]`)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Finally, we can compute out confidence intervals and p-values around the estimated marginal risks and risk ratio using &lt;code&gt;summary()&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;summary(sim.att, null = c(RR = 1))&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##         Estimate 2.5 % 97.5 % P-value
+## E[Y(0)]    0.261 0.187  0.354       .
+## E[Y(1)]    0.243 0.188  0.313       .
+## RR         0.932 0.630  1.421    0.76&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Here, we find a risk ratio of approximately 0.932, 95% CI: [0.63, 1.421]. The estimates, confidence intervals, and p-values we get from the two methods line up well.&lt;/p&gt;
+&lt;p&gt;By default, &lt;code&gt;{clarify}&lt;/code&gt; uses quantile-based confidence intervals and computes the p-values by inverting them (i.e., finding the largest confidence level that yields an interval that excludes the null value and computing the p-value as one minus that level). Wald confidence intervals and p-values can also be request by setting &lt;code&gt;method = &#34;wald&#34;&lt;/code&gt; in the call to &lt;code&gt;summary()&lt;/code&gt;, but these are only recommended if the quantity has a normal distribution (which the risk ratio does not).&lt;/p&gt;
+&lt;div id=&#34;explaining-differences-between-the-approaches&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Explaining differences between the approaches&lt;/h3&gt;
+&lt;p&gt;Both the delta method- and simulation-based inference approaches are valid, but sometimes you will get results that disagree. The estimates of the quantities of interest may disagree because of how &lt;code&gt;mice::pool()&lt;/code&gt; and &lt;code&gt;clarify::sim_ame()&lt;/code&gt; combine estimates across imputations.&lt;/p&gt;
+&lt;p&gt;Rubin’s rules involve simply taking the mean of the estimates across imputations. This works well when the quantity is collapsible, linear, or has a symmetric (ideally normal) distribution. If the quantity of interest is none of those but can be transformed from a quantity that does have those properties, Rubin’s rules can be apply to this intermediate quantity before transforming the estimate to get the final results. This is exactly what we did in the &lt;code&gt;{marginaleffects}&lt;/code&gt; workflow when we computed the log risk ratio before pooling and then exponentiating the pooled log risk ratio to arrive at the risk ratio. If we had gone straight into pooling the risk ratio, the resulting estimate might not have been consistent.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;{clarify}&lt;/code&gt; works by first using Rubin’s pooling rules on the model coefficients, which we assume to be normally distributed, and then computing the quantity of interest in each imputed dataset using draws from the pooled coefficients. A benefit of this strategy is that we don’t have to wonder whether the quantity of interest satisfies the above properties. The resulting estimates will be consistent because no pooling is done on them; the pooling happens only in the first step.&lt;/p&gt;
+&lt;p&gt;Confidence intervals may differ slightly between the two methods, and this could be due to two reasons: 1) the delta method and simulation-based inferences naturally compute confidence intervals in different ways, with the delta method using a first-order Taylor series approximation and assuming normality of the quantity of interest, and simulation-based inference using simulation to generate a “posterior” for the quantity of interest and using its quantiles as the interval; and 2) simulation-based inference requires many imputations for the variance of the posterior to equal the variance of the Rubin’s rules pooled estimate. More imputations is always better for both methods, so do as many as you can.&lt;/p&gt;
+&lt;p&gt;How should you choose between the delta method and simulation-based inference? Use whichever will get you published, of course! (Just kidding.) Use the one you find most trustworthy, that your audience will find the most trustworthy, and that balances the assumptions you are willing to make with the desired precision of the estimate. You might also use the one that seems more natural to you, either conceptually or in terms of usability. Frankly, I find &lt;code&gt;{clarify}&lt;/code&gt; to be easier to use when the quantity of interest is more complicated than a single comparison (e.g., for subgroup analysis or for computing average marginal risks), but &lt;code&gt;{marginaleffects}&lt;/code&gt; can be faster, doesn’t rely on a stochastic process, and is better-backed by statistical theory. Confirming you get similar results with both methods is always a good idea, and the plotting diagnostics in &lt;code&gt;{clarify}&lt;/code&gt; can be used to determine whether any difference might be due to the failure of the delta method due to violation of one of its assumptions.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&#34;footnotes footnotes-end-of-document&#34;&gt;
+&lt;hr /&gt;
+&lt;ol&gt;
+&lt;li id=&#34;fn1&#34;&gt;&lt;p&gt;The key differences is that pair membership needs to be accounted for in estimation of the variance of the outcome model coefficients; this is usually as simply as specifying &lt;code&gt;vcov = ~subclass&lt;/code&gt; to functions in &lt;code&gt;{marginaleffects}&lt;/code&gt; or &lt;code&gt;{clarify}&lt;/code&gt;.&lt;a href=&#34;#fnref1&#34; class=&#34;footnote-back&#34;&gt;↩︎&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;li id=&#34;fn2&#34;&gt;&lt;p&gt;This actually isn’t necessary for the ATT but it’s walys good practice.&lt;a href=&#34;#fnref2&#34; class=&#34;footnote-back&#34;&gt;↩︎&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;li id=&#34;fn3&#34;&gt;&lt;p&gt;Note: we need the log risk ratio because Rubin’s pooling rules don’t apply to the risk ratio but do to the log risk ratio. We will exponentiate the log risk ratio and its confidence interval after pooling.&lt;a href=&#34;#fnref3&#34; class=&#34;footnote-back&#34;&gt;↩︎&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Subgroup Analysis After Propensity Score Matching Using R</title>
+      <link>https://ngreifer.github.io/blog/subgroup-analysis-psm/</link>
+      <pubDate>Mon, 05 Sep 2022 00:00:00 +0000</pubDate>
+      <guid>https://ngreifer.github.io/blog/subgroup-analysis-psm/</guid>
+      <description>
+
+
+&lt;p&gt;Today I’m going to demonstrate performing a subgroup analysis after propensity score matching using R. Subgroup analysis, also known as moderation analysis or the analysis of effect modification, concerns the estimation of treatment effects within subgroups of a pre-treatment covariate. This post assumes you understand how to do propensity score matching. For a general introduction to propensity score matching, I recommend &lt;span class=&#34;citation&#34;&gt;Austin (&lt;a href=&#34;#ref-austinIntroductionPropensityScore2011&#34; role=&#34;doc-biblioref&#34;&gt;2011&lt;/a&gt;)&lt;/span&gt; and the &lt;code&gt;{MatchIt}&lt;/code&gt; &lt;a href=&#34;https://kosukeimai.github.io/MatchIt/articles/MatchIt.html&#34;&gt;introductory vignette&lt;/a&gt;. If you understand inverse probability weighting but aren’t too familiar with matching, I recommend my article with Liz Stuart &lt;span class=&#34;citation&#34;&gt;(&lt;a href=&#34;#ref-greiferMatchingMethodsConfounder2021a&#34; role=&#34;doc-biblioref&#34;&gt;Greifer and Stuart 2021&lt;/a&gt;)&lt;/span&gt;. For an introduction to subgroup analysis with propensity scores, you can also check out &lt;span class=&#34;citation&#34;&gt;Green and Stuart (&lt;a href=&#34;#ref-greenExaminingModerationAnalyses2014&#34; role=&#34;doc-biblioref&#34;&gt;2014&lt;/a&gt;)&lt;/span&gt;. Here, I’ll mainly try to get to the point.&lt;/p&gt;
+&lt;p&gt;The dataset we’ll use today is the famous Lalonde dataset, investigating the effect of a job training program on earnings. We’ll use the version of this dataset that comes with the &lt;code&gt;{MatchIt}&lt;/code&gt; package.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;data(&amp;quot;lalonde&amp;quot;, package = &amp;quot;MatchIt&amp;quot;)
+head(lalonde)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##      treat age educ   race married nodegree re74 re75       re78
+## NSW1     1  37   11  black       1        1    0    0  9930.0460
+## NSW2     1  22    9 hispan       0        1    0    0  3595.8940
+## NSW3     1  30   12  black       0        0    0    0 24909.4500
+## NSW4     1  27   11  black       0        1    0    0  7506.1460
+## NSW5     1  33    8  black       0        1    0    0   289.7899
+## NSW6     1  22    9  black       0        1    0    0  4056.4940&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The treatment is &lt;code&gt;treat&lt;/code&gt;, the outcome in the original study was &lt;code&gt;re78&lt;/code&gt; (1978 earnings), and the other variables are pretreatment covariates that we want to adjust for using propensity score matching. In this example, I’ll actually be using a different outcome, &lt;code&gt;re78_0&lt;/code&gt;, which is whether the participant’s 1978 earnings were equal to 0 or not, because I want to demonstrate the procedure for a binary outcome. So, we hope the treatment effect is negative, i.e., the risk of 0 earnings decreases for those in the treatment.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;lalonde$re78_0 &amp;lt;- as.numeric(lalonde$re78 == 0)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Our moderator will be &lt;code&gt;race&lt;/code&gt;, a 3-category factor variable.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;with(lalonde, table(race))&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## race
+##  black hispan  white 
+##    243     72    299&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Our estimand will be the subgroup-specific and marginal average treatment effect on the treated (ATT), using the risk difference as our effect measure.&lt;/p&gt;
+&lt;div id=&#34;packages-youll-need&#34; class=&#34;section level3&#34;&gt;
+&lt;h3&gt;Packages You’ll Need&lt;/h3&gt;
+&lt;p&gt;We’ll need a few R packages for this analysis. We’ll need &lt;code&gt;{MatchIt}&lt;/code&gt; and &lt;code&gt;{optmatch}&lt;/code&gt; for the matching, &lt;code&gt;{cobalt}&lt;/code&gt; for the balance assessment, &lt;code&gt;{marginaleffects}&lt;/code&gt; for estimating the treatment effects, and &lt;code&gt;{sandwich}&lt;/code&gt; for computing the standard errors. You can install those using the code below:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;install.packages(c(&amp;quot;MatchIt&amp;quot;, &amp;quot;optmatch&amp;quot;, &amp;quot;cobalt&amp;quot;,
+                   &amp;quot;marginaleffects&amp;quot;, &amp;quot;sandwich&amp;quot;))&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Let’s get into it!&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;step-1-subgroup-matching&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Step 1: Subgroup Matching&lt;/h2&gt;
+&lt;p&gt;Our first step is to perform the matching. Although there are a few strategies for performing matching for subgroup analysis, in general subgroup-specific matching tends to work best, though it requires a little extra work.&lt;/p&gt;
+&lt;p&gt;We’ll do this by splitting the dataset by &lt;code&gt;race&lt;/code&gt; and performing a separate matching analysis within each one.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;#Splitting the data
+lalonde_b &amp;lt;- subset(lalonde, race == &amp;quot;black&amp;quot;)
+lalonde_h &amp;lt;- subset(lalonde, race == &amp;quot;hispan&amp;quot;)
+lalonde_w &amp;lt;- subset(lalonde, race == &amp;quot;white&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Here we’ll use full matching because 1:1 matching without replacement, the most common (but worst) way to do propensity score matching, doesn’t work well in this dataset. The process described below works &lt;em&gt;exactly&lt;/em&gt; the same for 1:1 and most other kinds of matching as it does for full matching. We’ll estimate propensity scores in each subgroup, here using probit regression, which happens to yield better balance than logistic regression does.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(&amp;quot;MatchIt&amp;quot;)
+
+#Matching in race == &amp;quot;black&amp;quot;
+m.out_b &amp;lt;- matchit(treat ~ age + educ + married + nodegree + re74 + re75,
+                   data = lalonde_b, method = &amp;quot;full&amp;quot;, estimand = &amp;quot;ATT&amp;quot;,
+                   link = &amp;quot;probit&amp;quot;)
+
+#Matching in race == &amp;quot;hispan&amp;quot;
+m.out_h &amp;lt;- matchit(treat ~ age + educ + married + nodegree + re74 + re75,
+                   data = lalonde_h, method = &amp;quot;full&amp;quot;, estimand = &amp;quot;ATT&amp;quot;,
+                   link = &amp;quot;probit&amp;quot;)
+
+#Matching in race == &amp;quot;black&amp;quot;
+m.out_w &amp;lt;- matchit(treat ~ age + educ + married + nodegree + re74 + re75,
+                   data = lalonde_w, method = &amp;quot;full&amp;quot;, estimand = &amp;quot;ATT&amp;quot;,
+                   link = &amp;quot;probit&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div id=&#34;step-2-assessing-balance-within-subgroups&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Step 2: Assessing Balance within Subgroups&lt;/h2&gt;
+&lt;p&gt;We need to assess subgroup balance; we can do that using &lt;code&gt;summary()&lt;/code&gt; on each &lt;code&gt;matchit&lt;/code&gt; object, or we can use functions from &lt;code&gt;{cobalt}&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Below are examples of using &lt;code&gt;summary()&lt;/code&gt; and &lt;code&gt;cobalt::bal.tab()&lt;/code&gt; on one &lt;code&gt;matchit&lt;/code&gt; object at a time&lt;a href=&#34;#fn1&#34; class=&#34;footnote-ref&#34; id=&#34;fnref1&#34;&gt;&lt;sup&gt;1&lt;/sup&gt;&lt;/a&gt;:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;summary(m.out_b)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## 
+## Call:
+## matchit(formula = treat ~ age + educ + married + nodegree + re74 + 
+##     re75, data = lalonde_b, method = &amp;quot;full&amp;quot;, link = &amp;quot;probit&amp;quot;, 
+##     estimand = &amp;quot;ATT&amp;quot;)
+## 
+## Summary of Balance for All Data:
+##          Means Treated Means Control Std. Mean Diff. Var. Ratio eCDF Mean eCDF Max
+## distance        0.6587        0.6121          0.4851     0.7278    0.1134   0.1972
+## age            25.9808       26.0690         -0.0121     0.4511    0.0902   0.2378
+## educ           10.3141       10.0920          0.1079     0.5436    0.0336   0.0807
+## married         0.1859        0.2874         -0.2608          .    0.1015   0.1015
+## nodegree        0.7244        0.6437          0.1806          .    0.0807   0.0807
+## re74         2155.0132     3117.0584         -0.1881     0.9436    0.0890   0.2863
+## re75         1490.7221     1834.4220         -0.1043     1.0667    0.0480   0.1441
+## 
+## Summary of Balance for Matched Data:
+##          Means Treated Means Control Std. Mean Diff. Var. Ratio eCDF Mean eCDF Max Std. Pair Dist.
+## distance        0.6587        0.6577          0.0096     1.0403    0.0095   0.0705          0.0374
+## age            25.9808       27.6538         -0.2292     0.3644    0.1148   0.2073          1.3764
+## educ           10.3141       10.1368          0.0861     0.6552    0.0228   0.0684          1.0485
+## married         0.1859        0.1822          0.0096          .    0.0037   0.0037          0.6236
+## nodegree        0.7244        0.7286         -0.0096          .    0.0043   0.0043          0.7548
+## re74         2155.0132     2998.6538         -0.1650     0.7590    0.0513   0.2025          0.7256
+## re75         1490.7221     2120.7862         -0.1911     0.8819    0.0798   0.1912          0.8430
+## 
+## Sample Sizes:
+##               Control Treated
+## All             87.       156
+## Matched (ESS)   36.04     156
+## Matched         87.       156
+## Unmatched        0.         0
+## Discarded        0.         0&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(&amp;quot;cobalt&amp;quot;)
+bal.tab(m.out_b, un = TRUE, stats = c(&amp;quot;m&amp;quot;, &amp;quot;ks&amp;quot;))&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## Balance Measures
+##              Type Diff.Un  KS.Un Diff.Adj KS.Adj
+## distance Distance  0.4851 0.1972   0.0096 0.0705
+## age       Contin. -0.0121 0.2378  -0.2292 0.2073
+## educ      Contin.  0.1079 0.0807   0.0861 0.0684
+## married    Binary -0.1015 0.1015   0.0037 0.0037
+## nodegree   Binary  0.0807 0.0807  -0.0043 0.0043
+## re74      Contin. -0.1881 0.2863  -0.1650 0.2025
+## re75      Contin. -0.1043 0.1441  -0.1911 0.1912
+## 
+## Sample sizes
+##                      Control Treated
+## All                    87.       156
+## Matched (ESS)          36.04     156
+## Matched (Unweighted)   87.       156&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We can also get a clearer sense of balance overall using &lt;code&gt;bal.tab()&lt;/code&gt; by directly supplying the matching weights.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;#Initialize the weights
+fm_weights &amp;lt;- numeric(nrow(lalonde))
+
+#Assign the weights based on the subgroup
+fm_weights[lalonde$race == &amp;quot;black&amp;quot;] &amp;lt;- m.out_b$weights
+fm_weights[lalonde$race == &amp;quot;hispan&amp;quot;] &amp;lt;- m.out_h$weights
+fm_weights[lalonde$race == &amp;quot;white&amp;quot;] &amp;lt;- m.out_w$weights
+
+bal.tab(treat ~ age + educ + married + nodegree + re74 + re75,
+        data = lalonde, weights = fm_weights, cluster = &amp;quot;race&amp;quot;,
+        stats = c(&amp;quot;m&amp;quot;, &amp;quot;ks&amp;quot;), abs = TRUE, cluster.summary = TRUE)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## Balance by cluster
+## 
+##  - - - Cluster: black - - - 
+## Balance Measures
+##             Type Diff.Adj KS.Adj
+## age      Contin.   0.2292 0.2073
+## educ     Contin.   0.0861 0.0684
+## married   Binary   0.0037 0.0037
+## nodegree  Binary   0.0043 0.0043
+## re74     Contin.   0.1650 0.2025
+## re75     Contin.   0.1911 0.1912
+## 
+## Effective sample sizes
+##                0   1
+## Unadjusted 87.   156
+## Adjusted   36.04 156
+## 
+##  - - - Cluster: hispan - - - 
+## Balance Measures
+##             Type Diff.Adj KS.Adj
+## age      Contin.   0.2298 0.1848
+## educ     Contin.   0.2888 0.2762
+## married   Binary   0.0604 0.0604
+## nodegree  Binary   0.1024 0.1024
+## re74     Contin.   0.1323 0.3188
+## re75     Contin.   0.1220 0.2351
+## 
+## Effective sample sizes
+##                0  1
+## Unadjusted 61.   11
+## Adjusted   26.24 11
+## 
+##  - - - Cluster: white - - - 
+## Balance Measures
+##             Type Diff.Adj KS.Adj
+## age      Contin.   0.4137 0.2126
+## educ     Contin.   0.4246 0.1840
+## married   Binary   0.0025 0.0025
+## nodegree  Binary   0.1653 0.1653
+## re74     Contin.   0.2846 0.4165
+## re75     Contin.   0.0825 0.1444
+## 
+## Effective sample sizes
+##                 0  1
+## Unadjusted 281.   18
+## Adjusted    49.49 18
+##  - - - - - - - - - - - - - - 
+## 
+## Balance summary across all clusters
+##             Type Mean.Diff.Adj Max.Diff.Adj Mean.KS.Adj Max.KS.Adj
+## age      Contin.        0.2909       0.4137      0.2016     0.2126
+## educ     Contin.        0.2665       0.4246      0.1762     0.2762
+## married   Binary        0.0222       0.0604      0.0222     0.0604
+## nodegree  Binary        0.0907       0.1653      0.0907     0.1653
+## re74     Contin.        0.1940       0.2846      0.3126     0.4165
+## re75     Contin.        0.1319       0.1911      0.1902     0.2351
+## 
+## Total effective sample sizes across clusters
+##                 0   1
+## Unadjusted 429.   185
+## Adjusted   111.77 185&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Using the &lt;code&gt;cluster&lt;/code&gt; argument produces balance tables in each subgroup and, because we specified &lt;code&gt;cluster.summary = TRUE&lt;/code&gt;, a balance table summarizing across subgroups. To suppress display of the subgroup-specific balance tables (which may be useful if you have many subgroups), you can specify &lt;code&gt;which.cluster = .none&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;To make a plot displaying the balance statistics visually, we can use &lt;code&gt;cobalt::love.plot()&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;love.plot(treat ~ age + educ + married + nodegree + re74 + re75,
+        data = lalonde, weights = fm_weights, cluster = &amp;quot;race&amp;quot;,
+        stats = c(&amp;quot;m&amp;quot;, &amp;quot;ks&amp;quot;), abs = TRUE,
+        which.cluster = .none, agg.fun = &amp;quot;max&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## Warning: Standardized mean differences and raw mean differences are present in the same plot. 
+## Use the &amp;#39;stars&amp;#39; argument to distinguish between them and appropriately label the x-axis.&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;https://ngreifer.github.io/blog/subgroup-analysis-psm/index.en_files/figure-html/unnamed-chunk-9-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;See the &lt;code&gt;{cobalt}&lt;/code&gt; &lt;a href=&#34;https://ngreifer.github.io/cobalt/articles/cobalt_A4_love.plot.html&#34;&gt;vignette on customizing &lt;code&gt;love.plot()&lt;/code&gt;&lt;/a&gt; to see how to finely control the appearance of the plot.&lt;/p&gt;
+&lt;p&gt;From this output, we can see that balance is actually pretty bad; the greatest standardized mean difference (SMD) across subgroups after matching is around .46, which is way too big. In a realistic scenario, we would try different matching methods, maybe resorting to weighting, until we found good balance across the subgroups. In order to validly interpret the subgroup-specific effects and tests for moderation, we need to achieve balance in each subgroup, not just overall. We didn’t get good balance here, but to stay focused on the rest of the procedure, we’ll move forward as if we did.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;step-3-fitting-the-outcome-model&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Step 3: Fitting the Outcome Model&lt;/h2&gt;
+&lt;p&gt;Next, we’ll fit the outcome model. It’s important to remember that the outcome model is an intermediate step for estimating the treatment effect; no quantity estimated by the model needs to correspond to the treatment effect directly. We’ll be using a marginal effects procedure to estimate the treatment effects in the next section.&lt;/p&gt;
+&lt;p&gt;First, we’ll extract the matched datasets from the &lt;code&gt;matchit&lt;/code&gt; objects. We can’t just use the matching weights we extracted earlier because we also need subclass (i.e., pair) membership. We’ll use &lt;code&gt;match.data()&lt;/code&gt; from &lt;code&gt;{MatchIt}&lt;/code&gt; to extract the matched datasets, which contain the matching weights and subclass membership in the &lt;code&gt;weights&lt;/code&gt; and &lt;code&gt;subclass&lt;/code&gt; columns, respectively, and use &lt;code&gt;rbind()&lt;/code&gt; to bind them into a single combined dataset&lt;a href=&#34;#fn2&#34; class=&#34;footnote-ref&#34; id=&#34;fnref2&#34;&gt;&lt;sup&gt;2&lt;/sup&gt;&lt;/a&gt;.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;#Extract the matched datasets
+matched_data_b &amp;lt;- match.data(m.out_b)
+matched_data_h &amp;lt;- match.data(m.out_h)
+matched_data_w &amp;lt;- match.data(m.out_w)
+
+#Combine them using rbind()
+matched_data &amp;lt;- rbind(matched_data_b,
+                      matched_data_h,
+                      matched_data_w)
+
+names(matched_data)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##  [1] &amp;quot;treat&amp;quot;    &amp;quot;age&amp;quot;      &amp;quot;educ&amp;quot;     &amp;quot;race&amp;quot;     &amp;quot;married&amp;quot;  &amp;quot;nodegree&amp;quot; &amp;quot;re74&amp;quot;     &amp;quot;re75&amp;quot;     &amp;quot;re78&amp;quot;     &amp;quot;re78_0&amp;quot;   &amp;quot;distance&amp;quot; &amp;quot;weights&amp;quot;  &amp;quot;subclass&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Next, we can fit the outcome model. The choice of which model to fit should depend primarily on the best model for the outcome; because we have a binary outcome, we’ll use logistic regression.&lt;/p&gt;
+&lt;p&gt;It’s usually a good idea to include covariates in the outcome model. It’s also usually a good idea to allow the treatment to interact with the covariates in the outcome model. It’s also usually a good idea to fit separate models within each subgroup. Combining this all yields a pretty complicated model, which is why it will be so important to use a marginal effects procedure rather than trying to interpret the model’s coefficients. Here’s how we fit this model:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;fit &amp;lt;- glm(re78_0 ~ race * (treat * (age + educ + married + nodegree +
+                                       re74 + re75)),
+           data = matched_data, weights = weights,
+           family = &amp;quot;quasibinomial&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We’re not even going to look at the output of this model, which has 42 parameters. If the model doesn’t fit with your dataset, you can remove interactions between the treatment and some covariates or remove the covariates altogether.&lt;/p&gt;
+&lt;p&gt;For a linear model, you can use &lt;code&gt;lm()&lt;/code&gt; and remove the &lt;code&gt;family&lt;/code&gt; argument. We used &lt;code&gt;family = &#34;quasibinomial&#34;&lt;/code&gt; because we want logistic regression for our binary outcome but we are using the matching weights, which otherwise create a (harmless but annoying) warning when run with &lt;code&gt;family = &#34;binomial&#34;&lt;/code&gt;.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;step-4-estimate-the-treatment-effects&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Step 4: Estimate the Treatment Effects&lt;/h2&gt;
+&lt;p&gt;Finally, we can estimate the treatment effects. To do so, we’ll use an average marginal effects procedure as implemented in &lt;code&gt;{marginaleffects}&lt;/code&gt;&lt;a href=&#34;#fn3&#34; class=&#34;footnote-ref&#34; id=&#34;fnref3&#34;&gt;&lt;sup&gt;3&lt;/sup&gt;&lt;/a&gt;. First, we’ll estimate the average marginal effect overall, averaging across the subgroups. Again, we’re hoping for a negative treatment effect, which indicates the risk of having zero income decreased among those who received the treatment. Because we are estimating the ATT, we need to subset the data for which the average marginal effects are computed to just the treated units, which we do using the &lt;code&gt;newdata&lt;/code&gt; argument (which can be omitted when the ATE is the target estimand). We also need to supply pair membership to ensure the standard errors are correctly computed, which we do by supplying the &lt;code&gt;subclass&lt;/code&gt; variable containing pair membership to the &lt;code&gt;vcov&lt;/code&gt; argument. In general, we need to supply the weights to the &lt;code&gt;wts&lt;/code&gt; argument of &lt;code&gt;avg_comparisons()&lt;/code&gt; as well (though, in this case, because we are estimating the ATT and all weights are 1 for the treated group, it doesn’t make a difference).&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(&amp;quot;marginaleffects&amp;quot;)
+
+#Estimate the overall ATT
+avg_comparisons(fit, variables = &amp;quot;treat&amp;quot;,
+                newdata = subset(matched_data, treat == 1),
+                vcov = ~subclass, wts = &amp;quot;weights&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## 
+##   Term Contrast Estimate Std. Error      z Pr(&amp;gt;|z|)  2.5 % 97.5 %
+##  treat    1 - 0  0.03434    0.04405 0.7795  0.43566 -0.052 0.1207
+## 
+## Prediction type:  response 
+## Columns: type, term, contrast, estimate, std.error, statistic, p.value, conf.low, conf.high&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The estimated risk difference is 0.02305 with a high p-value and a confidence interval containing 0, indicating no evidence of an effect overall. (Note: this doesn’t mean there is no effect! The data are compatible with effects anywhere within the confidence interval, which includes negative and positive effects of a moderate size!)&lt;/p&gt;
+&lt;p&gt;New, let’s estimate the subgroup-specific effects by supplying the subgrouping variable, &lt;code&gt;&#34;race&#34;&lt;/code&gt;, to the &lt;code&gt;by&lt;/code&gt; argument:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;avg_comparisons(fit, variables = &amp;quot;treat&amp;quot;,
+                newdata = subset(matched_data, treat == 1),
+                vcov = ~subclass, wts = &amp;quot;weights&amp;quot;,
+                by = &amp;quot;race&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## 
+##   Term          Contrast   race Estimate Std. Error      z  Pr(&amp;gt;|z|)    2.5 %   97.5 %
+##  treat mean(1) - mean(0)  black  0.06985    0.05168  1.352 0.1764930 -0.03144  0.17114
+##  treat mean(1) - mean(0) hispan -0.18744    0.07293 -2.570 0.0101667 -0.33038 -0.04450
+##  treat mean(1) - mean(0)  white -0.13790    0.04886 -2.822 0.0047678 -0.23367 -0.04214
+## 
+## Prediction type:  response 
+## Columns: type, term, contrast, race, estimate, std.error, statistic, p.value, conf.low, conf.high, predicted, predicted_hi, predicted_lo&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Here, we see that actually there is evidence of treatment effects within subgroups! In the subgroups &lt;code&gt;hispan&lt;/code&gt; and &lt;code&gt;white&lt;/code&gt;, we see moderately sized negative effects with small p-values and confidence intervals excluding 0, suggesting that there treatment effects in these subgroups.&lt;/p&gt;
+&lt;p&gt;We can also test whether the treatment effects differ between groups using the &lt;code&gt;hypothesis&lt;/code&gt; argument of &lt;code&gt;avg_comparisons()&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;avg_comparisons(fit, variables = &amp;quot;treat&amp;quot;,
+                newdata = subset(matched_data, treat == 1),
+                vcov = ~subclass, wts = &amp;quot;weights&amp;quot;,
+                by = &amp;quot;race&amp;quot;, hypothesis = &amp;quot;pairwise&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## 
+##                                                                Term Estimate Std. Error       z  Pr(&amp;gt;|z|)    2.5 % 97.5 %
+##  (black,treat,mean(1) - mean(0)) - (hispan,treat,mean(1) - mean(0))  0.25729    0.08939  2.8785 0.0039961  0.08210 0.4325
+##   (black,treat,mean(1) - mean(0)) - (white,treat,mean(1) - mean(0))  0.20775    0.07112  2.9211 0.0034877  0.06836 0.3471
+##  (hispan,treat,mean(1) - mean(0)) - (white,treat,mean(1) - mean(0)) -0.04954    0.08779 -0.5643 0.5725398 -0.22160 0.1225
+## 
+## Prediction type:  response 
+## Columns: type, term, estimate, std.error, statistic, p.value, conf.low, conf.high&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We can see evidence that the treatment effect differs between the &lt;code&gt;black&lt;/code&gt; and &lt;code&gt;hispan&lt;/code&gt; groups, and between the &lt;code&gt;black&lt;/code&gt; and &lt;code&gt;white&lt;/code&gt; groups. With many subgroups, it might be useful to adjust your p-values for multiple comparisons, which we can do using &lt;code&gt;p.adjust()&lt;/code&gt;, e.g.,&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;p.adjust(comp$p.value, method = &amp;quot;holm&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;if &lt;code&gt;comp&lt;/code&gt; contained the &lt;code&gt;avg_comparisons()&lt;/code&gt; output above.&lt;/p&gt;
+&lt;p&gt;Congratulations! You’ve done a subgroup analysis!&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;step-5-reporting-your-results&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Step 5: Reporting Your Results&lt;/h2&gt;
+&lt;p&gt;A fair bit needs to be included when reporting your results to ensure your analysis is replicable and can be correctly interpreted by your audience. The key things to report are the following:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;The method of estimating the propensity score and performing the matching (noting that these were done within subgroups), including the estimand targeted and whether that estimand was respected by the procedure (using, e.g., a caliper changes the estimand from the one you specify). This should also include the packages used and, even better, the functions used. If you’re using &lt;code&gt;{MatchIt}&lt;/code&gt;, the documentation should also tell you which papers to cite.&lt;/li&gt;
+&lt;li&gt;A quick summary of other methods you might have tried and why you went with the one you went with (i.e., because it yielded better balance, a greater effective sample size, etc.).&lt;/li&gt;
+&lt;li&gt;Covariate balance, measured broadly; this can include a balance table, a balance plot (like one produced by &lt;code&gt;cobalt::love.plot()&lt;/code&gt;), or a summary of balance (like providing the largest SMD and KS statistic observed across subgroups). Make sure your description of balance reflects the subgroups, e.g., by having separate tables or plots for each subgroup or clarifying that the statistics presented are averages or the worst case across subgroups.&lt;/li&gt;
+&lt;li&gt;The outcome model you used, especially specifying the form of the model used and how/whether covariates entered the model. Also mention the method used to compute the standard errors (e.g., cluster-robust standard errors with pair membership as the clustering variable).&lt;/li&gt;
+&lt;li&gt;Details of the marginal effects procedure used, including the package used, and the method to compute the standard errors (in this case, the delta method, which is the only method available in &lt;code&gt;{marginaleffects}&lt;/code&gt;).&lt;/li&gt;
+&lt;li&gt;The treatment effect estimates along with their p-values and confidence intervals, both overall and within subgroups.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div id=&#34;references&#34; class=&#34;section level2 unnumbered&#34;&gt;
+&lt;h2&gt;References&lt;/h2&gt;
+&lt;div id=&#34;refs&#34; class=&#34;references csl-bib-body hanging-indent&#34;&gt;
+&lt;div id=&#34;ref-austinIntroductionPropensityScore2011&#34; class=&#34;csl-entry&#34;&gt;
+Austin, Peter C. 2011. &lt;span&gt;“An Introduction to Propensity Score Methods for Reducing the Effects of Confounding in Observational Studies.”&lt;/span&gt; &lt;em&gt;Multivariate Behavioral Research&lt;/em&gt; 46 (3): 399–424. &lt;a href=&#34;https://doi.org/10.1080/00273171.2011.568786&#34;&gt;https://doi.org/10.1080/00273171.2011.568786&lt;/a&gt;.
+&lt;/div&gt;
+&lt;div id=&#34;ref-greenExaminingModerationAnalyses2014&#34; class=&#34;csl-entry&#34;&gt;
+Green, Kerry M., and Elizabeth A. Stuart. 2014. &lt;span&gt;“Examining Moderation Analyses in Propensity Score Methods: &lt;span&gt;Application&lt;/span&gt; to Depression and Substance Use.”&lt;/span&gt; &lt;em&gt;Journal of Consulting and Clinical Psychology&lt;/em&gt;, Advances in &lt;span&gt;Data Analytic Methods&lt;/span&gt;, 82 (5): 773–83. &lt;a href=&#34;https://doi.org/10.1037/a0036515&#34;&gt;https://doi.org/10.1037/a0036515&lt;/a&gt;.
+&lt;/div&gt;
+&lt;div id=&#34;ref-greiferMatchingMethodsConfounder2021a&#34; class=&#34;csl-entry&#34;&gt;
+Greifer, Noah, and Elizabeth A Stuart. 2021. &lt;span&gt;“Matching &lt;span&gt;Methods&lt;/span&gt; for &lt;span&gt;Confounder Adjustment&lt;/span&gt;: &lt;span&gt;An Addition&lt;/span&gt; to the &lt;span&gt;Epidemiologist&lt;/span&gt;’s &lt;span&gt;Toolbox&lt;/span&gt;.”&lt;/span&gt; &lt;em&gt;Epidemiologic Reviews&lt;/em&gt;, June, mxab003. &lt;a href=&#34;https://doi.org/10.1093/epirev/mxab003&#34;&gt;https://doi.org/10.1093/epirev/mxab003&lt;/a&gt;.
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&#34;footnotes footnotes-end-of-document&#34;&gt;
+&lt;hr /&gt;
+&lt;ol&gt;
+&lt;li id=&#34;fn1&#34;&gt;&lt;p&gt;You might notices the mean differences for binary variables differ between the two outputs; that’s because &lt;code&gt;summary()&lt;/code&gt; standardizes the mean differences whereas &lt;code&gt;bal.tab()&lt;/code&gt; does not for binary variables. If you want standardized mean differences for binary variables from &lt;code&gt;bal.tab()&lt;/code&gt;, just add the argument &lt;code&gt;binary = &#34;std&#34;&lt;/code&gt;.&lt;a href=&#34;#fnref1&#34; class=&#34;footnote-back&#34;&gt;↩︎&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;li id=&#34;fn2&#34;&gt;&lt;p&gt;Note: &lt;code&gt;rbind()&lt;/code&gt; must be used for this; functions from other packages, like &lt;code&gt;dplyr::bind_rows()&lt;/code&gt;, will not correctly preserve the subclass structure.&lt;a href=&#34;#fnref2&#34; class=&#34;footnote-back&#34;&gt;↩︎&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;li id=&#34;fn3&#34;&gt;&lt;p&gt;This requires version 0.9.0 ore greater of &lt;code&gt;{marginaleffects}&lt;/code&gt;.&lt;a href=&#34;#fnref3&#34; class=&#34;footnote-back&#34;&gt;↩︎&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>
