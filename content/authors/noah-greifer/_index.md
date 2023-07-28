@@ -20,7 +20,7 @@ interests:
 organizations:
 - name: Harvard University
   url: https://www.harvard.edu/
-- name: Institute for Quantiative Social Science
+- name: Institute for Quantitative Social Science
   url: https://www.iq.harvard.edu/
 role: Statistical Consultant and Programmer
 social:
