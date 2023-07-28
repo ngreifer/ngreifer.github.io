@@ -21,6 +21,10 @@ draft: true
 bibliography: references.bib
 ---
 
+```{r, include=F}
+1 + 1
+```
+
 Or, *Why "Why Propensity Scores Should Not Be Used for Matching" Should Be Used to Avoid Propensity Score Matching*.
 
 Propensity scores get a lot of hate. They get hate on Twitter, on CrossValidated, and in the literature. They are hated by trialists, epidemiologists, and economists. Among the many papers hating on propensity scores, perhaps the most famous is @kingWhyPropensityScores2019, "Why Propensity Scores Should Not Be Used for Matching", a paper with a title so clear, it seems hardly necessary to read the actual paper, right?
@@ -154,4 +158,3 @@ Does that mean this paper is useless? No. Here is how to correctly use @kingWhyP
 -   Did the authors use propensity score matching without making any attempt to guarantee close pairs on the covariates? If so, then it is possible they missed out on a better performing, more robust method of matching that reduces model dependence by being more precise. Examples of such methods include genetic matching, pair matching with exact matching constraints or calipers on the covariates, or Mahalanobis distance matching in a cardinality matched sample or within a propensity score calipers. If the authors' only attempt at achieving balance was to use propensity scores with no other modifications, then you can use @kingWhyPropensityScores2019 to justify the critique that their matching specification may be poor and recommend the authors try a different matching method that prioritizes close pairs.
 
 But if the authors used propensity score matching, did work to demonstrate that propensity score matching was optimal in their dataset, demonstrated that covariate balance was achieved in a deep and holistic way, and incorporated constraints to increase the closeness of pairs on the covariates, then you should not use @kingWhyPropensityScores2019 to critique the application.
-
