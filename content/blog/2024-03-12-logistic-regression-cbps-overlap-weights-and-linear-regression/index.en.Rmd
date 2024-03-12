@@ -79,6 +79,8 @@ $$
 
 This seems like an odd thing to do, but take a look at the formula for the ATO weights above. You'll notice the logistic regression estimating equation now looks just like the formula for the weighted difference in means using the ATO weights! So, the solution to the logistic regression estimating equations, which sets their value to 0, also makes the weighted difference in means computed using the ATO weights exactly equal to 0.
 
+This is why there is no "ATO" option when using CBPS; the usual logistic regression propensity scores are covariate balancing propensity scores when targeting the ATO!
+
 ## Demonstration in R
 
 Okay, let's take a look of all this in R. First, I'll show you how to use M-estimation to fit a logistic regression model, then CBPS, and show you how each method balances the covariates in different ways.
