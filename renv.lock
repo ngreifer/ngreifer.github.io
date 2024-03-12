@@ -443,7 +443,12 @@
     "cobalt": {
       "Package": "cobalt",
       "Version": "4.5.1.9000",
-      "Source": "unknown",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteUsername": "ngreifer",
+      "RemoteRepo": "cobalt",
+      "RemoteRef": "master",
       "Requirements": [
         "R",
         "backports",
