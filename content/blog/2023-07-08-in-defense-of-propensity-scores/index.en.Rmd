@@ -17,7 +17,7 @@ image:
   focal_point: ''
   preview_only: no
 projects: []
-draft: true
+draft: no
 bibliography: references.bib
 ---
 
