@@ -1,0 +1,1281 @@
+<!DOCTYPE html><html lang="en-us" >
+
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  
+  
+  
+    <meta name="generator" content="Wowchemy 5.5.0 for Hugo" />
+  
+
+  
+  
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+  
+  
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  
+
+  
+  
+  
+    
+      
+      <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Roboto+Mono&family=Roboto:wght@400;700&display=swap">
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Roboto+Mono&family=Roboto:wght@400;700&display=swap" media="print" onload="this.media='all'">
+    
+  
+
+  
+    <meta name="google-site-verification" content="ZWBIxYyx89sPR8cWppV98s52niwEhHNRqXlIU9D4B14" />
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Noah Greifer" />
+
+  
+  
+  
+    
+  
+  <meta name="description" content="As I’ve been studying M-estimation and the covariate balancing propensity score (CBPS) (Imai and Ratkovic 2014), I’ve been noticing some interesting connections between these methods and want to share them with you." />
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://ngreifer.github.io/blog/logistic-regression-cbps-overlap-weights/" />
+
+  
+  
+  
+    <meta name="theme-color" content="#1565c0" />
+  
+
+  
+  
+    
+    <script src="/js/mathjax-config.js"></script>
+  
+
+  
+
+  <link rel="stylesheet" href="/css/vendor-bundle.min.c7b8d9abd591ba2253ea42747e3ac3f5.css" media="print" onload="this.media='all'">
+
+  
+  
+  
+    
+    
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/academicons@1.9.1/css/academicons.min.css" integrity="sha512-W0xM4mr6dEP9nREo7Z9z+9X70wytKvMGeDsj7ps2+xg5QPrEBXC8tAW1IFnzjR6eoJ90JmCnFzerQJTLzIEHjA==" crossorigin="anonymous" media="print" onload="this.media='all'">
+    
+
+    
+    
+    
+    
+      
+      
+    
+    
+    
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@10.2.1/build/styles/github.min.css" crossorigin="anonymous" title="hl-light" media="print" onload="this.media='all'">
+          <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@10.2.1/build/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" media="print" onload="this.media='all'" disabled>
+        
+      
+    
+
+    
+    
+    
+
+    
+
+    
+    
+      
+      
+
+      
+      
+
+      
+    
+      
+      
+
+      
+      
+
+      
+    
+      
+      
+
+      
+      
+
+      
+    
+      
+      
+
+      
+      
+
+      
+    
+      
+      
+
+      
+      
+
+      
+    
+      
+      
+
+      
+      
+
+      
+    
+      
+      
+
+      
+      
+
+      
+    
+      
+      
+
+      
+      
+
+      
+    
+      
+      
+
+      
+      
+
+      
+    
+      
+      
+
+      
+      
+
+      
+    
+      
+      
+
+      
+      
+
+      
+    
+      
+      
+
+      
+      
+
+      
+    
+      
+      
+
+      
+      
+
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" integrity="" crossorigin="anonymous" async></script>
+      
+    
+      
+      
+
+      
+      
+
+      
+    
+      
+      
+
+      
+      
+
+      
+    
+  
+
+  
+  
+  
+  
+  
+  <link rel="stylesheet" href="/css/wowchemy.306aeb887f7c1338455c74dc805fe1bc.css" />
+
+  
+
+
+
+  
+
+
+  
+
+
+  
+
+
+
+
+  
+  
+  
+
+  
+
+  
+    <link rel="manifest" href="/manifest.webmanifest" />
+  
+
+  <link rel="icon" type="image/png" href="/media/icon_huc587dcc5401d36981f4ca7feddf736f3_375856_32x32_fill_lanczos_center_3.png" />
+  <link rel="apple-touch-icon" type="image/png" href="/media/icon_huc587dcc5401d36981f4ca7feddf736f3_375856_180x180_fill_lanczos_center_3.png" />
+
+  <link rel="canonical" href="https://ngreifer.github.io/blog/logistic-regression-cbps-overlap-weights/" />
+
+  
+  
+  
+  
+  
+  
+  
+  
+    
+  
+  
+
+  
+  
+    
+    
+  
+  <meta property="twitter:card" content="summary_large_image" />
+  
+    <meta property="twitter:site" content="@noah_greifer" />
+    <meta property="twitter:creator" content="@noah_greifer" />
+  
+  <meta property="og:site_name" content="Noah Greifer" />
+  <meta property="og:url" content="https://ngreifer.github.io/blog/logistic-regression-cbps-overlap-weights/" />
+  <meta property="og:title" content="Musings on Logistic Regression, CBPS, and Overlap Weights | Noah Greifer" />
+  <meta property="og:description" content="As I’ve been studying M-estimation and the covariate balancing propensity score (CBPS) (Imai and Ratkovic 2014), I’ve been noticing some interesting connections between these methods and want to share them with you." /><meta property="og:image" content="https://ngreifer.github.io/media/sharing.jpg" />
+    <meta property="twitter:image" content="https://ngreifer.github.io/media/sharing.jpg" /><meta property="og:locale" content="en-us" />
+  
+    
+      <meta
+        property="article:published_time"
+        content="2024-03-12T00:00:00&#43;00:00"
+      />
+    
+    <meta property="article:modified_time" content="2024-03-12T00:14:20-04:00">
+  
+
+  
+
+
+
+  
+
+  
+
+  
+
+
+
+
+
+  <title>Musings on Logistic Regression, CBPS, and Overlap Weights | Noah Greifer</title>
+</head>
+
+
+<body id="top" data-spy="scroll" data-offset="70" data-target="#TableOfContents" class="page-wrapper   " data-wc-page-id="a7864aa3400b1d67be901a4aa82906d8" >
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  <script src="/js/wowchemy-init.min.2ed908358299dd7ab553faae685c746c.js"></script>
+
+  
+
+
+<aside class="search-modal" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#" aria-label="Close"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        <input name="q" id="search-query" placeholder="Search..." autocapitalize="off"
+        autocomplete="off" autocorrect="off" spellcheck="false" type="search" class="form-control"
+        aria-label="Search...">
+        
+      </div>
+
+      
+      
+
+      
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+
+  <div class="page-header">
+    
+
+
+
+
+
+
+
+
+
+
+
+
+<header class="header--fixed">
+  <nav class="navbar navbar-expand-lg navbar-light compensate-for-scrollbar" id="navbar-main">
+    <div class="container-xl">
+
+      
+      <div class="d-none d-lg-inline-flex">
+        <a class="navbar-brand" href="/">Noah Greifer</a>
+      </div>
+      
+
+      
+      <button type="button" class="navbar-toggler" data-toggle="collapse"
+              data-target="#navbar-content" aria-controls="navbar-content" aria-expanded="false" aria-label="Toggle navigation">
+      <span><i class="fas fa-bars"></i></span>
+      </button>
+      
+
+      
+      <div class="navbar-brand-mobile-wrapper d-inline-flex d-lg-none">
+        <a class="navbar-brand" href="/">Noah Greifer</a>
+      </div>
+      
+
+      
+      
+      <div class="navbar-collapse main-menu-item collapse justify-content-start" id="navbar-content">
+
+        
+        <ul class="navbar-nav d-md-inline-flex">
+          
+
+          
+
+          
+          
+          
+
+          
+
+          
+          
+          
+          
+
+          
+            
+            
+          
+
+          <li class="nav-item">
+            <a class="nav-link " href="/"><span>Home</span></a>
+          </li>
+
+          
+          
+
+          
+
+          
+          
+          
+            
+          
+
+          
+
+          
+          
+          
+          
+
+          
+            
+              
+              
+            
+            
+          
+
+          <li class="nav-item">
+            <a class="nav-link  active" href="/blog"><span>Blog</span></a>
+          </li>
+
+          
+          
+
+          
+
+          
+          
+          
+            
+          
+
+          
+
+          
+          
+          
+          
+
+          
+            
+              
+              
+            
+            
+          
+
+          <li class="nav-item">
+            <a class="nav-link " href="/software"><span>Software</span></a>
+          </li>
+
+          
+          
+
+        
+
+          
+        </ul>
+      </div>
+
+      <ul class="nav-icons navbar-nav flex-row ml-auto d-flex pl-md-2">
+
+        
+        
+          
+        
+
+        
+        
+        <li class="nav-item">
+          <a class="nav-link js-search" href="#" aria-label="Search"><i class="fas fa-search" aria-hidden="true"></i></a>
+        </li>
+        
+
+        
+        
+        
+        <li class="nav-item dropdown theme-dropdown">
+          <a href="#" class="nav-link" data-toggle="dropdown" aria-haspopup="true" aria-label="Display preferences">
+            <i class="fas fa-moon" aria-hidden="true"></i>
+          </a>
+          <div class="dropdown-menu">
+            <a href="#" class="dropdown-item js-set-theme-light">
+              <span>Light</span>
+            </a>
+            <a href="#" class="dropdown-item js-set-theme-dark">
+              <span>Dark</span>
+            </a>
+            <a href="#" class="dropdown-item js-set-theme-auto">
+              <span>Automatic</span>
+            </a>
+          </div>
+        </li>
+        
+
+        
+        
+
+      </ul>
+
+    </div>
+  </nav>
+</header>
+
+
+  </div>
+
+  <div class="page-body">
+    
+    
+    
+
+    <article class="article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+  
+  
+<div class="article-container pt-3">
+  <h1>Musings on Logistic Regression, CBPS, and Overlap Weights</h1>
+
+  
+
+  
+    
+
+
+<div class="article-metadata">
+
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+          Last updated on
+      
+    
+    Mar 12, 2024
+  </span>
+  
+
+  
+
+  
+
+  
+  
+  
+  
+
+  
+  
+
+</div>
+
+    
+
+
+
+
+
+  
+</div>
+
+
+
+  <div class="article-container">
+
+    <div class="article-style">
+      
+
+
+<p>As I’ve been studying M-estimation and the covariate balancing propensity score (CBPS) <span class="citation">(<a href="#ref-imaiCovariateBalancingPropensity2014">Imai and Ratkovic 2014</a>)</span>, I’ve been noticing some interesting connections between these methods and want to share them with you.</p>
+<div id="logistic-regression-and-m-estimation" class="section level2">
+<h2>Logistic Regression and M-estimation</h2>
+<p>First, what is logistic regression? I’ll discuss that in more detail in another post, but briefly it’s a way of modeling the relationship between <span class="math inline">\(k\)</span> predictors <span class="math inline">\(\mathbf{X}\)</span> (which include an intercept) and an outcome <span class="math inline">\(A\)</span> (yes, I’ll use <span class="math inline">\(A\)</span> for the outcome, and I’ll also use it to mean the treatment in an observational study since the context is fitting a model for the treatment to estimate propensity scores), where that relationship is specified to be</p>
+<p><span class="math display">\[
+p_i = P(A_i = 1|\mathbf{X}_i)=\text{expit}(\mathbf{X}_i\beta)
+\]</span></p>
+<p>where <span class="math inline">\(\text{expit}(z)=1/(1 + e^{-z})\)</span>. Expit is also known as inverse logit, i.e., as <span class="math inline">\(\text{logit}^{-1}(z)\)</span> where <span class="math inline">\(\text{logit}(p)=\ln\frac{p}{1-p}\)</span>. We estimate <span class="math inline">\(\beta\)</span> usually using maximum likelihood, but here I’m going to talk about M-estimation <span class="citation">(<a href="#ref-stefanskiCalculusMEstimation2002">Stefanski and Boos 2002</a>; <a href="#ref-rossMestimationCommonEpidemiological2024">Ross et al. 2024</a>)</span>, in which we specify a “stack” of estimating equations and find the values of <span class="math inline">\(\beta\)</span> such that all the estimating equations are equal to 0. That is, we specify the <span class="math inline">\(k\)</span> estimating equations</p>
+<p><span class="math display">\[
+\frac{1}{N}\sum_{i=1}^N{\left(\array{s_1(\beta, A_i,\mathbf{X}_i) \\ \dots \\ s_k(\beta, A_i,\mathbf{X}_i)}\right)}=\mathbf{0}
+\]</span></p>
+<p>and find the values of <span class="math inline">\(\beta\)</span> that satisfy the equation. This is called finding the “roots” of the estimating equations. There is an estimating equation for each parameter to be estimated. When the estimating equations are the partial derivatives of the log likelihood with respect to each coefficient, then then <span class="math inline">\(\beta\)</span> that solve the estimating equations are also the maximum likelihood estimates.</p>
+<p>For logistic regression, the <span class="math inline">\(k\)</span> estimating estimating equations (one for each coefficient) look like the following:</p>
+<p><span class="math display">\[
+\frac{1}{N}\sum_{i=1}^N{(A_i-p_i)X_{ki}}=0
+\]</span></p>
+<p>It’s kind of crazy that it’s so simple when logistic regression seems so complicated and nonlinear. We estimate the coefficients in logistic regression simply by finding the values of <span class="math inline">\(\beta\)</span> that are used to compute <span class="math inline">\(p_i\)</span> that make this estimating equation equal 0 for each predictor. In practice, this can be done by using a “root-solver”, i.e., a function that finds the roots of a system of equations.</p>
+<p>Another cool thing (which we’ll come back to) is that this estimating equation is not just for logistic regression but is also for any generalized linear model with a canonical link; indeed, that’s what defines the canonical link. For binomial regression, the logit link is the canonical like. For Poisson regression, it’s the log link, and for linear regression, it’s the identity link. That is, these three models can be estimated using the exact estimating equations I wrote above but with <span class="math inline">\(p_i\)</span> computed using the respective formula (<span class="math inline">\(p_i=\exp(\mathbf{X}_i\beta)\)</span> for the log link and <span class="math inline">\(p_i=\mathbf{X}_i\beta\)</span> for the identity link).</p>
+</div>
+<div id="covariate-balancing-propensity-score-cbps" class="section level2">
+<h2>Covariate Balancing Propensity Score (CBPS)</h2>
+<p>You may have heard of CBPS before; it’s a way of estimating the propensity score in an observational study using logistic regression in such a way that balance is automatically achieved on the covariate means. How does this work? Instead of using the above estimation equations to estimate the coefficients, CBPS uses a different set of estimation equations, in particular<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a></p>
+<p><span class="math display">\[
+\frac{1}{N}\sum_{i=1}^N{\left(\frac{A_i}{p_i} - \frac{1-A_i}{1-p_i}\right)X_{ki}}=0
+\]</span></p>
+<p>The keen propensity score weighting enjoyer might notice something familiar about this estimating equation; it looks a lot like the weighted mean difference of <span class="math inline">\(X_k\)</span> when using inverse probability weights for the ATE, that is <span class="math inline">\(w^{ATE}_i=\frac{A_i}{p_i} + \frac{1-A_i}{1-p_i}\)</span>. And indeed, this is so! The weighted difference in means is usually expressed as <span class="math inline">\(\frac{\sum_i{w_i A_i X_{ki}}}{\sum{w_i A_i}} - \frac{\sum_i{w_i (1-A_i) X_{ki}}}{\sum{w_i (1-A_i)}}\)</span>, but when <span class="math inline">\(\sum_i{A_i/p_i} = \sum_i{(1-A_i)/(1-p_i)}=N\)</span>, which is satisfied when an intercept is in <span class="math inline">\(\mathbf{X}\)</span>, the estimating equation and the weighted difference in means are identical. That means what CBPS does is find the coefficients <span class="math inline">\(\beta\)</span> such that weighted difference in means is equal to 0 for each covariate <span class="math inline">\(X_k\)</span> when the weights are computed using the ATE formula applied to the probabilities generated by <span class="math inline">\(\beta\)</span>. It’s pretty ingenious, which is why it made such a splash!</p>
+<p>The idea of using estimating equations that correspond to covariate balance was also proposed by <span class="citation">Graham, De Xavier Pinto, and Egel (<a href="#ref-grahamInverseProbabilityTilting2012">2012</a>)</span> as “inverse probability tilting”; it turns out when applied to the ATT (described later) these methods are identical.</p>
+</div>
+<div id="ato-weights" class="section level2">
+<h2>ATO Weights</h2>
+<p>Okay, but here is something else that is cool. A propensity score weighting enjoyer may have also heard of overlap weights or ATO weights <span class="citation">(<a href="#ref-liBalancingCovariatesPropensity2018">Li, Morgan, and Zaslavsky 2018</a>)</span>. These are weights computed as <span class="math inline">\(w^{ATO}_i=A_i(1-p_i) + (1-A_i)p_i=p_i(1-p_i)w^{ATE}_i\)</span>. Overlap weights upweight the area of “overlap”, i.e., the are where units in the treated and control groups have approximately equal propensity scores (i.e., close to .5). They were developed as such because they yield an effect estimate with the most precision of any weights of the form <span class="math inline">\(h(A_i,X_i)w_i^{ATE}\)</span> assuming the outcome variance is the same in both groups. Another cool thing about them is that they yield exact mean balance when logistic regression is used to estimate the propensity scores. It turns out this exact mean balance comes directly from the estimating equations for logistic regression, which I’ll demonstrate below.</p>
+<p>Recall the meat of the estimating equations for logistic regression, <span class="math inline">\((A_i-p_i)X_{ki}\)</span>. With a little algebra, we can rewrite the estimating equations as</p>
+<p><span class="math display">\[
+\frac{1}{N}\sum_{i=1}^N{(A_i-p_i)X_{ki}}=\frac{1}{N}\sum_{i=1}^N{\left(A_i(1-p_i)-(1-A_i)p_i \right)X_{ki}}
+\]</span></p>
+<p>This seems like an odd thing to do, but take a look at the formula for the ATO weights above. You’ll notice the logistic regression estimating equation now looks just like the formula for the weighted difference in means using the ATO weights! So, the solution to the logistic regression estimating equations, which sets their value to 0, also makes the weighted difference in means computed using the ATO weights exactly equal to 0.</p>
+</div>
+<div id="demonstration-in-r" class="section level2">
+<h2>Demonstration in R</h2>
+<p>Okay, let’s take a look of all this in R. First, I’ll show you how to use M-estimation to fit a logistic regression model, then CBPS, and show you how each method balances the covariates in different ways.</p>
+<p>First, we specify the estimating equations. For logistic regression, we create the function <code>s_bar_lr()</code>, which takes in a vector of coefficient estimates, the treatment, and the covariates, and returns the value of the estimating equations. The first step is to compute <span class="math inline">\(p_i\)</span> as <span class="math inline">\(\text{expit}(\mathbf{X}_i\beta)\)</span> (in R, expit is called <code>plogis()</code>). Then, we supply that to the estimating equation and compute the means.</p>
+<pre class="r"><code>s_bar_lr &lt;- function(b, A, X) {
+  p &lt;- plogis(drop(X %*% b))
+  
+  colMeans((A - p) * X)
+}</code></pre>
+<p>When we find the values of <code>b</code> that make this vector equal to 0, we have found the maximum likelihood estimates of logistic regression coefficients. Let’s take a look at this in action. We’ll use <code>rootSolve::multiroot()</code> to find the roots. This takes in a function, some starting values, and other variables you need to supply to the function, and finds the values of the desired parameters that make the function return a vector of 0s. We’ll use the <code>lalonde</code> dataset as an example.</p>
+<pre class="r"><code>library(&quot;cobalt&quot;)</code></pre>
+<pre><code>##  cobalt (Version 4.5.4, Build Date: 2024-02-26)</code></pre>
+<pre class="r"><code>data(&quot;lalonde&quot;)
+
+X &lt;- model.matrix(~age + educ + married + nodegree, data = lalonde)
+A &lt;- lalonde$treat
+
+out &lt;- rootSolve::multiroot(s_bar_lr,
+                            start = rep(0, ncol(X)),
+                            A = A, X = X)
+
+setNames(out$root, colnames(X))</code></pre>
+<pre><code>## (Intercept)         age        educ     married    nodegree 
+## -2.54468907  0.01024968  0.12644332 -1.52238592  0.98034779</code></pre>
+<p>And we’ll do the same using logistic regression implement in <code>glm()</code> just to show we get the same estimates:</p>
+<pre class="r"><code>fit &lt;- glm(treat ~ age + educ + married + nodegree, data = lalonde,
+           family = binomial(&quot;logit&quot;))
+coef(fit)</code></pre>
+<pre><code>## (Intercept)         age        educ     married    nodegree 
+## -2.54468907  0.01024968  0.12644332 -1.52238592  0.98034779</code></pre>
+<pre class="r"><code>all.equal(coef(fit), out$root, check.attributes = FALSE)</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<p>And we can see that when we supply those values to the estimating equations, we get a vector of 0s:</p>
+<pre class="r"><code>s_bar_lr(out$root, A, X) |&gt; round(12)</code></pre>
+<pre><code>## (Intercept)         age        educ     married    nodegree 
+##           0           0           0           0           0</code></pre>
+<p>Now let’s compute ATO weights from the propensity scores estmated from this model and compute the weighted mean differences:</p>
+<pre class="r"><code>p &lt;- plogis(drop(X %*% out$root))
+
+w_ATO &lt;- A * (1 - p) + (1 - A) * p
+
+col_w_smd(X[,-1], A, w_ATO) |&gt; round(7)</code></pre>
+<pre><code>##      age     educ  married nodegree 
+##        0        0        0        0</code></pre>
+<p>The ATO weights exactly balance the covariate means, as promised. If we compute the ATE weights, though, we find balance is good but not perfect.</p>
+<pre class="r"><code>w_ATE &lt;- A / p + (1 - A) / (1 - p)
+
+col_w_smd(X[,-1], A, w_ATE)</code></pre>
+<pre><code>##          age         educ      married     nodegree 
+## -0.066562991  0.059888054 -0.028829997 -0.004447331</code></pre>
+<p>Now let’s use M-estimation to fit the CBPS model for the propensity scores. For this, we’ll use a different function that corresponds to the weighted difference in means for ATE weights. I’ll call this one <code>s_bar_cb()</code>.</p>
+<pre class="r"><code>s_bar_cb &lt;- function(b, A, X) {
+  p &lt;- plogis(drop(X %*% b))
+  
+  colMeans((A/p - (1-A)/(1-p)) * X)
+}</code></pre>
+<p>We’ll again estimate the coefficients using M-estimation.</p>
+<pre class="r"><code>out &lt;- rootSolve::multiroot(s_bar_cb,
+                            start = rep(0, ncol(X)),
+                            A = A, X = X)
+
+setNames(out$root, colnames(X))</code></pre>
+<pre><code>##  (Intercept)          age         educ      married     nodegree 
+## -2.907727232  0.004142096  0.168217307 -1.535394932  1.110766225</code></pre>
+<p>The coefficients aren’t too different from the usual logistic regression coefficients. Let’s compare them to the coefficients estimated from <code>CBPS::CBPS()</code>:</p>
+<pre class="r"><code>fit_cb &lt;- CBPS::CBPS(treat ~ age + educ + married + nodegree,
+                     data = lalonde, ATT = 0, method = &quot;exact&quot;)
+
+all.equal(out$root, drop(coef(fit_cb)), check.attributes = FALSE,
+          tolerance = 1e-4)</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<p>Looks like we got them right<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a>! Let’s compute balance using the estimated ATE weights:</p>
+<pre class="r"><code>p &lt;- plogis(drop(X %*% out$root))
+
+w_ATE_cb &lt;- A / p + (1 - A) / (1 - p)
+
+col_w_smd(X[,-1], A, w_ATE_cb) |&gt; round(10)</code></pre>
+<pre><code>##      age     educ  married nodegree 
+##        0        0        0        0</code></pre>
+<p>It turns out it’s pretty simple to make CBPS weights for the ATT or ATC, too; just apply the ATT or ATC weights formula to the estimating equations and then compute the weights from the resulting coefficients. I’ll demonstrate this without much commentary for the ATT below, noting that ATT weights are <span class="math inline">\(w_i^{ATT}=A + (1- A)\frac{p_i}{1-p_i}=p_i w_i^{ATE}\)</span>.</p>
+<pre class="r"><code>s_bar_cb_att &lt;- function(b, A, X) {
+  p &lt;- plogis(drop(X %*% b))
+  
+  colMeans((A - (1 - A) * p / (1 - p)) * X)
+}
+
+out &lt;- rootSolve::multiroot(s_bar_cb_att,
+                            start = rep(0, ncol(X)),
+                            A = A, X = X)
+
+p &lt;- plogis(drop(X %*% out$root))
+
+w_ATT_cb &lt;- A + (1 - A) * p / (1 - p)
+
+col_w_smd(X[,-1], A, w_ATT_cb) |&gt; round(10)</code></pre>
+<pre><code>##      age     educ  married nodegree 
+##        0        0        0        0</code></pre>
+<p>I told you earlier that all generalized linear models with a canonical link have the same estimating equations as logistic regression, and I also told you that the estimating equations for logistic regression imply exact balance on the covariate means when using ATO weights. It turns out that this means if you use any generalized linear model with a canonical link, you also get exact mean balance when using ATO weights computed from its predicted values. I’ll demonstrate that below with Poisson and linear regression. This time I’ll skip the M-estimation and just use <code>glm()</code> to compute the propensity scores.</p>
+<pre class="r"><code># Poisson PS
+p &lt;- glm(treat ~ age + educ + married + nodegree, data = lalonde,
+         family = poisson(&quot;log&quot;)) |&gt; fitted()
+
+w_ATO_pois &lt;- A * (1 - p) + (1 - A) * p
+
+col_w_smd(X[,-1], A, w_ATO_pois) |&gt; round(7)</code></pre>
+<pre><code>##      age     educ  married nodegree 
+##        0        0        0        0</code></pre>
+<pre class="r"><code># Linear PS
+p &lt;- glm(treat ~ age + educ + married + nodegree, data = lalonde,
+         family = gaussian(&quot;identity&quot;)) |&gt; fitted()
+
+w_ATO_lin &lt;- A * (1 - p) + (1 - A) * p
+
+col_w_smd(X[,-1], A, w_ATO_lin) |&gt; round(7)</code></pre>
+<pre><code>##      age     educ  married nodegree 
+##        0        0        0        0</code></pre>
+<p>Okay, but before I end, I want to show you something cool and maybe unexpected about the linear regression ATO weights. This was inspired by a finding in <span class="citation">Hazlett and Shinkre (<a href="#ref-hazlettUnderstandingAvoidingWeights2024">n.d.</a>)</span>. Consider estimating a treatment effect using a linear regression of the outcome on the treatment and covariates but with no interaction between them. It turns out the coefficient on treatment is exactly equal to the weighted difference in means computed using the linear regression propensity score ATO weights. See below:</p>
+<pre class="r"><code>fit &lt;- lm(re78 ~ treat + age + educ + married + nodegree,
+          data = lalonde)
+coef(fit)[&quot;treat&quot;]</code></pre>
+<pre><code>##    treat 
+## 207.3495</code></pre>
+<pre class="r"><code>col_w_smd(lalonde$re78, A, w_ATO_lin, std = FALSE)</code></pre>
+<pre><code>## [1] 207.3495</code></pre>
+<p>That’s pretty crazy! That mean we can interpret this linear regression estimate as an overlap-weighted difference in means, where the propensity scores used in the overlap weights are fitted using linear regression (i.e., the linear probability model). Of course, the linear probability model is a pretty bad propensity score model since it can yield propensity scores greater than 1 and less than 0, which yield negative and possibly extreme ATO weights, unlike the logistic regression-based ATO weights, which are always positive and never extreme.</p>
+</div>
+<div id="conclusion" class="section level2">
+<h2>Conclusion</h2>
+<p>Hopefully you found this moderately interesting and learned something about M-estimation, logistic regression, CBPS, and overlap weights!</p>
+</div>
+<div id="references" class="section level2 unnumbered">
+<h2>References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-grahamInverseProbabilityTilting2012" class="csl-entry">
+Graham, Bryan S., Cristine Campos De Xavier Pinto, and Daniel Egel. 2012. <span>“Inverse Probability Tilting for Moment Condition Models with Missing Data.”</span> <em>The Review of Economic Studies</em> 79 (3): 1053–79. <a href="https://doi.org/10.1093/restud/rdr047">https://doi.org/10.1093/restud/rdr047</a>.
+</div>
+<div id="ref-hazlettUnderstandingAvoidingWeights2024" class="csl-entry">
+Hazlett, Chad, and Tanvi Shinkre. n.d. <span>“Understanding and Avoiding the <span>"</span>Weights of Regression<span>"</span>: Heterogeneous Effects, Misspecification, and Longstanding Solutions.”</span>
+</div>
+<div id="ref-imaiCovariateBalancingPropensity2014" class="csl-entry">
+Imai, Kosuke, and Marc Ratkovic. 2014. <span>“Covariate Balancing Propensity Score.”</span> <em>Journal of the Royal Statistical Society: Series B (Statistical Methodology)</em> 76 (1): 243263. <a href="https://doi.org/10.1111/rssb.12027">https://doi.org/10.1111/rssb.12027</a>.
+</div>
+<div id="ref-liBalancingCovariatesPropensity2018" class="csl-entry">
+Li, Fan, Kari Lock Morgan, and Alan M. Zaslavsky. 2018. <span>“Balancing Covariates via Propensity Score Weighting.”</span> <em>Journal of the American Statistical Association</em> 113 (521): 390–400. <a href="https://doi.org/10.1080/01621459.2016.1260466">https://doi.org/10.1080/01621459.2016.1260466</a>.
+</div>
+<div id="ref-rossMestimationCommonEpidemiological2024" class="csl-entry">
+Ross, Rachael K, Paul N Zivich, Jeffrey S A Stringer, and Stephen R Cole. 2024. <span>“M-Estimation for Common Epidemiological Measures: Introduction and Applied Examples.”</span> <em>International Journal of Epidemiology</em> 53 (2): dyae030. <a href="https://doi.org/10.1093/ije/dyae030">https://doi.org/10.1093/ije/dyae030</a>.
+</div>
+<div id="ref-stefanskiCalculusMEstimation2002" class="csl-entry">
+Stefanski, Leonard A., and Dennis D. Boos. 2002. <span>“The Calculus of m-Estimation.”</span> <em>The American Statistician</em> 56 (1): 29–38. <a href="https://doi.org/10.1198/000313002753631330">https://doi.org/10.1198/000313002753631330</a>.
+</div>
+</div>
+</div>
+<div class="footnotes footnotes-end-of-document">
+<hr />
+<ol>
+<li id="fn1"><p>This is for the just- or exactly-identified CBPS; the over-identified version (which is the default in the <code>CBPS</code> package) combines both the logistic regression and modified estimating equations below; because there are now more estimating equations than parameters, this is instead solved using generalized method of moments (GMM).<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+<li id="fn2"><p>Actually, the coefficients we computed are more accurate than those from <code>CBPS()</code>.<a href="#fnref2" class="footnote-back">↩︎</a></p></li>
+</ol>
+</div>
+
+    </div>
+
+    
+
+
+
+
+<div class="article-tags">
+  
+  <a class="badge badge-light" href="/tag/logistic-regression/">logistic regression</a>
+  
+  <a class="badge badge-light" href="/tag/propensity-scores/">propensity-scores</a>
+  
+</div>
+
+
+
+<div class="share-box">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://ngreifer.github.io/blog/logistic-regression-cbps-overlap-weights/&amp;text=Musings%20on%20Logistic%20Regression,%20CBPS,%20and%20Overlap%20Weights" target="_blank" rel="noopener" class="share-btn-twitter" aria-label="twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://ngreifer.github.io/blog/logistic-regression-cbps-overlap-weights/&amp;t=Musings%20on%20Logistic%20Regression,%20CBPS,%20and%20Overlap%20Weights" target="_blank" rel="noopener" class="share-btn-facebook" aria-label="facebook">
+          <i class="fab fa-facebook"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=Musings%20on%20Logistic%20Regression,%20CBPS,%20and%20Overlap%20Weights&amp;body=https://ngreifer.github.io/blog/logistic-regression-cbps-overlap-weights/" target="_blank" rel="noopener" class="share-btn-email" aria-label="envelope">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://ngreifer.github.io/blog/logistic-regression-cbps-overlap-weights/&amp;title=Musings%20on%20Logistic%20Regression,%20CBPS,%20and%20Overlap%20Weights" target="_blank" rel="noopener" class="share-btn-linkedin" aria-label="linkedin-in">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="whatsapp://send?text=Musings%20on%20Logistic%20Regression,%20CBPS,%20and%20Overlap%20Weights%20https://ngreifer.github.io/blog/logistic-regression-cbps-overlap-weights/" target="_blank" rel="noopener" class="share-btn-whatsapp" aria-label="whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://ngreifer.github.io/blog/logistic-regression-cbps-overlap-weights/&amp;title=Musings%20on%20Logistic%20Regression,%20CBPS,%20and%20Overlap%20Weights" target="_blank" rel="noopener" class="share-btn-weibo" aria-label="weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+
+
+
+  
+  
+  
+    
+  
+  
+  
+  <div class="media author-card content-widget-hr">
+    
+      
+      <a href="https://ngreifer.github.io/"><img class="avatar mr-3 avatar-circle" src="/authors/noah-greifer/avatar_hu8cd5e2f86688deebdf424321704b109c_308340_270x270_fill_q75_lanczos_center.jpg" alt="Noah Greifer"></a>
+    
+
+    <div class="media-body">
+      <h5 class="card-title"><a href="https://ngreifer.github.io/">Noah Greifer</a></h5>
+      <h6 class="card-subtitle">Statistical Consultant and Programmer</h6>
+      
+      <ul class="network-icon" aria-hidden="true">
+  
+    
+    
+    
+      
+    
+    
+    
+    
+    
+      
+    
+    <li>
+      <a href="/#contact" >
+        <i class="fas fa-envelope"></i>
+      </a>
+    </li>
+  
+    
+    
+    
+      
+    
+    
+    
+    
+    
+      
+    
+    <li>
+      <a href="https://twitter.com/noah_greifer" target="_blank" rel="noopener">
+        <i class="fab fa-twitter"></i>
+      </a>
+    </li>
+  
+    
+    
+    
+    
+    
+    
+    
+      
+    
+    <li>
+      <a href="https://scholar.google.com/citations?user=pUqM9nkAAAAJ&amp;hl=en" target="_blank" rel="noopener">
+        <i class="ai ai-google-scholar"></i>
+      </a>
+    </li>
+  
+    
+    
+    
+      
+    
+    
+    
+    
+    
+      
+    
+    <li>
+      <a href="https://github.com/ngreifer" target="_blank" rel="noopener">
+        <i class="fab fa-github"></i>
+      </a>
+    </li>
+  
+</ul>
+
+    </div>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+</article>
+  </div>
+
+  <div class="page-footer">
+    
+    
+    <div class="container">
+      <footer class="site-footer">
+
+  
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+
+
+
+
+
+  
+  
+  
+
+  
+  
+    
+  
+  
+    
+  
+
+  
+
+  
+  <p class="powered-by copyright-license-text">
+    © 2024 Noah Greifer. This work is licensed under <a href="https://creativecommons.org/licenses/by-nc-nd/4.0" rel="noopener noreferrer" target="_blank">CC BY NC ND 4.0</a>
+  </p>
+  
+
+  <p class="powered-by footer-license-icons">
+    <a href="https://creativecommons.org/licenses/by-nc-nd/4.0" rel="noopener noreferrer" target="_blank" aria-label="Creative Commons">
+      <i class="fab fa-creative-commons fa-2x" aria-hidden="true"></i>
+      <i class="fab fa-creative-commons-by fa-2x" aria-hidden="true"></i>
+      
+        <i class="fab fa-creative-commons-nc fa-2x" aria-hidden="true"></i>
+      
+      
+        <i class="fab fa-creative-commons-nd fa-2x" aria-hidden="true"></i>
+      
+    </a>
+  </p>
+
+
+
+
+  <p class="powered-by">
+    
+    
+    
+      
+      
+      
+      
+      
+      
+      Published with <a href="https://wowchemy.com/?utm_campaign=poweredby" target="_blank" rel="noopener">Wowchemy</a> — the free, <a href="https://github.com/wowchemy/wowchemy-hugo-themes" target="_blank" rel="noopener">open source</a> website builder that empowers creators.
+    
+  </p>
+</footer>
+
+    </div>
+    
+  </div>
+
+      
+
+    
+    <script src="/js/vendor-bundle.min.53d67dc2cb1ebceb89d5e2aba2f86112.js"></script>
+
+    
+    
+    
+      
+
+      
+      
+
+      
+
+      
+        
+        <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@10.2.1/build/highlight.min.js" integrity="sha512-Ypjm0o7jOxAd4hpdoppSEN0TQOC19UtPAqD+4s5AlXmUvbmmS/YMxYqAqarQYyxTnB6/rqip9qcxlNB/3U9Wdg==" crossorigin="anonymous"></script>
+        
+        
+        <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@10.2.1/build/languages/r.min.js" crossorigin="anonymous"></script>
+        
+        <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@10.2.1/build/languages/latex.min.js" crossorigin="anonymous"></script>
+        
+      
+
+    
+
+    
+    
+    
+
+    
+    
+
+    
+    
+    
+      
+      <script id="search-hit-fuse-template" type="text/x-template">
+        <div class="search-hit" id="summary-{{key}}">
+          <div class="search-hit-content">
+            <div class="search-hit-name">
+              <a href="{{relpermalink}}">{{title}}</a>
+              <div class="article-metadata search-hit-type">{{type}}</div>
+              <p class="search-hit-description">{{snippet}}</p>
+            </div>
+          </div>
+        </div>
+      </script>
+      
+        <script src="https://cdn.jsdelivr.net/gh/krisk/Fuse@v3.2.1/dist/fuse.min.js" integrity="sha512-o38bmzBGX+hD3JHWUFCDA09btWaqrNmoJ3RXLlrysA7PP01Kgs4UlE4MhelE1v5dJR3+cxlR4qQlotsW7jKsnw==" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/gh/julmot/mark.js@8.11.1/dist/jquery.mark.min.js" integrity="sha512-mhbv5DqBMgrWL+32MmsDOt/OAvqr/cHimk6B8y/bx/xS88MVkYGPiVv2ixKVrkywF2qHplNRUvFsAHUdxZ3Krg==" crossorigin="anonymous"></script>
+      
+    
+
+    
+    
+
+    
+    
+    
+    
+
+    
+    
+      
+      
+      
+      
+      
+      
+      
+    
+
+    
+
+    
+    
+    
+    <script id="page-data" type="application/json">{"use_headroom":true}</script>
+
+    
+    
+      <script src="/js/wowchemy-headroom.c251366b4128fd5e6b046d4c97a62a51.js" type="module"></script>
+    
+    
+    
+    
+    
+    
+    
+      
+      
+    
+    
+    <script src="/en/js/wowchemy.min.ab2f2890dbe3e2e83579366d3d6e8fd9.js"></script>
+
+    
+    
+    
+    
+    
+    
+
+
+
+
+
+
+</body>
+</html>

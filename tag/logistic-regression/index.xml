@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>logistic regression | Noah Greifer</title>
+    <link>https://ngreifer.github.io/tag/logistic-regression/</link>
+      <atom:link href="https://ngreifer.github.io/tag/logistic-regression/index.xml" rel="self" type="application/rss+xml" />
+    <description>logistic regression</description>
+    <generator>Wowchemy (https://wowchemy.com)</generator><language>en-us</language><lastBuildDate>Tue, 12 Mar 2024 00:00:00 +0000</lastBuildDate>
+    <image>
+      <url>https://ngreifer.github.io/media/sharing.jpg</url>
+      <title>logistic regression</title>
+      <link>https://ngreifer.github.io/tag/logistic-regression/</link>
+    </image>
+    
+    <item>
+      <title>Musings on Logistic Regression, CBPS, and Overlap Weights</title>
+      <link>https://ngreifer.github.io/blog/logistic-regression-cbps-overlap-weights/</link>
+      <pubDate>Tue, 12 Mar 2024 00:00:00 +0000</pubDate>
+      <guid>https://ngreifer.github.io/blog/logistic-regression-cbps-overlap-weights/</guid>
+      <description>
+
+
+&lt;p&gt;As I’ve been studying M-estimation and the covariate balancing propensity score (CBPS) &lt;span class=&#34;citation&#34;&gt;(&lt;a href=&#34;#ref-imaiCovariateBalancingPropensity2014&#34;&gt;Imai and Ratkovic 2014&lt;/a&gt;)&lt;/span&gt;, I’ve been noticing some interesting connections between these methods and want to share them with you.&lt;/p&gt;
+&lt;div id=&#34;logistic-regression-and-m-estimation&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Logistic Regression and M-estimation&lt;/h2&gt;
+&lt;p&gt;First, what is logistic regression? I’ll discuss that in more detail in another post, but briefly it’s a way of modeling the relationship between &lt;span class=&#34;math inline&#34;&gt;\(k\)&lt;/span&gt; predictors &lt;span class=&#34;math inline&#34;&gt;\(\mathbf{X}\)&lt;/span&gt; (which include an intercept) and an outcome &lt;span class=&#34;math inline&#34;&gt;\(A\)&lt;/span&gt; (yes, I’ll use &lt;span class=&#34;math inline&#34;&gt;\(A\)&lt;/span&gt; for the outcome, and I’ll also use it to mean the treatment in an observational study since the context is fitting a model for the treatment to estimate propensity scores), where that relationship is specified to be&lt;/p&gt;
+&lt;p&gt;&lt;span class=&#34;math display&#34;&gt;\[
+p_i = P(A_i = 1|\mathbf{X}_i)=\text{expit}(\mathbf{X}_i\beta)
+\]&lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;where &lt;span class=&#34;math inline&#34;&gt;\(\text{expit}(z)=1/(1 + e^{-z})\)&lt;/span&gt;. Expit is also known as inverse logit, i.e., as &lt;span class=&#34;math inline&#34;&gt;\(\text{logit}^{-1}(z)\)&lt;/span&gt; where &lt;span class=&#34;math inline&#34;&gt;\(\text{logit}(p)=\ln\frac{p}{1-p}\)&lt;/span&gt;. We estimate &lt;span class=&#34;math inline&#34;&gt;\(\beta\)&lt;/span&gt; usually using maximum likelihood, but here I’m going to talk about M-estimation &lt;span class=&#34;citation&#34;&gt;(&lt;a href=&#34;#ref-stefanskiCalculusMEstimation2002&#34;&gt;Stefanski and Boos 2002&lt;/a&gt;; &lt;a href=&#34;#ref-rossMestimationCommonEpidemiological2024&#34;&gt;Ross et al. 2024&lt;/a&gt;)&lt;/span&gt;, in which we specify a “stack” of estimating equations and find the values of &lt;span class=&#34;math inline&#34;&gt;\(\beta\)&lt;/span&gt; such that all the estimating equations are equal to 0. That is, we specify the &lt;span class=&#34;math inline&#34;&gt;\(k\)&lt;/span&gt; estimating equations&lt;/p&gt;
+&lt;p&gt;&lt;span class=&#34;math display&#34;&gt;\[
+\frac{1}{N}\sum_{i=1}^N{\left(\array{s_1(\beta, A_i,\mathbf{X}_i) \\ \dots \\ s_k(\beta, A_i,\mathbf{X}_i)}\right)}=\mathbf{0}
+\]&lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;and find the values of &lt;span class=&#34;math inline&#34;&gt;\(\beta\)&lt;/span&gt; that satisfy the equation. This is called finding the “roots” of the estimating equations. There is an estimating equation for each parameter to be estimated. When the estimating equations are the partial derivatives of the log likelihood with respect to each coefficient, then then &lt;span class=&#34;math inline&#34;&gt;\(\beta\)&lt;/span&gt; that solve the estimating equations are also the maximum likelihood estimates.&lt;/p&gt;
+&lt;p&gt;For logistic regression, the &lt;span class=&#34;math inline&#34;&gt;\(k\)&lt;/span&gt; estimating estimating equations (one for each coefficient) look like the following:&lt;/p&gt;
+&lt;p&gt;&lt;span class=&#34;math display&#34;&gt;\[
+\frac{1}{N}\sum_{i=1}^N{(A_i-p_i)X_{ki}}=0
+\]&lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;It’s kind of crazy that it’s so simple when logistic regression seems so complicated and nonlinear. We estimate the coefficients in logistic regression simply by finding the values of &lt;span class=&#34;math inline&#34;&gt;\(\beta\)&lt;/span&gt; that are used to compute &lt;span class=&#34;math inline&#34;&gt;\(p_i\)&lt;/span&gt; that make this estimating equation equal 0 for each predictor. In practice, this can be done by using a “root-solver”, i.e., a function that finds the roots of a system of equations.&lt;/p&gt;
+&lt;p&gt;Another cool thing (which we’ll come back to) is that this estimating equation is not just for logistic regression but is also for any generalized linear model with a canonical link; indeed, that’s what defines the canonical link. For binomial regression, the logit link is the canonical like. For Poisson regression, it’s the log link, and for linear regression, it’s the identity link. That is, these three models can be estimated using the exact estimating equations I wrote above but with &lt;span class=&#34;math inline&#34;&gt;\(p_i\)&lt;/span&gt; computed using the respective formula (&lt;span class=&#34;math inline&#34;&gt;\(p_i=\exp(\mathbf{X}_i\beta)\)&lt;/span&gt; for the log link and &lt;span class=&#34;math inline&#34;&gt;\(p_i=\mathbf{X}_i\beta\)&lt;/span&gt; for the identity link).&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;covariate-balancing-propensity-score-cbps&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Covariate Balancing Propensity Score (CBPS)&lt;/h2&gt;
+&lt;p&gt;You may have heard of CBPS before; it’s a way of estimating the propensity score in an observational study using logistic regression in such a way that balance is automatically achieved on the covariate means. How does this work? Instead of using the above estimation equations to estimate the coefficients, CBPS uses a different set of estimation equations, in particular&lt;a href=&#34;#fn1&#34; class=&#34;footnote-ref&#34; id=&#34;fnref1&#34;&gt;&lt;sup&gt;1&lt;/sup&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;span class=&#34;math display&#34;&gt;\[
+\frac{1}{N}\sum_{i=1}^N{\left(\frac{A_i}{p_i} - \frac{1-A_i}{1-p_i}\right)X_{ki}}=0
+\]&lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;The keen propensity score weighting enjoyer might notice something familiar about this estimating equation; it looks a lot like the weighted mean difference of &lt;span class=&#34;math inline&#34;&gt;\(X_k\)&lt;/span&gt; when using inverse probability weights for the ATE, that is &lt;span class=&#34;math inline&#34;&gt;\(w^{ATE}_i=\frac{A_i}{p_i} + \frac{1-A_i}{1-p_i}\)&lt;/span&gt;. And indeed, this is so! The weighted difference in means is usually expressed as &lt;span class=&#34;math inline&#34;&gt;\(\frac{\sum_i{w_i A_i X_{ki}}}{\sum{w_i A_i}} - \frac{\sum_i{w_i (1-A_i) X_{ki}}}{\sum{w_i (1-A_i)}}\)&lt;/span&gt;, but when &lt;span class=&#34;math inline&#34;&gt;\(\sum_i{A_i/p_i} = \sum_i{(1-A_i)/(1-p_i)}=N\)&lt;/span&gt;, which is satisfied when an intercept is in &lt;span class=&#34;math inline&#34;&gt;\(\mathbf{X}\)&lt;/span&gt;, the estimating equation and the weighted difference in means are identical. That means what CBPS does is find the coefficients &lt;span class=&#34;math inline&#34;&gt;\(\beta\)&lt;/span&gt; such that weighted difference in means is equal to 0 for each covariate &lt;span class=&#34;math inline&#34;&gt;\(X_k\)&lt;/span&gt; when the weights are computed using the ATE formula applied to the probabilities generated by &lt;span class=&#34;math inline&#34;&gt;\(\beta\)&lt;/span&gt;. It’s pretty ingenious, which is why it made such a splash!&lt;/p&gt;
+&lt;p&gt;The idea of using estimating equations that correspond to covariate balance was also proposed by &lt;span class=&#34;citation&#34;&gt;Graham, De Xavier Pinto, and Egel (&lt;a href=&#34;#ref-grahamInverseProbabilityTilting2012&#34;&gt;2012&lt;/a&gt;)&lt;/span&gt; as “inverse probability tilting”; it turns out when applied to the ATT (described later) these methods are identical.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;ato-weights&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;ATO Weights&lt;/h2&gt;
+&lt;p&gt;Okay, but here is something else that is cool. A propensity score weighting enjoyer may have also heard of overlap weights or ATO weights &lt;span class=&#34;citation&#34;&gt;(&lt;a href=&#34;#ref-liBalancingCovariatesPropensity2018&#34;&gt;Li, Morgan, and Zaslavsky 2018&lt;/a&gt;)&lt;/span&gt;. These are weights computed as &lt;span class=&#34;math inline&#34;&gt;\(w^{ATO}_i=A_i(1-p_i) + (1-A_i)p_i=p_i(1-p_i)w^{ATE}_i\)&lt;/span&gt;. Overlap weights upweight the area of “overlap”, i.e., the are where units in the treated and control groups have approximately equal propensity scores (i.e., close to .5). They were developed as such because they yield an effect estimate with the most precision of any weights of the form &lt;span class=&#34;math inline&#34;&gt;\(h(A_i,X_i)w_i^{ATE}\)&lt;/span&gt; assuming the outcome variance is the same in both groups. Another cool thing about them is that they yield exact mean balance when logistic regression is used to estimate the propensity scores. It turns out this exact mean balance comes directly from the estimating equations for logistic regression, which I’ll demonstrate below.&lt;/p&gt;
+&lt;p&gt;Recall the meat of the estimating equations for logistic regression, &lt;span class=&#34;math inline&#34;&gt;\((A_i-p_i)X_{ki}\)&lt;/span&gt;. With a little algebra, we can rewrite the estimating equations as&lt;/p&gt;
+&lt;p&gt;&lt;span class=&#34;math display&#34;&gt;\[
+\frac{1}{N}\sum_{i=1}^N{(A_i-p_i)X_{ki}}=\frac{1}{N}\sum_{i=1}^N{\left(A_i(1-p_i)-(1-A_i)p_i \right)X_{ki}}
+\]&lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;This seems like an odd thing to do, but take a look at the formula for the ATO weights above. You’ll notice the logistic regression estimating equation now looks just like the formula for the weighted difference in means using the ATO weights! So, the solution to the logistic regression estimating equations, which sets their value to 0, also makes the weighted difference in means computed using the ATO weights exactly equal to 0.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;demonstration-in-r&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Demonstration in R&lt;/h2&gt;
+&lt;p&gt;Okay, let’s take a look of all this in R. First, I’ll show you how to use M-estimation to fit a logistic regression model, then CBPS, and show you how each method balances the covariates in different ways.&lt;/p&gt;
+&lt;p&gt;First, we specify the estimating equations. For logistic regression, we create the function &lt;code&gt;s_bar_lr()&lt;/code&gt;, which takes in a vector of coefficient estimates, the treatment, and the covariates, and returns the value of the estimating equations. The first step is to compute &lt;span class=&#34;math inline&#34;&gt;\(p_i\)&lt;/span&gt; as &lt;span class=&#34;math inline&#34;&gt;\(\text{expit}(\mathbf{X}_i\beta)\)&lt;/span&gt; (in R, expit is called &lt;code&gt;plogis()&lt;/code&gt;). Then, we supply that to the estimating equation and compute the means.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;s_bar_lr &amp;lt;- function(b, A, X) {
+  p &amp;lt;- plogis(drop(X %*% b))
+  
+  colMeans((A - p) * X)
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;When we find the values of &lt;code&gt;b&lt;/code&gt; that make this vector equal to 0, we have found the maximum likelihood estimates of logistic regression coefficients. Let’s take a look at this in action. We’ll use &lt;code&gt;rootSolve::multiroot()&lt;/code&gt; to find the roots. This takes in a function, some starting values, and other variables you need to supply to the function, and finds the values of the desired parameters that make the function return a vector of 0s. We’ll use the &lt;code&gt;lalonde&lt;/code&gt; dataset as an example.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(&amp;quot;cobalt&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##  cobalt (Version 4.5.4, Build Date: 2024-02-26)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;data(&amp;quot;lalonde&amp;quot;)
+
+X &amp;lt;- model.matrix(~age + educ + married + nodegree, data = lalonde)
+A &amp;lt;- lalonde$treat
+
+out &amp;lt;- rootSolve::multiroot(s_bar_lr,
+                            start = rep(0, ncol(X)),
+                            A = A, X = X)
+
+setNames(out$root, colnames(X))&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## (Intercept)         age        educ     married    nodegree 
+## -2.54468907  0.01024968  0.12644332 -1.52238592  0.98034779&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;And we’ll do the same using logistic regression implement in &lt;code&gt;glm()&lt;/code&gt; just to show we get the same estimates:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;fit &amp;lt;- glm(treat ~ age + educ + married + nodegree, data = lalonde,
+           family = binomial(&amp;quot;logit&amp;quot;))
+coef(fit)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## (Intercept)         age        educ     married    nodegree 
+## -2.54468907  0.01024968  0.12644332 -1.52238592  0.98034779&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;all.equal(coef(fit), out$root, check.attributes = FALSE)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] TRUE&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;And we can see that when we supply those values to the estimating equations, we get a vector of 0s:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;s_bar_lr(out$root, A, X) |&amp;gt; round(12)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## (Intercept)         age        educ     married    nodegree 
+##           0           0           0           0           0&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now let’s compute ATO weights from the propensity scores estmated from this model and compute the weighted mean differences:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;p &amp;lt;- plogis(drop(X %*% out$root))
+
+w_ATO &amp;lt;- A * (1 - p) + (1 - A) * p
+
+col_w_smd(X[,-1], A, w_ATO) |&amp;gt; round(7)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##      age     educ  married nodegree 
+##        0        0        0        0&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The ATO weights exactly balance the covariate means, as promised. If we compute the ATE weights, though, we find balance is good but not perfect.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;w_ATE &amp;lt;- A / p + (1 - A) / (1 - p)
+
+col_w_smd(X[,-1], A, w_ATE)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##          age         educ      married     nodegree 
+## -0.066562991  0.059888054 -0.028829997 -0.004447331&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now let’s use M-estimation to fit the CBPS model for the propensity scores. For this, we’ll use a different function that corresponds to the weighted difference in means for ATE weights. I’ll call this one &lt;code&gt;s_bar_cb()&lt;/code&gt;.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;s_bar_cb &amp;lt;- function(b, A, X) {
+  p &amp;lt;- plogis(drop(X %*% b))
+  
+  colMeans((A/p - (1-A)/(1-p)) * X)
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We’ll again estimate the coefficients using M-estimation.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;out &amp;lt;- rootSolve::multiroot(s_bar_cb,
+                            start = rep(0, ncol(X)),
+                            A = A, X = X)
+
+setNames(out$root, colnames(X))&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##  (Intercept)          age         educ      married     nodegree 
+## -2.907727232  0.004142096  0.168217307 -1.535394932  1.110766225&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The coefficients aren’t too different from the usual logistic regression coefficients. Let’s compare them to the coefficients estimated from &lt;code&gt;CBPS::CBPS()&lt;/code&gt;:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;fit_cb &amp;lt;- CBPS::CBPS(treat ~ age + educ + married + nodegree,
+                     data = lalonde, ATT = 0, method = &amp;quot;exact&amp;quot;)
+
+all.equal(out$root, drop(coef(fit_cb)), check.attributes = FALSE,
+          tolerance = 1e-4)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] TRUE&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Looks like we got them right&lt;a href=&#34;#fn2&#34; class=&#34;footnote-ref&#34; id=&#34;fnref2&#34;&gt;&lt;sup&gt;2&lt;/sup&gt;&lt;/a&gt;! Let’s compute balance using the estimated ATE weights:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;p &amp;lt;- plogis(drop(X %*% out$root))
+
+w_ATE_cb &amp;lt;- A / p + (1 - A) / (1 - p)
+
+col_w_smd(X[,-1], A, w_ATE_cb) |&amp;gt; round(10)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##      age     educ  married nodegree 
+##        0        0        0        0&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;It turns out it’s pretty simple to make CBPS weights for the ATT or ATC, too; just apply the ATT or ATC weights formula to the estimating equations and then compute the weights from the resulting coefficients. I’ll demonstrate this without much commentary for the ATT below, noting that ATT weights are &lt;span class=&#34;math inline&#34;&gt;\(w_i^{ATT}=A + (1- A)\frac{p_i}{1-p_i}=p_i w_i^{ATE}\)&lt;/span&gt;.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;s_bar_cb_att &amp;lt;- function(b, A, X) {
+  p &amp;lt;- plogis(drop(X %*% b))
+  
+  colMeans((A - (1 - A) * p / (1 - p)) * X)
+}
+
+out &amp;lt;- rootSolve::multiroot(s_bar_cb_att,
+                            start = rep(0, ncol(X)),
+                            A = A, X = X)
+
+p &amp;lt;- plogis(drop(X %*% out$root))
+
+w_ATT_cb &amp;lt;- A + (1 - A) * p / (1 - p)
+
+col_w_smd(X[,-1], A, w_ATT_cb) |&amp;gt; round(10)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##      age     educ  married nodegree 
+##        0        0        0        0&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;I told you earlier that all generalized linear models with a canonical link have the same estimating equations as logistic regression, and I also told you that the estimating equations for logistic regression imply exact balance on the covariate means when using ATO weights. It turns out that this means if you use any generalized linear model with a canonical link, you also get exact mean balance when using ATO weights computed from its predicted values. I’ll demonstrate that below with Poisson and linear regression. This time I’ll skip the M-estimation and just use &lt;code&gt;glm()&lt;/code&gt; to compute the propensity scores.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;# Poisson PS
+p &amp;lt;- glm(treat ~ age + educ + married + nodegree, data = lalonde,
+         family = poisson(&amp;quot;log&amp;quot;)) |&amp;gt; fitted()
+
+w_ATO_pois &amp;lt;- A * (1 - p) + (1 - A) * p
+
+col_w_smd(X[,-1], A, w_ATO_pois) |&amp;gt; round(7)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##      age     educ  married nodegree 
+##        0        0        0        0&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;# Linear PS
+p &amp;lt;- glm(treat ~ age + educ + married + nodegree, data = lalonde,
+         family = gaussian(&amp;quot;identity&amp;quot;)) |&amp;gt; fitted()
+
+w_ATO_lin &amp;lt;- A * (1 - p) + (1 - A) * p
+
+col_w_smd(X[,-1], A, w_ATO_lin) |&amp;gt; round(7)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##      age     educ  married nodegree 
+##        0        0        0        0&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Okay, but before I end, I want to show you something cool and maybe unexpected about the linear regression ATO weights. This was inspired by a finding in &lt;span class=&#34;citation&#34;&gt;Hazlett and Shinkre (&lt;a href=&#34;#ref-hazlettUnderstandingAvoidingWeights2024&#34;&gt;n.d.&lt;/a&gt;)&lt;/span&gt;. Consider estimating a treatment effect using a linear regression of the outcome on the treatment and covariates but with no interaction between them. It turns out the coefficient on treatment is exactly equal to the weighted difference in means computed using the linear regression propensity score ATO weights. See below:&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;fit &amp;lt;- lm(re78 ~ treat + age + educ + married + nodegree,
+          data = lalonde)
+coef(fit)[&amp;quot;treat&amp;quot;]&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##    treat 
+## 207.3495&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;col_w_smd(lalonde$re78, A, w_ATO_lin, std = FALSE)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] 207.3495&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;That’s pretty crazy! That mean we can interpret this linear regression estimate as an overlap-weighted difference in means, where the propensity scores used in the overlap weights are fitted using linear regression (i.e., the linear probability model). Of course, the linear probability model is a pretty bad propensity score model since it can yield propensity scores greater than 1 and less than 0, which yield negative and possibly extreme ATO weights, unlike the logistic regression-based ATO weights, which are always positive and never extreme.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;conclusion&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Conclusion&lt;/h2&gt;
+&lt;p&gt;Hopefully you found this moderately interesting and learned something about M-estimation, logistic regression, CBPS, and overlap weights!&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;references&#34; class=&#34;section level2 unnumbered&#34;&gt;
+&lt;h2&gt;References&lt;/h2&gt;
+&lt;div id=&#34;refs&#34; class=&#34;references csl-bib-body hanging-indent&#34;&gt;
+&lt;div id=&#34;ref-grahamInverseProbabilityTilting2012&#34; class=&#34;csl-entry&#34;&gt;
+Graham, Bryan S., Cristine Campos De Xavier Pinto, and Daniel Egel. 2012. &lt;span&gt;“Inverse Probability Tilting for Moment Condition Models with Missing Data.”&lt;/span&gt; &lt;em&gt;The Review of Economic Studies&lt;/em&gt; 79 (3): 1053–79. &lt;a href=&#34;https://doi.org/10.1093/restud/rdr047&#34;&gt;https://doi.org/10.1093/restud/rdr047&lt;/a&gt;.
+&lt;/div&gt;
+&lt;div id=&#34;ref-hazlettUnderstandingAvoidingWeights2024&#34; class=&#34;csl-entry&#34;&gt;
+Hazlett, Chad, and Tanvi Shinkre. n.d. &lt;span&gt;“Understanding and Avoiding the &lt;span&gt;&#34;&lt;/span&gt;Weights of Regression&lt;span&gt;&#34;&lt;/span&gt;: Heterogeneous Effects, Misspecification, and Longstanding Solutions.”&lt;/span&gt;
+&lt;/div&gt;
+&lt;div id=&#34;ref-imaiCovariateBalancingPropensity2014&#34; class=&#34;csl-entry&#34;&gt;
+Imai, Kosuke, and Marc Ratkovic. 2014. &lt;span&gt;“Covariate Balancing Propensity Score.”&lt;/span&gt; &lt;em&gt;Journal of the Royal Statistical Society: Series B (Statistical Methodology)&lt;/em&gt; 76 (1): 243263. &lt;a href=&#34;https://doi.org/10.1111/rssb.12027&#34;&gt;https://doi.org/10.1111/rssb.12027&lt;/a&gt;.
+&lt;/div&gt;
+&lt;div id=&#34;ref-liBalancingCovariatesPropensity2018&#34; class=&#34;csl-entry&#34;&gt;
+Li, Fan, Kari Lock Morgan, and Alan M. Zaslavsky. 2018. &lt;span&gt;“Balancing Covariates via Propensity Score Weighting.”&lt;/span&gt; &lt;em&gt;Journal of the American Statistical Association&lt;/em&gt; 113 (521): 390–400. &lt;a href=&#34;https://doi.org/10.1080/01621459.2016.1260466&#34;&gt;https://doi.org/10.1080/01621459.2016.1260466&lt;/a&gt;.
+&lt;/div&gt;
+&lt;div id=&#34;ref-rossMestimationCommonEpidemiological2024&#34; class=&#34;csl-entry&#34;&gt;
+Ross, Rachael K, Paul N Zivich, Jeffrey S A Stringer, and Stephen R Cole. 2024. &lt;span&gt;“M-Estimation for Common Epidemiological Measures: Introduction and Applied Examples.”&lt;/span&gt; &lt;em&gt;International Journal of Epidemiology&lt;/em&gt; 53 (2): dyae030. &lt;a href=&#34;https://doi.org/10.1093/ije/dyae030&#34;&gt;https://doi.org/10.1093/ije/dyae030&lt;/a&gt;.
+&lt;/div&gt;
+&lt;div id=&#34;ref-stefanskiCalculusMEstimation2002&#34; class=&#34;csl-entry&#34;&gt;
+Stefanski, Leonard A., and Dennis D. Boos. 2002. &lt;span&gt;“The Calculus of m-Estimation.”&lt;/span&gt; &lt;em&gt;The American Statistician&lt;/em&gt; 56 (1): 29–38. &lt;a href=&#34;https://doi.org/10.1198/000313002753631330&#34;&gt;https://doi.org/10.1198/000313002753631330&lt;/a&gt;.
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&#34;footnotes footnotes-end-of-document&#34;&gt;
+&lt;hr /&gt;
+&lt;ol&gt;
+&lt;li id=&#34;fn1&#34;&gt;&lt;p&gt;This is for the just- or exactly-identified CBPS; the over-identified version (which is the default in the &lt;code&gt;CBPS&lt;/code&gt; package) combines both the logistic regression and modified estimating equations below; because there are now more estimating equations than parameters, this is instead solved using generalized method of moments (GMM).&lt;a href=&#34;#fnref1&#34; class=&#34;footnote-back&#34;&gt;↩︎&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;li id=&#34;fn2&#34;&gt;&lt;p&gt;Actually, the coefficients we computed are more accurate than those from &lt;code&gt;CBPS()&lt;/code&gt;.&lt;a href=&#34;#fnref2&#34; class=&#34;footnote-back&#34;&gt;↩︎&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>
