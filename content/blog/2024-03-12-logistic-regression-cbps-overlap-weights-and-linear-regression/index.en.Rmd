@@ -1,0 +1,241 @@
+---
+title: Musings on Logistic Regression, CBPS, and Overlap Weights
+author: Noah Greifer
+date: '2024-03-12'
+slug: logistic-regression-cbps-overlap-weights
+categories: []
+tags:
+  - logistic regression
+  - propensity-scores
+subtitle: ''
+summary: ''
+authors: []
+lastmod: '2024-03-12T00:14:20-04:00'
+featured: no
+draft: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+bibliography: references.bib
+---
+
+As I've been studying M-estimation and the covariate balancing propensity score (CBPS) [@imaiCovariateBalancingPropensity2014], I've been noticing some interesting connections between these methods and want to share them with you.
+
+## Logistic Regression and M-estimation
+
+First, what is logistic regression? I'll discuss that in more detail in another post, but briefly it's a way of modeling the relationship between $k$ predictors $\mathbf{X}$ (which include an intercept) and an outcome $A$ (yes, I'll use $A$ for the outcome, and I'll also use it to mean the treatment in an observational study since the context is fitting a model for the treatment to estimate propensity scores), where that relationship is specified to be
+
+$$
+p_i = P(A_i = 1|\mathbf{X}_i)=\text{expit}(\mathbf{X}_i\beta)
+$$
+
+where $\text{expit}(z)=1/(1 + e^{-z})$. Expit is also known as inverse logit, i.e., as $\text{logit}^{-1}(z)$ where $\text{logit}(p)=\ln\frac{p}{1-p}$. We estimate $\beta$ usually using maximum likelihood, but here I'm going to talk about M-estimation [@stefanskiCalculusMEstimation2002; @rossMestimationCommonEpidemiological2024], in which we specify a "stack" of estimating equations and find the values of $\beta$ such that all the estimating equations are equal to 0. That is, we specify the $k$ estimating equations
+
+$$
+\frac{1}{N}\sum_{i=1}^N{\left(\array{s_1(\beta, A_i,\mathbf{X}_i) \\ \dots \\ s_k(\beta, A_i,\mathbf{X}_i)}\right)}=\mathbf{0}
+$$
+
+and find the values of $\beta$ that satisfy the equation. This is called finding the "roots" of the estimating equations. There is an estimating equation for each parameter to be estimated. When the estimating equations are the partial derivatives of the log likelihood with respect to each coefficient, then then $\beta$ that solve the estimating equations are also the maximum likelihood estimates.
+
+For logistic regression, the $k$ estimating estimating equations (one for each coefficient) look like the following:
+
+$$
+\frac{1}{N}\sum_{i=1}^N{(A_i-p_i)X_{ki}}=0
+$$
+
+It's kind of crazy that it's so simple when logistic regression seems so complicated and nonlinear. We estimate the coefficients in logistic regression simply by finding the values of $\beta$ that are used to compute $p_i$ that make this estimating equation equal 0 for each predictor. In practice, this can be done by using a "root-solver", i.e., a function that finds the roots of a system of equations.
+
+Another cool thing (which we'll come back to) is that this estimating equation is not just for logistic regression but is also for any generalized linear model with a canonical link; indeed, that's what defines the canonical link. For binomial regression, the logit link is the canonical like. For Poisson regression, it's the log link, and for linear regression, it's the identity link. That is, these three models can be estimated using the exact estimating equations I wrote above but with $p_i$ computed using the respective formula ($p_i=\exp(\mathbf{X}_i\beta)$ for the log link and $p_i=\mathbf{X}_i\beta$ for the identity link).
+
+## Covariate Balancing Propensity Score (CBPS)
+
+You may have heard of CBPS before; it's a way of estimating the propensity score in an observational study using logistic regression in such a way that balance is automatically achieved on the covariate means. How does this work? Instead of using the above estimation equations to estimate the coefficients, CBPS uses a different set of estimation equations, in particular[^1]
+
+[^1]: This is for the just- or exactly-identified CBPS; the over-identified version (which is the default in the `CBPS` package) combines both the logistic regression and modified estimating equations below; because there are now more estimating equations than parameters, this is instead solved using generalized method of moments (GMM).
+
+$$
+\frac{1}{N}\sum_{i=1}^N{\left(\frac{A_i}{p_i} - \frac{1-A_i}{1-p_i}\right)X_{ki}}=0
+$$
+
+The keen propensity score weighting enjoyer might notice something familiar about this estimating equation; it looks a lot like the weighted mean difference of $X_k$ when using inverse probability weights for the ATE, that is $w^{ATE}_i=\frac{A_i}{p_i} + \frac{1-A_i}{1-p_i}$. And indeed, this is so! The weighted difference in means is usually expressed as $\frac{\sum_i{w_i A_i X_{ki}}}{\sum{w_i A_i}} - \frac{\sum_i{w_i (1-A_i) X_{ki}}}{\sum{w_i (1-A_i)}}$, but when $\sum_i{A_i/p_i} = \sum_i{(1-A_i)/(1-p_i)}=N$, which is satisfied when an intercept is in $\mathbf{X}$, the estimating equation and the weighted difference in means are identical. That means what CBPS does is find the coefficients $\beta$ such that weighted difference in means is equal to 0 for each covariate $X_k$ when the weights are computed using the ATE formula applied to the probabilities generated by $\beta$. It's pretty ingenious, which is why it made such a splash!
+
+The idea of using estimating equations that correspond to covariate balance was also proposed by @grahamInverseProbabilityTilting2012 as "inverse probability tilting"; it turns out when applied to the ATT (described later) these methods are identical.
+
+## ATO Weights
+
+Okay, but here is something else that is cool. A propensity score weighting enjoyer may have also heard of overlap weights or ATO weights [@liBalancingCovariatesPropensity2018]. These are weights computed as $w^{ATO}_i=A_i(1-p_i) + (1-A_i)p_i=p_i(1-p_i)w^{ATE}_i$. Overlap weights upweight the area of "overlap", i.e., the are where units in the treated and control groups have approximately equal propensity scores (i.e., close to .5). They were developed as such because they yield an effect estimate with the most precision of any weights of the form $h(A_i,X_i)w_i^{ATE}$ assuming the outcome variance is the same in both groups. Another cool thing about them is that they yield exact mean balance when logistic regression is used to estimate the propensity scores. It turns out this exact mean balance comes directly from the estimating equations for logistic regression, which I'll demonstrate below.
+
+Recall the meat of the estimating equations for logistic regression, $(A_i-p_i)X_{ki}$. With a little algebra, we can rewrite the estimating equations as
+
+$$
+\frac{1}{N}\sum_{i=1}^N{(A_i-p_i)X_{ki}}=\frac{1}{N}\sum_{i=1}^N{\left(A_i(1-p_i)-(1-A_i)p_i \right)X_{ki}}
+$$
+
+This seems like an odd thing to do, but take a look at the formula for the ATO weights above. You'll notice the logistic regression estimating equation now looks just like the formula for the weighted difference in means using the ATO weights! So, the solution to the logistic regression estimating equations, which sets their value to 0, also makes the weighted difference in means computed using the ATO weights exactly equal to 0.
+
+## Demonstration in R
+
+Okay, let's take a look of all this in R. First, I'll show you how to use M-estimation to fit a logistic regression model, then CBPS, and show you how each method balances the covariates in different ways.
+
+First, we specify the estimating equations. For logistic regression, we create the function `s_bar_lr()`, which takes in a vector of coefficient estimates, the treatment, and the covariates, and returns the value of the estimating equations. The first step is to compute $p_i$ as $\text{expit}(\mathbf{X}_i\beta)$ (in R, expit is called `plogis()`). Then, we supply that to the estimating equation and compute the means.
+
+```{r}
+s_bar_lr <- function(b, A, X) {
+  p <- plogis(drop(X %*% b))
+  
+  colMeans((A - p) * X)
+}
+```
+
+When we find the values of `b` that make this vector equal to 0, we have found the maximum likelihood estimates of logistic regression coefficients. Let's take a look at this in action. We'll use `rootSolve::multiroot()` to find the roots. This takes in a function, some starting values, and other variables you need to supply to the function, and finds the values of the desired parameters that make the function return a vector of 0s. We'll use the `lalonde` dataset as an example.
+
+```{r}
+library("cobalt")
+data("lalonde")
+
+X <- model.matrix(~age + educ + married + nodegree, data = lalonde)
+A <- lalonde$treat
+
+out <- rootSolve::multiroot(s_bar_lr,
+                            start = rep(0, ncol(X)),
+                            A = A, X = X)
+
+setNames(out$root, colnames(X))
+
+```
+
+And we'll do the same using logistic regression implement in `glm()` just to show we get the same estimates:
+
+```{r}
+fit <- glm(treat ~ age + educ + married + nodegree, data = lalonde,
+           family = binomial("logit"))
+coef(fit)
+
+all.equal(coef(fit), out$root, check.attributes = FALSE)
+```
+
+And we can see that when we supply those values to the estimating equations, we get a vector of 0s:
+
+```{r}
+s_bar_lr(out$root, A, X) |> round(12)
+```
+
+Now let's compute ATO weights from the propensity scores estmated from this model and compute the weighted mean differences:
+
+```{r}
+p <- plogis(drop(X %*% out$root))
+
+w_ATO <- A * (1 - p) + (1 - A) * p
+
+col_w_smd(X[,-1], A, w_ATO) |> round(7)
+```
+
+The ATO weights exactly balance the covariate means, as promised. If we compute the ATE weights, though, we find balance is good but not perfect.
+
+```{r}
+w_ATE <- A / p + (1 - A) / (1 - p)
+
+col_w_smd(X[,-1], A, w_ATE)
+```
+
+Now let's use M-estimation to fit the CBPS model for the propensity scores. For this, we'll use a different function that corresponds to the weighted difference in means for ATE weights. I'll call this one `s_bar_cb()`.
+
+```{r}
+s_bar_cb <- function(b, A, X) {
+  p <- plogis(drop(X %*% b))
+  
+  colMeans((A/p - (1-A)/(1-p)) * X)
+}
+```
+
+We'll again estimate the coefficients using M-estimation.
+
+```{r}
+out <- rootSolve::multiroot(s_bar_cb,
+                            start = rep(0, ncol(X)),
+                            A = A, X = X)
+
+setNames(out$root, colnames(X))
+```
+
+The coefficients aren't too different from the usual logistic regression coefficients. Let's compare them to the coefficients estimated from `CBPS::CBPS()`:
+
+```{r}
+fit_cb <- CBPS::CBPS(treat ~ age + educ + married + nodegree,
+                     data = lalonde, ATT = 0, method = "exact")
+
+all.equal(out$root, drop(coef(fit_cb)), check.attributes = FALSE,
+          tolerance = 1e-4)
+```
+
+Looks like we got them right[^2]! Let's compute balance using the estimated ATE weights:
+
+[^2]: Actually, the coefficients we computed are more accurate than those from `CBPS()`.
+
+```{r}
+p <- plogis(drop(X %*% out$root))
+
+w_ATE_cb <- A / p + (1 - A) / (1 - p)
+
+col_w_smd(X[,-1], A, w_ATE_cb) |> round(10)
+```
+
+It turns out it's pretty simple to make CBPS weights for the ATT or ATC, too; just apply the ATT or ATC weights formula to the estimating equations and then compute the weights from the resulting coefficients. I'll demonstrate this without much commentary for the ATT below, noting that ATT weights are $w_i^{ATT}=A + (1- A)\frac{p_i}{1-p_i}=p_i w_i^{ATE}$.
+
+```{r}
+s_bar_cb_att <- function(b, A, X) {
+  p <- plogis(drop(X %*% b))
+  
+  colMeans((A - (1 - A) * p / (1 - p)) * X)
+}
+
+out <- rootSolve::multiroot(s_bar_cb_att,
+                            start = rep(0, ncol(X)),
+                            A = A, X = X)
+
+p <- plogis(drop(X %*% out$root))
+
+w_ATT_cb <- A + (1 - A) * p / (1 - p)
+
+col_w_smd(X[,-1], A, w_ATT_cb) |> round(10)
+```
+
+I told you earlier that all generalized linear models with a canonical link have the same estimating equations as logistic regression, and I also told you that the estimating equations for logistic regression imply exact balance on the covariate means when using ATO weights. It turns out that this means if you use any generalized linear model with a canonical link, you also get exact mean balance when using ATO weights computed from its predicted values. I'll demonstrate that below with Poisson and linear regression. This time I'll skip the M-estimation and just use `glm()` to compute the propensity scores.
+
+```{r}
+# Poisson PS
+p <- glm(treat ~ age + educ + married + nodegree, data = lalonde,
+         family = poisson("log")) |> fitted()
+
+w_ATO_pois <- A * (1 - p) + (1 - A) * p
+
+col_w_smd(X[,-1], A, w_ATO_pois) |> round(7)
+
+# Linear PS
+p <- glm(treat ~ age + educ + married + nodegree, data = lalonde,
+         family = gaussian("identity")) |> fitted()
+
+w_ATO_lin <- A * (1 - p) + (1 - A) * p
+
+col_w_smd(X[,-1], A, w_ATO_lin) |> round(7)
+```
+
+Okay, but before I end, I want to show you something cool and maybe unexpected about the linear regression ATO weights. This was inspired by a finding in @hazlettUnderstandingAvoidingWeights2024. Consider estimating a treatment effect using a linear regression of the outcome on the treatment and covariates but with no interaction between them. It turns out the coefficient on treatment is exactly equal to the weighted difference in means computed using the linear regression propensity score ATO weights. See below:
+
+```{r}
+fit <- lm(re78 ~ treat + age + educ + married + nodegree,
+          data = lalonde)
+coef(fit)["treat"]
+
+col_w_smd(lalonde$re78, A, w_ATO_lin, std = FALSE)
+```
+
+That's pretty crazy! That mean we can interpret this linear regression estimate as an overlap-weighted difference in means, where the propensity scores used in the overlap weights are fitted using linear regression (i.e., the linear probability model). Of course, the linear probability model is a pretty bad propensity score model since it can yield propensity scores greater than 1 and less than 0, which yield negative and possibly extreme ATO weights, unlike the logistic regression-based ATO weights, which are always positive and never extreme.
+
+## Conclusion
+
+Hopefully you found this moderately interesting and learned something about M-estimation, logistic regression, CBPS, and overlap weights!
+
+## References
