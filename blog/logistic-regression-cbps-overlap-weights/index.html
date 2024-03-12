@@ -701,6 +701,7 @@ w^{ATO}_i=A_i(1-p_i) + (1-A_i)p_i=p_i(1-p_i)w^{ATE}_i
 \frac{1}{N}\sum_{i=1}^N{(A_i-p_i)X_{ki}}=\frac{1}{N}\sum_{i=1}^N{\left(A_i(1-p_i)-(1-A_i)p_i \right)X_{ki}}
 \]</span></p>
 <p>This seems like an odd thing to do, but take a look at the formula for the ATO weights above. You’ll notice the logistic regression estimating equation now looks just like the formula for the weighted difference in means using the ATO weights! So, the solution to the logistic regression estimating equations, which sets their value to 0, also makes the weighted difference in means computed using the ATO weights exactly equal to 0.</p>
+<p>This is why there is no “ATO” option when using CBPS; the usual logistic regression propensity scores are covariate balancing propensity scores when targeting the ATO!</p>
 </div>
 <div id="demonstration-in-r" class="section level2">
 <h2>Demonstration in R</h2>
