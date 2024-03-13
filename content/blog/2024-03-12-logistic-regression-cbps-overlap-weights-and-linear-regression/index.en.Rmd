@@ -10,7 +10,6 @@ tags:
 subtitle: ''
 summary: ''
 authors: []
-lastmod: '2024-03-12T00:14:20-04:00'
 featured: no
 draft: no
 image:
@@ -25,23 +24,23 @@ As I've been studying M-estimation and the covariate balancing propensity score 
 
 ## Logistic Regression and M-estimation
 
-First, what is logistic regression? I'll discuss that in more detail in another post, but briefly it's a way of modeling the relationship between $k$ predictors $\mathbf{X}$ (which include an intercept) and an outcome $A$ (yes, I'll use $A$ for the outcome, and I'll also use it to mean the treatment in an observational study since the context is fitting a model for the treatment to estimate propensity scores), where that relationship is specified to be
+First, what is logistic regression? I'll discuss that in more detail in another post, but briefly it's a way of modeling the relationship between $K$ predictors $\mathbf{X}$ (which include an intercept) and an outcome $A$ (yes, I'll use $A$ for the outcome, and I'll also use it to mean the treatment in an observational study since the context is fitting a model for the treatment to estimate propensity scores), where that relationship is specified to be
 
 $$
 p_i = P(A_i = 1|\mathbf{X}_i)=\text{expit}(\mathbf{X}_i\beta)
 $$
 
-where $\text{expit}(z)=1/(1 + e^{-z})$. Expit is also known as inverse logit, i.e., as $\text{logit}^{-1}(z)$ where $\text{logit}(p)=\ln\frac{p}{1-p}$. We estimate $\beta$ usually using maximum likelihood, but here I'm going to talk about M-estimation [@stefanskiCalculusMEstimation2002; @rossMestimationCommonEpidemiological2024], in which we specify a "stack" of estimating equations and find the values of $\beta$ such that all the estimating equations are equal to 0. That is, we specify the $k$ estimating equations
+where $\text{expit}(z)=1/(1 + e^{-z})$. Expit is also known as inverse logit, i.e., as $\text{logit}^{-1}(z)$ where $\text{logit}(p)=\ln\frac{p}{1-p}$. We estimate $\beta$ usually using maximum likelihood, but here I'm going to talk about M-estimation [@stefanskiCalculusMEstimation2002; @rossMestimationCommonEpidemiological2024], in which we specify a "stack" of estimating equations and find the values of $\beta$ such that all the estimating equations are equal to 0. That is, we specify the $K$ estimating equations
 
 $$
-\frac{1}{N}\sum_{i=1}^N{\left(\array{s_1(\beta, A_i,\mathbf{X}_i) \\ \dots \\ s_k(\beta, A_i,\mathbf{X}_i)}\right)}=\mathbf{0}
+\frac{1}{N}\sum_{i=1}^N{\left(\array{s_1(\beta, A_i,\mathbf{X}_i) \\ \dots \\ s_K(\beta, A_i,\mathbf{X}_i)}\right)}=\mathbf{0}
 $$
 
 and find the values of $\beta$ that satisfy the equation. This is called finding the "roots" of the estimating equations. There is an estimating equation for each parameter to be estimated. When the estimating equations are the partial derivatives of the log likelihood with respect to each coefficient, then then $\beta$ that solve the estimating equations are also the maximum likelihood estimates[^1].
 
 [^1]: This is because when the derivative of a function is equal to 0, we are at its maximum (or minimum, but in this case we know it's the maximum). The goal is to maximize the (log) likelihood, the usual maximum likelihood estimates occur when the derivative of the (log) likelihood are equal to zero. One can either maximize the likelihood by finding the maximum value it attains or by finding when its derivative is zero.
 
-For logistic regression, the $k$ estimating estimating equations (one for each coefficient) look like the following:
+For logistic regression, the $K$ estimating estimating equations (one for each coefficient indexed by $k$) look like the following:
 
 $$
 \frac{1}{N}\sum_{i=1}^N{(A_i-p_i)X_{ki}}=0
@@ -49,7 +48,7 @@ $$
 
 It's kind of crazy that it's so simple when logistic regression seems so complicated and nonlinear. We estimate the coefficients in logistic regression simply by finding the values of $\beta$ that are used to compute $p_i$ that make this estimating equation equal 0 for each predictor. In practice, this can be done by using a "root-solver", i.e., a function that finds the roots of a system of equations.
 
-Another cool thing (which we'll come back to) is that this estimating equation is not just for logistic regression but is also for any generalized linear model with a canonical link; indeed, that's what defines the canonical link. For binomial regression, the logit link is the canonical like. For Poisson regression, it's the log link, and for linear regression, it's the identity link. That is, these three models can be estimated using the exact estimating equations I wrote above but with $p_i$ computed using the respective formula ($p_i=\exp(\mathbf{X}_i\beta)$ for the log link and $p_i=\mathbf{X}_i\beta$ for the identity link).
+Another cool thing (which we'll come back to) is that this estimating equation is not just for logistic regression but is also for any generalized linear model with a canonical link; indeed, that's what defines the canonical link. For binomial regression, the logit link is the canonical link. For Poisson regression, it's the log link, and for linear regression, it's the identity link. That is, these three models can be estimated using the exact estimating equations I wrote above but with $p_i$ computed using the respective formula ($p_i=\exp(\mathbf{X}_i\beta)$ for the log link and $p_i=\mathbf{X}_i\beta$ for the identity link).
 
 ## Covariate Balancing Propensity Score (CBPS)
 
@@ -67,9 +66,9 @@ The idea of using estimating equations that correspond to covariate balance was 
 
 ## ATO Weights
 
-Okay, but here is something else that is cool. A propensity score weighting enjoyer may have also heard of overlap weights or ATO weights [@liBalancingCovariatesPropensity2018]. These are weights computed as $$
+A propensity score weighting enjoyer may have also heard of overlap weights or ATO weights [@liBalancingCovariatesPropensity2018]. These are weights computed as $$
 w^{ATO}_i=A_i(1-p_i) + (1-A_i)p_i=p_i(1-p_i)w^{ATE}_i
-$$ Overlap weights upweight the area of "overlap", i.e., the area where units in the treated and control groups have approximately equal propensity scores (i.e., close to .5). They were developed as such because they yield an effect estimate with the most precision of any weights of the form $h(X_i)w_i^{ATE}$ assuming the outcome variance is the same in both groups. Another cool thing about them is that they yield exact mean balance when logistic regression is used to estimate the propensity scores. It turns out this exact mean balance comes directly from the estimating equations for logistic regression, which I'll demonstrate below.
+$$Overlap weights upweight the area of "overlap", i.e., the area where units in the treated and control groups have approximately equal propensity scores (i.e., close to .5). They were developed as such because they yield an effect estimate with the most precision of any weights of the form $h(X_i)w_i^{ATE}$ assuming the outcome variance is the same in both groups. Another cool thing about them is that they yield exact mean balance when logistic regression is used to estimate the propensity scores. It turns out this exact mean balance comes directly from the estimating equations for logistic regression, which I'll demonstrate below.
 
 With a little algebra, we can rewrite the logistic regression estimating equations as
 
@@ -79,11 +78,13 @@ $$
 
 This seems like an odd thing to do, but take a look at the formula for the ATO weights above. You'll notice the logistic regression estimating equation now looks just like the formula for the weighted difference in means using the ATO weights! So, the solution to the logistic regression estimating equations, which sets their value to 0, also makes the weighted difference in means computed using the ATO weights exactly equal to 0.
 
-This is why there is no "ATO" option when using CBPS; the usual logistic regression propensity scores are covariate balancing propensity scores when targeting the ATO!
+This is why there is no "ATO" option when using CBPS; the usual logistic regression propensity scores *are* covariate balancing propensity scores when targeting the ATO!
 
 ## Demonstration in R
 
-Okay, let's take a look of all this in R. First, I'll show you how to use M-estimation to fit a logistic regression model, then CBPS, and show you how each method balances the covariates in different ways.
+Okay, let's take a look of all this in R. First, I'll show you how to use M-estimation to fit a logistic regression model and CBPS, and then I'll show you how each method balances the covariates in different ways.
+
+### Logistic regression via M-estimation
 
 First, we specify the estimating equations. For logistic regression, we create the function `s_bar_lr()`, which takes in a vector of coefficient estimates, the treatment, and the covariates, and returns the value of the estimating equations. The first step is to compute $p_i$ as $\text{expit}(\mathbf{X}_i\beta)$ (in R, expit is called `plogis()`). Then, we supply that to the estimating equation and compute the means.
 
@@ -128,7 +129,7 @@ And we can see that when we supply those values to the estimating equations, we 
 s_bar_lr(out$root, A, X) |> round(7)
 ```
 
-Now let's compute ATO weights from the propensity scores estmated from this model and compute the weighted mean differences:
+Now let's compute ATO weights from the propensity scores estimated from this model and compute the weighted mean differences (we'll use `col_w_smd()` from `cobalt`, which computes weighted standardized mean differences column-wise for a matrix of covariates; we'll omit the intercept here as well):
 
 ```{r}
 p <- plogis(drop(X %*% out$root))
@@ -145,6 +146,8 @@ w_ATE <- A / p + (1 - A) / (1 - p)
 
 col_w_smd(X[,-1], A, w_ATE)
 ```
+
+### CBPS via M-estimation
 
 Now let's use M-estimation to fit the CBPS model for the propensity scores. For this, we'll use a different function that corresponds to the weighted difference in means for ATE weights. I'll call this one `s_bar_cb()`.
 
@@ -208,6 +211,8 @@ w_ATT_cb <- A + (1 - A) * p / (1 - p)
 col_w_smd(X[,-1], A, w_ATT_cb) |> round(7)
 ```
 
+### Overlap weights from canonical link GLM
+
 I told you earlier that all generalized linear models with a canonical link have the same estimating equations as logistic regression, and I also told you that the estimating equations for logistic regression imply exact balance on the covariate means when using ATO weights. It turns out that this means if you use any generalized linear model with a canonical link, you also get exact mean balance when using ATO weights computed from its predicted values. I'll demonstrate that below with Poisson and linear regression. This time I'll skip the M-estimation and just use `glm()` to compute the propensity scores.
 
 ```{r}
@@ -235,6 +240,7 @@ fit <- lm(re78 ~ treat + age + educ + married + nodegree,
           data = lalonde)
 coef(fit)["treat"]
 
+# Computing weighted difference in means; not standardized
 col_w_smd(lalonde$re78, A, w_ATO_lin, std = FALSE)
 ```
 
