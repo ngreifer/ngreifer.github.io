@@ -28,6 +28,8 @@ These packages are ones that I am a primary author on and have expertise on the 
   - Noah Greifer | [website](https://ngreifer.github.io/fwb) | [CRAN](https://cran.r-project.org/package=fwb) | [source](https://github.com/ngreifer/fwb)
 * `clarify`: Simulation-Based Inference for Regression Models
   - Noah Greifer, Steven Worthington, Stefano Iacus, and Gary King | [website](https://iqss.github.io/clarify/) | [CRAN](https://cloud.r-project.org/package=clarify) | [source](https://github.com/iqss/clarify/)
+* `lmw`: Linear Model Weights
+  - Ambarish Chattopadhyay, Noah Greifer, and José Zubizarreta | [CRAN](https://cloud.r-project.org/package=lmw) | [source](	https://github.com/ngreifer/lmw/)
 
 These packages are ones that I have developed as part of my job but which I don't consider "mine" in the sense that I am not the primary maintainer and I don't have expertise on the methods implemented. Please do not contact me about these packages.
 
