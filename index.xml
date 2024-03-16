@@ -1337,6 +1337,11 @@ Greifer, Noah, and Elizabeth A Stuart. 2021. &lt;span&gt;“Matching &lt;span&gt
 &lt;li&gt;Noah Greifer, Steven Worthington, Stefano Iacus, and Gary King | &lt;a href=&#34;https://iqss.github.io/clarify/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;website&lt;/a&gt; | &lt;a href=&#34;https://cloud.r-project.org/package=clarify&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CRAN&lt;/a&gt; | &lt;a href=&#34;https://github.com/iqss/clarify/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;source&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
+&lt;li&gt;&lt;code&gt;lmw&lt;/code&gt;: Linear Model Weights
+&lt;ul&gt;
+&lt;li&gt;Ambarish Chattopadhyay, Noah Greifer, and José Zubizarreta | &lt;a href=&#34;https://cloud.r-project.org/package=lmw&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CRAN&lt;/a&gt; | &lt;a href=&#34;https://github.com/ngreifer/lmw/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;source&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;These packages are ones that I have developed as part of my job but which I don&amp;rsquo;t consider &amp;ldquo;mine&amp;rdquo; in the sense that I am not the primary maintainer and I don&amp;rsquo;t have expertise on the methods implemented. Please do not contact me about these packages.&lt;/p&gt;
 &lt;ul&gt;
