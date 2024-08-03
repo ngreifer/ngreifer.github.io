@@ -7,10 +7,12 @@ on:
     branches: [main, master]
   workflow_dispatch:
 
-name: blogdown
+name: blogdown-gh-pages.yaml
+
+permissions: read-all
 
 jobs:
-  blogdown:
+  build:
     runs-on: ubuntu-latest
     # Only restrict concurrency for non-PR jobs
     concurrency:
@@ -18,7 +20,7 @@ jobs:
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: r-lib/actions/setup-pandoc@v2
 
@@ -28,21 +30,33 @@ jobs:
 
       - uses: r-lib/actions/setup-renv@v2
 
-      - name: Install blogdown
-        run: install.packages("blogdown")
-        shell: Rscript {0}
-
       - name: Install hugo
-        run: blogdown::install_hugo("0.99.0")
+        run: blogdown::install_hugo()
         shell: Rscript {0}
 
       - name: Build site
         run: blogdown::build_site(TRUE)
         shell: Rscript {0}
 
-      - name: Deploy to GitHub pages 🚀
-        if: github.event_name != 'pull_request'
-        uses: JamesIves/github-pages-deploy-action@v4.4.1
+      - name: Upload website artifact
+        if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' }}
+        uses: actions/upload-pages-artifact@v3
         with:
-          branch: gh-pages
-          folder: public
+          path: "public"
+
+  deploy:
+    needs: build
+
+    permissions:
+      pages: write      # to deploy to Pages
+      id-token: write   # to verify the deployment originates from an appropriate source
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
