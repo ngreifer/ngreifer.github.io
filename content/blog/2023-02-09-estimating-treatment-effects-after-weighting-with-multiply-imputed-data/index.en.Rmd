@@ -62,7 +62,7 @@ We'll use `MatchThem::weightthem()` to estimate propensity score weights in the 
 ```{r}
 library("MatchThem")
 w.imp <- weightthem(treat ~ age + educ + race + married + nodegree +
-                      re74 + re75, data = imp, method = "ps",
+                      re74 + re75, data = imp, method = "glm",
                     estimand = "ATT")
 ```
 
@@ -77,15 +77,19 @@ Balance could be a bit better on `age`, but we're going to move on because we ha
 
 ### Fitting the outcome models
 
-Our next step is to fit the outcome model in each imputed dataset. Here, our outcome will be `re78 == 0`, i.e., whether a unit's earnings in 1978 were 0. Ideally, treatment reduces this risk. Although our estimand will be a risk ratio, because we're doing g-computation, we can fit a model for the outcome that actually makes sense rather than choosing one based on the convenient interpretation of its coefficients. So, we'll fit a probit outcome model to really hit home that we need a post-estimation method to estimate our quantity of interest and can't rely on our model coefficients.
+Our next step is to fit the outcome model in each imputed dataset. Here, our outcome will be `re78 == 0`, i.e., whether a unit's earnings in 1978 were 0. Ideally, treatment reduces this risk. Although our estimand will be a risk ratio, because we're doing g-computation, we can fit a model for the outcome that actually makes sense rather than choosing one based on the convenient interpretation of its coefficients. So, we'll fit a logistic regression outcome model to really hit home that we need a post-estimation method to estimate our quantity of interest and can't rely on our model coefficients.
 
-Although `{MatchThem}` has functionality for fitting models to the imputed datasets that incorporate the weights, for our purposes, it is better to extract the imputed datasets and fit each model manually in a loop. We'll use `glm()` to do so, though the `{MatchThem}` and `{WeightIt}` documentation may recommend `survey::svyglm()` because it correctly computes the robust standard errors. We'll do that later using `{marginaleffects}` and `{clarify}` functions so it's okay that we don't do it now. We'll use a quasi-binomial model because we have weights.
+Although `{MatchThem}` has functionality for fitting models to the imputed datasets that incorporate the weights, for our purposes, it is better to extract the imputed datasets and fit each model manually in a loop. We'll use `glm_weightit()` in `{WeightIt}` to do so, as it correctly incorporates the uncertainty in estimating the propensity scores into the standard errors of the model coefficients.
 
 ```{r}
-fits <- lapply(complete(w.imp, "all"), function(d) {
-  glm(I(re78 == 0) ~ treat + age + educ + married + race +
-        nodegree + re74 + re75, data = d,
-      weights = weights, family = quasibinomial("probit"))
+library("WeightIt")
+fits <- lapply(seq_along(w.imp$models), function(i) {
+  data <- complete(w.imp, i)
+  W <- w.imp$models[[i]]
+  
+  glm_weightit(I(re78 == 0) ~ treat + age + educ + married + race +
+                 nodegree + re74 + re75, data = data,
+               weightit = W, family = binomial)
 })
 ```
 
@@ -93,17 +97,17 @@ If we wanted to interpret the pooled coefficients from our outcome model (and we
 
 ## The `{marginaleffects}` workflow
 
-Now we have our list of models. Our next step is to estimate the ATT risk ratio in each one (with the correct standard error) and pool the results. If the only quantity we want is the treatment effect, this is easy. We can use `marginaleffects::avg_comparisons()` on each model and then use `mice::pool()` to pool the results. In our call to `avg_comparisons()`, we need to subset the data used to fit each model to just the treated units and supply this to `newdata`, supply the name of the variable containing the weights to `wts`^[This actually isn't necessary for the ATT but it's walys good practice.], supply the robust standard error type (HC3) to `vcov`, and specify that we want the log risk ratio of the average estimated potential outcomes by supplying `"lnratioavg"` to `transform_pre`^[Note: we need the log risk ratio because Rubin's pooling rules don't apply to the risk ratio but do to the log risk ratio. We will exponentiate the log risk ratio and its confidence interval after pooling.].
+Now we have our list of models. Our next step is to estimate the ATT risk ratio in each one (with the correct standard error) and pool the results. If the only quantity we want is the treatment effect, this is easy. We can use `marginaleffects::avg_comparisons()` on each model and then use `mice::pool()` to pool the results. In our call to `avg_comparisons()`, we need to subset the data used to fit each model to just the treated units and supply this to `newdata` and specify that we want the log risk ratio of the average estimated potential outcomes by supplying `"lnratioavg"` to `comparison`^[Note: we need the log risk ratio because Rubin's pooling rules don't apply to the risk ratio but do to the log risk ratio. We will exponentiate the log risk ratio and its confidence interval after pooling.].
 
 ```{r}
 library("marginaleffects")
 comp.imp <- lapply(fits, function(fit) {
-  avg_comparisons(fit, newdata = subset(fit$data, treat == 1),
-                  variables = "treat", wts = "weights", vcov = "HC3",
-                  transform_pre = "lnratioavg")
+  avg_comparisons(fit, newdata = subset(treat == 1),
+                  variables = "treat",
+                  comparison = "lnratioavg")
 })
 
-pooled.comp <- mice::pool(comp.imp)
+pooled.comp <- mice::pool(comp.imp, dfcom = Inf)
 ```
 
 Finally, we can use `summary()` on the resulting object, adding the arguments `conf.int = TRUE` to request confidence intervals and `exponentiate = TRUE` to get the risk ratio from the log risk ratio.
@@ -120,44 +124,6 @@ out <- summary(pooled.comp, conf.int = TRUE,
 
 We find a risk ratio of approximately `r round(out$estimate[1], 3)`, 95% CI: [`r round(out[["2.5 %"]][1], 3)`, `r round(out[["97.5 %"]][1], 3)`], indicating that in our sample, the risk of having zero earnings in 1978 decreased slightly for those who received treatment, but we don't have strong evidence for such an effect in the population.
 
-Although this is nice and simple, things get a bit more complicated when we want to estimate multiple comparisons at the same time, estimate the marginal risks, or perform a more complex analysis. Additional programming is required to make `mice::pool()` compatible with these more complex quantities. We'll demonstrate how to hack `{marginaleffects}` to make it work using the instructions in the `{marginaleffects}` [vignette on multiple imputation](https://vincentarelbundock.github.io/marginaleffects/articles/multiple_imputation.html).
-
-We'll be using `avg_predictions()` on each model to compute the marginal risks under each treatment level, which uses a similar syntax to `comparisons()`. The challenge comes in that `avg_predictions()` produces two rows of output (one for each treatment level), which are not correctly distinguished by `mice::pool()`. So, we'll have to create a new custom class and write a new `tidy()` method for our class.
-
-First, we'll generate our marginal risks and assign the output our new class, which is arbitrary but which I will call `"pred_imp_custom"`.
-
-```{r}
-pred.imp <- lapply(fits, function(fit) {
-  out <- avg_predictions(fit, newdata = subset(fit$data, treat == 1),
-                         variables = "treat", wts = "weights",
-                         vcov = "HC3", by = "treat")
-  
-  # the next line assigns our custom class
-  class(out) <- c("pred_imp_custom", class(out))
-  return(out)
-})
-```
-
-Next, we'll write our new `tidy()` method. (Make sure to replace `treat` everywhere you see it with the name of your treatment variable.) We won't actually be using this function at all; it is called internally by `mice::pool()`.
-
-```{r}
-tidy.pred_imp_custom <- function(x, ...) {
-    out <- marginaleffects:::tidy.predictions(x, ...)
-    out$term <- paste("treat =", out$treat)
-    return(out)
-}
-```
-
-Finally, we can use `mice::pool()` and `summary()` to get our marginal risks:
-
-```{r}
-mice::pool(pred.imp) |> summary(conf.int = TRUE)
-```
-
-Taking the ratio of these risks gives us the risk ratio we computed above.
-
-Note that you have to customize the `tidy()` method in a slightly different way when you are estimating treatment effects in subgroups. I'll leave that as an exercise to the reader, or you can hire me to do it for you :)
-
 ## The `{clarify}` workflow
 
 The `{clarify}` workflow for multiply imputed data is very similar to its workflow for regular data. How simulation-based inference works broadly is that sets of parameters are drawn from a distribution after fitting the model; this distribution is often assumed to be multivariate normal with the mean vector equal to the estimated coefficients and the covariance equal to the asymptotic covariance matrix of the coefficients. Many (e.g., 1000) sets of coefficients are drawn, and a quantity of interest is computed using each set, forming a "posterior" distribution of the quantity of interest. This posterior is then used for inference: its standard deviation can be used as the quantity's standard error, and its quantiles can be used as confidence intervals. For more information on this methodology, see the `{clarify}` [website](https://iqss.github.io/clarify/) and its references.
@@ -169,7 +135,7 @@ To use `{clarify}`, we supply the list of fitted models to `clarify::misim()`, w
 ```{r}
 library("clarify")
 
-sim.imp <- misim(fits, n = 200, vcov = "HC3")
+sim.imp <- misim(fits, n = 200)
 sim.imp
 ```
 
