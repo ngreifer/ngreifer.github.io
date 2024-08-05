@@ -44,13 +44,13 @@ A patient comes into urgent care presenting with an unpleasant rash on his arm.
 
 "Odds of recovery..." muses the doctor. "So you appreciate odds ratios?"
 
-"Of course!" says the patient "The odds ratio is the ideal treatment effect measure. It the only one that can be invariant to the baseline odds, can be validly estimated in case-control studies, and is the natural parameter in my favorite regression model, logistic regression! Plus thinking in terms of odds rather than probability just feels natural to me. Doesn't everyone feel that way?"
+"Of course!" says the patient "The odds ratio is the ideal treatment effect measure. It's the only one that can be invariant to the baseline odds, can be validly estimated in case-control studies, and is the natural parameter in my favorite regression model, logistic regression! Plus thinking in terms of odds rather than probability just feels natural to me. Doesn't everyone feel that way?"
 
-"Great, well according to a recent trial, the odds of recovery for those taking the drug are...twice the odds of those who take a placebo," says the doctor, pulling up the trial result on her phone.
+"Great! Well, according to a recent trial, the odds of recovery for those taking the drug are...twice the odds of those who take a placebo," says the doctor, pulling up the trial result on her phone.
 
-"Only twice?" says the patent, disappointed. "That doesn't seem like a very big effect. If I have to go into medical debt and experience side effects I'd want to know the effect was larger than an odds ratio of 2."
+"Only twice?" says the patient, disappointed. "That doesn't seem like a very big effect. If I have to go into medical debt and experience side effects I'd want to know the effect was larger than an odds ratio of 2."
 
-"Actually, the trial also reports the odds ratio for patient subgroups by the presence of a genetic variant in their bRAT365 gene," says the doctor, squniting at her phone. She spins to her computer, and pulls up the results of the patient's gene sequencing analysis. "And it looks like you have the genetic variant! For those with the genetic variant, the odds of recovery are 4 times higher than the odds for those who take a placebo."
+"Actually, the trial also reports the odds ratio for patient subgroups by the presence of a genetic variant in their bRAT365 gene," says the doctor, squinting at her phone. She spins to her computer, and pulls up the results of the patient's gene sequencing analysis. "And it looks like you have the genetic variant! For those with the genetic variant, the odds of recovery are 4 times higher than the odds for those who take a placebo."
 
 "That's amazing!" exclaims the patient. "And definitely a large enough odds ratio for me to take the treatment confidently. Good thing I have the genetic variant!"
 
