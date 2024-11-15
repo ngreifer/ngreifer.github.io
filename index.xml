@@ -1614,7 +1614,7 @@ Greifer, Noah, and Elizabeth A Stuart. 2021. &lt;span&gt;“Matching &lt;span&gt
 &lt;/li&gt;
 &lt;li&gt;&lt;code&gt;MatchIt&lt;/code&gt;: Nonparametric Preprocessing for Parametric Causal Inference
 &lt;ul&gt;
-&lt;li&gt;Daniel Ho, Kosuke Imai, Gary King, Elizabeth Stuart, and Noah Greifer | &lt;a href=&#34;https://kosukeimai.github.io/MatchIt&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;website&lt;/a&gt; | &lt;a href=&#34;https://cran.r-project.org/package=MatchIt&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CRAN&lt;/a&gt; | &lt;a href=&#34;https://github.com/kosukeimai/MatchIt&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;source&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Daniel Ho, Kosuke Imai, Gary King, Elizabeth Stuart, and Noah Greifer | &lt;a href=&#34;https://kosukeimai.github.io/MatchIt&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;website&lt;/a&gt; | &lt;a href=&#34;https://cran.r-project.org/package=MatchIt&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CRAN&lt;/a&gt; | &lt;a href=&#34;https://github.com/ngreifer/MatchIt&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;source&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
 &lt;li&gt;&lt;code&gt;MatchThem&lt;/code&gt;: Matching and Weighting Multiply Imputed Datasets
@@ -1639,12 +1639,12 @@ Greifer, Noah, and Elizabeth A Stuart. 2021. &lt;span&gt;“Matching &lt;span&gt
 &lt;/li&gt;
 &lt;li&gt;&lt;code&gt;clarify&lt;/code&gt;: Simulation-Based Inference for Regression Models
 &lt;ul&gt;
-&lt;li&gt;Noah Greifer, Steven Worthington, Stefano Iacus, and Gary King | &lt;a href=&#34;https://iqss.github.io/clarify/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;website&lt;/a&gt; | &lt;a href=&#34;https://cloud.r-project.org/package=clarify&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CRAN&lt;/a&gt; | &lt;a href=&#34;https://github.com/iqss/clarify/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;source&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Noah Greifer, Steven Worthington, Stefano Iacus, and Gary King | &lt;a href=&#34;https://iqss.github.io/clarify/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;website&lt;/a&gt; | &lt;a href=&#34;https://cran.r-project.org/package=clarify&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CRAN&lt;/a&gt; | &lt;a href=&#34;https://github.com/iqss/clarify/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;source&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
 &lt;li&gt;&lt;code&gt;lmw&lt;/code&gt;: Linear Model Weights
 &lt;ul&gt;
-&lt;li&gt;Ambarish Chattopadhyay, Noah Greifer, and José Zubizarreta | &lt;a href=&#34;https://cloud.r-project.org/package=lmw&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CRAN&lt;/a&gt; | &lt;a href=&#34;https://github.com/ngreifer/lmw/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;source&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Ambarish Chattopadhyay, Noah Greifer, and José Zubizarreta | &lt;a href=&#34;https://cran.r-project.org/package=lmw&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CRAN&lt;/a&gt; | &lt;a href=&#34;https://github.com/ngreifer/lmw/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;source&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
 &lt;/ul&gt;
@@ -1666,6 +1666,12 @@ Greifer, Noah, and Elizabeth A Stuart. 2021. &lt;span&gt;“Matching &lt;span&gt
 &lt;p&gt;&lt;code&gt;Morphoscape&lt;/code&gt;: Computation and Visualization of Adaptive Landscapes&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;Blake Dickson, Stephanie Pierce, and Noah Greifer | &lt;a href=&#34;https://blakedickson.github.io/Morphoscape/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;website&lt;/a&gt; | &lt;a href=&#34;https://cran.r-project.org/package=Morphoscape&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CRAN&lt;/a&gt; | &lt;a href=&#34;https://github.com/blakedickson/Morphoscape&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;source&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;code&gt;MorphoRegions&lt;/code&gt;: Analysis of Regionalization Patterns in Serially Homologous Structures&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Amandine Gillet, Katrina Jones, Noah Greifer, and Stephanie Pierce | &lt;a href=&#34;https://aagillet.github.io/MorphoRegions/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;website&lt;/a&gt; | &lt;a href=&#34;https://cran.r-project.org/package=MorphoRegions&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CRAN&lt;/a&gt; | &lt;a href=&#34;https://github.com/aagillet/MorphoRegions/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;source&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
 &lt;/ul&gt;
