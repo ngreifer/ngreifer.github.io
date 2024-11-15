@@ -2,11 +2,19 @@
 # Documentation: https://wowchemy.com/docs/hugo-tutorials/page-sharer/
 
 [[buttons]]
-  id = "twitter"
-  url = "https://twitter.com/intent/tweet?url={url}&text={title}"
-  title = "Twitter"
+  id = "x"
+  url = "https://x.com/intent/tweet?url={url}&text={title}"
+  title = "X"
   icon_pack = "fab"
-  icon = "twitter"
+  icon = "x-twitter"
+  enable = true
+
+[[buttons]]
+  id = "bluesky"
+  url = "https://bsky.app/intent/compose?url={url}&text={title}"
+  title = "Bluesky"
+  icon_pack = "fab"
+  icon = "bluesky"
   enable = true
 
 [[buttons]]
@@ -39,7 +47,7 @@
   title = "WhatsApp"
   icon_pack = "fab"
   icon = "whatsapp"
-  enable = true
+  enable = false
 
 [[buttons]]
   id = "weibo"
@@ -47,7 +55,7 @@
   title = "Weibo"
   icon_pack = "fab"
   icon = "weibo"
-  enable = true
+  enable = false
 
 [[buttons]]
   id = "reddit"

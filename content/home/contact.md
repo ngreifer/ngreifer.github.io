@@ -44,10 +44,10 @@ content:
   #   - 'Wednesday 09:00 to 10:00'
   # appointment_url: 'https://calendly.com'
   contact_links:
-    - icon: twitter
+    - icon: bluesky
       icon_pack: fab
-      name: noah_greifer
-      link: 'https://twitter.com/noah_greifer'
+      name: noahgreifer
+      link: 'https://bsky.app/profile/noahgreifer.bsky.social'
 
 design:
   columns: '2'

@@ -27,12 +27,18 @@ social:
 - icon: envelope
   icon_pack: fas
   link: /#contact
-- icon: twitter
+- icon: x-twitter
   icon_pack: fab
-  link: https://twitter.com/noah_greifer
+  link: https://x.com/@noah_greifer
+- icon: bluesky
+  icon_pack: fab
+  link: https://bsky.app/profile/noahgreifer.bsky.social
 - icon: google-scholar
   icon_pack: ai
   link: https://scholar.google.com/citations?user=pUqM9nkAAAAJ&hl=en
+- icon: orcid
+  icon_pack: ai
+  link: https://orcid.org/0000-0003-3067-7154
 - icon: github
   icon_pack: fab
   link: https://github.com/ngreifer
@@ -41,7 +47,7 @@ superuser: true
 title: Noah Greifer
 ---
 
-I'm Noah Greifer (pronounced *gree-fur*; *pronouns: [he/him](https://www.mypronouns.org/he-him)*), a statistical consultant and programmer at Harvard University. I provide statistical consulting services as a member of the Data Science Services team at the Institute for Quantitative Social Science (IQSS) at Harvard. I also develop R packages, both as part of my job and in my personal time. Some of these packages include `MatchIt`, `WeightIt`, and `cobalt`, which facilitate the use of propensity score methods. See my other packages at the [Software](/software) link above. I post on my [blog](/blog) about R programming, statistical analysis, and R package development.
+I'm Noah Greifer (pronounced *gree-fur*; *pronouns: [he/him](https://www.mypronouns.org/he-him)*), a statistical consultant and programmer at Harvard University. I provide statistical consulting services as a member of the Data Science Services team at the Institute for Quantitative Social Science (IQSS) at Harvard. I also develop R packages, both as part of my job and in my personal time. Some of these packages include [`MatchIt`](https://kosukeimai.github.io/MatchIt/), [`WeightIt`](https://ngreifer.github.io/WeightIt/), and [`cobalt`](https://ngreifer.github.io/cobalt/), which facilitate the use of propensity score methods. See my other packages at the [Software](/software) link above. I post on my [blog](/blog) about R programming, statistical analysis, and R package development. I am active on [Bluesky](https://bsky.app/profile/noahgreifer.bsky.social) and [CrossValidated](https://stats.stackexchange.com/users/116195/noah).
 
 I currently reside in Cambridge, MA, but I grew up in Los Angeles, CA, and have lived in San Diego, CA, Portland, OR, and Durham, NC.
 

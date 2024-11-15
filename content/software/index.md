@@ -17,7 +17,7 @@ These packages are ones that I am a primary author on and have expertise on the 
 * `WeightIt`: Weighting for Covariate Balance in Observational Studies
   - Noah Greifer | [website](https://ngreifer.github.io/WeightIt) | [CRAN](https://cran.r-project.org/package=WeightIt) | [source](https://github.com/ngreifer/WeightIt)
 * `MatchIt`: Nonparametric Preprocessing for Parametric Causal Inference
-  - Daniel Ho, Kosuke Imai, Gary King, Elizabeth Stuart, and Noah Greifer | [website](https://kosukeimai.github.io/MatchIt) | [CRAN](https://cran.r-project.org/package=MatchIt) | [source](https://github.com/kosukeimai/MatchIt)
+  - Daniel Ho, Kosuke Imai, Gary King, Elizabeth Stuart, and Noah Greifer | [website](https://kosukeimai.github.io/MatchIt) | [CRAN](https://cran.r-project.org/package=MatchIt) | [source](https://github.com/ngreifer/MatchIt)
 * `MatchThem`: Matching and Weighting Multiply Imputed Datasets
   - Farhad Pishgar and Noah Greifer | [CRAN](https://cran.r-project.org/package=MatchThem) | [source](https://github.com/FarhadPishgar/MatchThem)
 * `optweight`: Targeted Stable Balancing Weights Using Optimization
@@ -27,9 +27,9 @@ These packages are ones that I am a primary author on and have expertise on the 
 * `fwb`: Fractional Weighted Bootstrap
   - Noah Greifer | [website](https://ngreifer.github.io/fwb) | [CRAN](https://cran.r-project.org/package=fwb) | [source](https://github.com/ngreifer/fwb)
 * `clarify`: Simulation-Based Inference for Regression Models
-  - Noah Greifer, Steven Worthington, Stefano Iacus, and Gary King | [website](https://iqss.github.io/clarify/) | [CRAN](https://cloud.r-project.org/package=clarify) | [source](https://github.com/iqss/clarify/)
+  - Noah Greifer, Steven Worthington, Stefano Iacus, and Gary King | [website](https://iqss.github.io/clarify/) | [CRAN](https://cran.r-project.org/package=clarify) | [source](https://github.com/iqss/clarify/)
 * `lmw`: Linear Model Weights
-  - Ambarish Chattopadhyay, Noah Greifer, and José Zubizarreta | [CRAN](https://cloud.r-project.org/package=lmw) | [source](https://github.com/ngreifer/lmw/)
+  - Ambarish Chattopadhyay, Noah Greifer, and José Zubizarreta | [CRAN](https://cran.r-project.org/package=lmw) | [source](https://github.com/ngreifer/lmw/)
 
 These packages are ones that I have developed as part of my job but which I don't consider "mine" in the sense that I am not the primary maintainer and I don't have expertise on the methods implemented. Please do not contact me about these packages.
 
@@ -41,3 +41,6 @@ These packages are ones that I have developed as part of my job but which I don'
   
 * `Morphoscape`: Computation and Visualization of Adaptive Landscapes
   - Blake Dickson, Stephanie Pierce, and Noah Greifer | [website](https://blakedickson.github.io/Morphoscape/) | [CRAN](https://cran.r-project.org/package=Morphoscape) | [source](https://github.com/blakedickson/Morphoscape)
+
+* `MorphoRegions`: Analysis of Regionalization Patterns in Serially Homologous Structures
+  - Amandine Gillet, Katrina Jones, Noah Greifer, and Stephanie Pierce | [website](https://aagillet.github.io/MorphoRegions/) | [CRAN](https://cran.r-project.org/package=MorphoRegions) | [source](https://github.com/aagillet/MorphoRegions/)
