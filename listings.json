@@ -1,0 +1,22 @@
+[
+  {
+    "listing": "/software/index.html",
+    "items": []
+  },
+  {
+    "listing": "/papers/index.html",
+    "items": []
+  },
+  {
+    "listing": "/blog/index.html",
+    "items": [
+      "/blog/an-odds-ratio-paradox/index.html",
+      "/blog/what-s-new-in-weightit-version-1-0-0/index.html",
+      "/blog/logistic-regression-cbps-overlap-weights/index.html",
+      "/blog/matching-weights/index.html",
+      "/blog/treatment-effects-mi/index.html",
+      "/blog/genetic-matching/index.html",
+      "/blog/subgroup-analysis-psm/index.html"
+    ]
+  }
+]

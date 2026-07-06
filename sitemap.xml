@@ -1,49 +1,55 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:xhtml="http://www.w3.org/1999/xhtml">
-  
-  
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://ngreifer.github.io/blog/an-odds-ratio-paradox/</loc><lastmod>2024-08-03T11:20:57-04:00</lastmod><changefreq>weekly</changefreq></url>
+    <loc>https://ngreifer.github.io/blog/what-s-new-in-weightit-version-1-0-0/index.html</loc>
+    <lastmod>2026-07-06T15:54:42.877Z</lastmod>
+  </url>
   <url>
-    <loc>https://ngreifer.github.io/tag/logistic-regression/</loc><lastmod>2024-08-03T11:20:57-04:00</lastmod><changefreq>weekly</changefreq></url>
+    <loc>https://ngreifer.github.io/blog/an-odds-ratio-paradox/index.html</loc>
+    <lastmod>2026-06-22T16:24:47.408Z</lastmod>
+  </url>
   <url>
-    <loc>https://ngreifer.github.io/</loc><lastmod>2024-08-03T11:20:57-04:00</lastmod><changefreq>weekly</changefreq></url>
+    <loc>https://ngreifer.github.io/blog/subgroup-analysis-psm/index.html</loc>
+    <lastmod>2026-07-03T15:48:40.620Z</lastmod>
+  </url>
   <url>
-    <loc>https://ngreifer.github.io/blog/</loc><lastmod>2024-08-03T11:20:57-04:00</lastmod><changefreq>weekly</changefreq></url>
+    <loc>https://ngreifer.github.io/software/index.html</loc>
+    <lastmod>2026-07-02T14:40:54.403Z</lastmod>
+  </url>
   <url>
-    <loc>https://ngreifer.github.io/tags/</loc><lastmod>2024-08-03T11:20:57-04:00</lastmod><changefreq>weekly</changefreq></url>
+    <loc>https://ngreifer.github.io/index.html</loc>
+    <lastmod>2026-07-02T21:35:24.006Z</lastmod>
+  </url>
   <url>
-    <loc>https://ngreifer.github.io/categories/</loc><lastmod>2024-03-21T00:00:00+00:00</lastmod><changefreq>weekly</changefreq></url>
+    <loc>https://ngreifer.github.io/papers/publications.ejs.html</loc>
+    <lastmod>2026-07-02T16:01:42.140Z</lastmod>
+  </url>
   <url>
-    <loc>https://ngreifer.github.io/tag/propensity-scores/</loc><lastmod>2024-03-21T00:00:00+00:00</lastmod><changefreq>weekly</changefreq></url>
+    <loc>https://ngreifer.github.io/papers/index.html</loc>
+    <lastmod>2026-07-02T19:56:39.990Z</lastmod>
+  </url>
   <url>
-    <loc>https://ngreifer.github.io/tag/r/</loc><lastmod>2024-03-21T00:00:00+00:00</lastmod><changefreq>weekly</changefreq></url>
+    <loc>https://ngreifer.github.io/software/packages.ejs.html</loc>
+    <lastmod>2026-07-02T14:45:52.987Z</lastmod>
+  </url>
   <url>
-    <loc>https://ngreifer.github.io/category/r/</loc><lastmod>2024-03-21T00:00:00+00:00</lastmod><changefreq>weekly</changefreq></url>
+    <loc>https://ngreifer.github.io/blog/matching-weights/index.html</loc>
+    <lastmod>2026-07-02T22:20:07.575Z</lastmod>
+  </url>
   <url>
-    <loc>https://ngreifer.github.io/blog/what-s-new-in-weightit-version-1-0-0/</loc><lastmod>2024-03-21T00:00:00+00:00</lastmod><changefreq>weekly</changefreq></url>
+    <loc>https://ngreifer.github.io/blog/index.html</loc>
+    <lastmod>2026-06-22T16:25:31.421Z</lastmod>
+  </url>
   <url>
-    <loc>https://ngreifer.github.io/blog/logistic-regression-cbps-overlap-weights/</loc><lastmod>2024-03-12T00:00:00+00:00</lastmod><changefreq>weekly</changefreq></url>
+    <loc>https://ngreifer.github.io/blog/treatment-effects-mi/index.html</loc>
+    <lastmod>2026-07-02T22:07:13.957Z</lastmod>
+  </url>
   <url>
-    <loc>https://ngreifer.github.io/tag/matching/</loc><lastmod>2023-05-30T00:00:00+00:00</lastmod><changefreq>weekly</changefreq></url>
+    <loc>https://ngreifer.github.io/blog/logistic-regression-cbps-overlap-weights/index.html</loc>
+    <lastmod>2026-07-02T22:18:33.944Z</lastmod>
+  </url>
   <url>
-    <loc>https://ngreifer.github.io/blog/matching-weights/</loc><lastmod>2023-05-30T00:00:00+00:00</lastmod><changefreq>weekly</changefreq></url>
-  <url>
-    <loc>https://ngreifer.github.io/blog/treatment-effects-mi/</loc><lastmod>2023-02-10T00:00:00+00:00</lastmod><changefreq>weekly</changefreq></url>
-  <url>
-    <loc>https://ngreifer.github.io/tag/multiple-imputation/</loc><lastmod>2023-02-10T00:00:00+00:00</lastmod><changefreq>weekly</changefreq></url>
-  <url>
-    <loc>https://ngreifer.github.io/blog/genetic-matching/</loc><lastmod>2022-10-08T00:00:00+00:00</lastmod><changefreq>weekly</changefreq></url>
-  <url>
-    <loc>https://ngreifer.github.io/tag/subgroup-analysis/</loc><lastmod>2022-09-05T00:00:00+00:00</lastmod><changefreq>weekly</changefreq></url>
-  <url>
-    <loc>https://ngreifer.github.io/blog/subgroup-analysis-psm/</loc><lastmod>2022-09-05T00:00:00+00:00</lastmod><changefreq>weekly</changefreq></url>
-  <url>
-    <loc></loc><changefreq>weekly</changefreq></url>
-  <url>
-    <loc></loc><changefreq>weekly</changefreq></url>
-  <url>
-    <loc>https://ngreifer.github.io/publication_types/</loc><changefreq>weekly</changefreq></url>
-  <url>
-    <loc>https://ngreifer.github.io/software/</loc><changefreq>weekly</changefreq></url></urlset>
+    <loc>https://ngreifer.github.io/blog/genetic-matching/index.html</loc>
+    <lastmod>2026-07-03T15:56:17.153Z</lastmod>
+  </url>
+</urlset>
