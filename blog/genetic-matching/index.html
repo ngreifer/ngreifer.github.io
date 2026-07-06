@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
 <meta charset="utf-8">
 <meta name="generator" content="quarto-1.9.38">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
 <meta name="author" content="Noah Greifer">
 <meta name="dcterms.date" content="2022-10-08">
+
 <title>Genetic Matching, from the Ground Up – Noah Greifer</title>
 <style>
 /* Default styles provided by pandoc.
@@ -78,6 +81,7 @@ div.csl-indent {
   margin-left: 2em;
 }</style>
 
+
 <script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
 <script src="../../site_libs/quarto-nav/headroom.min.js"></script>
 <script src="../../site_libs/clipboard/clipboard.min.js"></script>
@@ -85,7 +89,7 @@ div.csl-indent {
 <script src="../../site_libs/quarto-search/fuse.min.js"></script>
 <script src="../../site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="../../">
-<link href="../../assets/media/icon.png" rel="icon" type="image/png">
+<link href="../../assets/media/favicon.ico" rel="icon">
 <script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
 <script src="../../site_libs/quarto-html/popper.min.js"></script>
@@ -95,7 +99,8 @@ div.csl-indent {
 <link href="../../site_libs/quarto-html/quarto-syntax-highlighting-de63f62b328812d8e578a4d74e282472.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../site_libs/bootstrap/bootstrap-f8ddab8c30c8d0f2b512aadf102d9b21.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light"><script id="quarto-search-options" type="application/json">{
+<link href="../../site_libs/bootstrap/bootstrap-4cae65ad75248541f9c290a216e05642.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
   "collapse-after": 3,
@@ -120,21 +125,41 @@ div.csl-indent {
     "search-submit-button-title": "Submit",
     "search-label": "Search"
   }
-}</script><script async="" src="https://www.googletagmanager.com/gtag/js?id="></script><script type="text/javascript">
+}</script>
+<script async="" src="https://www.googletagmanager.com/gtag/js?id="></script>
+
+<script type="text/javascript">
 
 window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());
 gtag('config', '', { 'anonymize_ip': true});
-</script><!-- 
+</script>
+
+<!-- 
 Load Academicons v1: https://jpswalsh.github.io/academicons/
---><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+-->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+
 <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+
+
 <!---
 The following code are needed to show dimension citation and altmetrics.
 https://api.altmetric.com/embeds.html
 https://badge.dimensions.ai/
----><script type="text/javascript" src="https://d1bxh8uas1mnw7.cloudfront.net/assets/embed.js"></script><script async="" src="https://badge.dimensions.ai/badge.js" charset="utf-8"></script><script type="text/javascript" src="//cdn.plu.mx/widget-popup.js"></script><script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script><script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script><script type="text/javascript">
+--->
+
+<script type="text/javascript" src="https://d1bxh8uas1mnw7.cloudfront.net/assets/embed.js"></script>
+
+<script async="" src="https://badge.dimensions.ai/badge.js" charset="utf-8"></script>
+
+<script type="text/javascript" src="//cdn.plu.mx/widget-popup.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
 const typesetMath = (el) => {
   if (window.MathJax) {
     // MathJax Typeset
@@ -159,7 +184,9 @@ const typesetMath = (el) => {
 window.Quarto = {
   typesetMath
 };
-</script><link rel="stylesheet" href="../../styles.css">
+</script>
+
+<link rel="stylesheet" href="../../styles.css">
 <meta property="og:title" content="Genetic Matching, from the Ground Up – Noah Greifer">
 <meta property="og:description" content="Noah Greifer’s website">
 <meta property="og:image" content="https://ngreifer.github.io/blog/genetic-matching/index_files/figure-html/unnamed-chunk-17-1.png">
@@ -173,13 +200,18 @@ window.Quarto = {
 <meta name="twitter:image-width" content="1152">
 <meta name="twitter:card" content="summary_large_image">
 </head>
+
 <body class="nav-fixed quarto-light">
 
 <div id="quarto-search-results"></div>
-  <header id="quarto-header" class="headroom fixed-top"><nav class="navbar navbar-expand-lg " data-bs-theme="dark"><div class="navbar-container container-fluid">
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a href="../../index.html" class="navbar-brand navbar-brand-logo">
-    <img src="../../assets/media/icon.png" alt="Noah Greifer" class="navbar-logo light-content"><img src="../../assets/media/icon.png" alt="Noah Greifer" class="navbar-logo dark-content"></a>
+    <img src="../../assets/media/icon.png" alt="Noah Greifer" class="navbar-logo light-content">
+    <img src="../../assets/media/icon.png" alt="Noah Greifer" class="navbar-logo dark-content">
+    </a>
     <a class="navbar-brand" href="../../index.html">
     <span class="navbar-title">Noah Greifer</span>
     </a>
@@ -190,7 +222,7 @@ window.Quarto = {
 </button>
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
-<li class="nav-item">
+  <li class="nav-item">
     <a class="nav-link" href="../../index.html"> 
 <span class="menu-text">Home</span></a>
   </li>  
@@ -207,14 +239,14 @@ window.Quarto = {
 <span class="menu-text">Papers</span></a>
   </li>  
 </ul>
-<ul class="navbar-nav navbar-nav-scroll ms-auto">
-<li class="nav-item compact">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
     <a class="nav-link" href="https://github.com/ngreifer"> <i class="bi bi-github" role="img" aria-label="GitHub">
 </i> 
 <span class="menu-text"></span></a>
   </li>  
 </ul>
-</div> <!-- /navcollapse -->
+          </div> <!-- /navcollapse -->
             <div class="quarto-navbar-tools">
   <a href="" class="quarto-reader-toggle quarto-navigation-tool px-1" onclick="window.quartoToggleReader(); return false;" title="Toggle reader mode">
   <div class="quarto-reader-toggle-btn">
@@ -223,29 +255,35 @@ window.Quarto = {
 </a>
 </div>
       </div> <!-- /container-fluid -->
-    </nav></header><!-- content --><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        <nav id="TOC" role="doc-toc" class="toc-active"><h2 id="toc-title">On this page</h2>
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
    
   <ul>
-<li><a href="#implementation" id="toc-implementation" class="nav-link active" data-scroll-target="#implementation">Implementation</a></li>
+  <li><a href="#implementation" id="toc-implementation" class="nav-link active" data-scroll-target="#implementation">Implementation</a></li>
   <li><a href="#the-imbalance-measure" id="toc-the-imbalance-measure" class="nav-link" data-scroll-target="#the-imbalance-measure">The Imbalance Measure</a></li>
   <li><a href="#the-covariates" id="toc-the-covariates" class="nav-link" data-scroll-target="#the-covariates">The Covariates</a></li>
-  <li>
-<a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples">Examples</a>
+  <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples">Examples</a>
   <ul class="collapse">
-<li><a href="#using-matching" id="toc-using-matching" class="nav-link" data-scroll-target="#using-matching">Using <code>Matching</code></a></li>
+  <li><a href="#using-matching" id="toc-using-matching" class="nav-link" data-scroll-target="#using-matching">Using <code>Matching</code></a></li>
   <li><a href="#using-matchit" id="toc-using-matchit" class="nav-link" data-scroll-target="#using-matchit">Using <em>MatchIt</em></a></li>
-  </ul>
-</li>
+  </ul></li>
   <li><a href="#programming-genetic-matching-yourself" id="toc-programming-genetic-matching-yourself" class="nav-link" data-scroll-target="#programming-genetic-matching-yourself">Programming Genetic Matching Yourself</a></li>
   <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
-  </ul></nav>
+  </ul>
+</nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><div class="quarto-title">
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
 <h1 class="title">Genetic Matching, from the Ground Up</h1>
   <div class="quarto-categories">
     <div class="quarto-category">matching</div>
@@ -276,7 +314,10 @@ window.Quarto = {
   
 
 
-</header><p>Genetic matching sounds cool and science-y, something we social scientists love because nobody thinks what we do is “real” science. And genetic matching is cool and science-y, but not because it has anything to do with genes or DNA. Genetic matching is a method of adjusting for confounding in observational studies; it is a close relative of propensity score matching and Mahalanobis distance matching and serves exactly the same purpose. <span class="citation" data-cites="sekhonMultivariatePropensityScore2011">Sekhon (<a href="#ref-sekhonMultivariatePropensityScore2011" role="doc-biblioref">2011</a>)</span> and <span class="citation" data-cites="diamondGeneticMatchingEstimating2013">Diamond and Sekhon (<a href="#ref-diamondGeneticMatchingEstimating2013" role="doc-biblioref">2013</a>)</span> describe genetic matching, but I’ll explain it here in simple terms and with an emphasis on its generality, which is undersold by its implementations.</p>
+</header>
+
+
+<p>Genetic matching sounds cool and science-y, something we social scientists love because nobody thinks what we do is “real” science. And genetic matching is cool and science-y, but not because it has anything to do with genes or DNA. Genetic matching is a method of adjusting for confounding in observational studies; it is a close relative of propensity score matching and Mahalanobis distance matching and serves exactly the same purpose. <span class="citation" data-cites="sekhonMultivariatePropensityScore2011">Sekhon (<a href="#ref-sekhonMultivariatePropensityScore2011" role="doc-biblioref">2011</a>)</span> and <span class="citation" data-cites="diamondGeneticMatchingEstimating2013">Diamond and Sekhon (<a href="#ref-diamondGeneticMatchingEstimating2013" role="doc-biblioref">2013</a>)</span> describe genetic matching, but I’ll explain it here in simple terms and with an emphasis on its generality, which is undersold by its implementations.</p>
 <p>This post won’t make any sense if you don’t know what matching in general is. Go read <span class="citation" data-cites="stuartMatchingMethodsCausal2010">Stuart (<a href="#ref-stuartMatchingMethodsCausal2010" role="doc-biblioref">2010</a>)</span>, <span class="citation" data-cites="greiferMatchingMethodsConfounder2021a">Greifer and Stuart (<a href="#ref-greiferMatchingMethodsConfounder2021a" role="doc-biblioref">2021</a>)</span>, and the <em>MatchIt</em> <a href="https://kosukeimai.github.io/MatchIt/articles/matching-methods.html">vignette</a> on matching methods to learn about them. The focus here will be on <em>pair matching</em>, which involves assigning units to pairs or strata based on the distances between them, then discarding unpaired units.</p>
 <p>The goal of matching is balanced samples, i.e., samples where the distribution of covariates in the treated and control groups is the same so that an estimated treatment effect cannot be said to be due to differences in the covariate distributions. Why, then, do we make pairs? Close pairs create balance, in theory. How do we compute how close units are to each other? There are several ways; a common one is the Mahalanobis distance, as described for matching in <span class="citation" data-cites="rubinBiasReductionUsing1980">Rubin (<a href="#ref-rubinBiasReductionUsing1980" role="doc-biblioref">1980</a>)</span>, and which I’ll describe here.</p>
 <p>The <strong>Mahalanobis distance</strong> between two units <span class="math inline">\(i\)</span> and <span class="math inline">\(j\)</span> is defined as</p>
@@ -296,32 +337,39 @@ window.Quarto = {
 \]</span></p>
 <p>Genetic matching is very general; there are many ways to do the matching (i.e., many ways to specify the <span class="math inline">\(\text{match}()\)</span> function) and many ways to characterize imbalance (i.e., many ways to specify the <span class="math inline">\(\text{imbalance}()\)</span> function) (and even several ways to specific <span class="math inline">\(\delta()\)</span>!). Although nearest neighbor matching is often used for <span class="math inline">\(\text{match}()\)</span>, any matching method that uses a distance matrix could be as well. A specific imbalance measure (which I’ll explain in more detail later) is most often used for <span class="math inline">\(\text{imbalance}()\)</span> because it is the default in the software that implements genetic matching, but any imbalance measure could be used, and there has been research that indicates that alternative measures may work better.</p>
 <p>You may be wondering where the “genetic” part of “genetic matching” comes in. “Genetic” comes from the name of the optimization algorithm that is used to solve the genetic matching problem stated above, which is just called the genetic algorithm. In principle, though, any optimization routine could be used; the genetic algorithm was chosen specifically because it deals well with nonsmooth surfaces, which the objective function above surely is. But other optimization methods that do not rely on derivatives do as well, such as “particle swarm optimization” (we’re really doing <em>science</em> here). I don’t really understand these methods deeply, but we don’t have to to understand what genetic matching is doing<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a>. In order to understand how to tune the algorithm, though, there are some bits worth knowing about, which I’ll briefly cover in the Implementation section below.</p>
-<section id="implementation" class="level3"><h3 class="anchored" data-anchor-id="implementation">Implementation</h3>
-<p>Genetic matching is implemented in the <em>Matching</em> package in R, which performs genetic matching to estimate <span class="math inline">\(W\)</span>, performs nearest neighbor matching using <span class="math inline">\(\delta^{gmd}(W)\)</span> or another distance matrix, and then estimates the treatment effect<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a>. The <code><a href="https://rdrr.io/pkg/Matching/man/GenMatch.html">GenMatch()</a></code> function estimates <span class="math inline">\(W\)</span>, and the <code><a href="https://rdrr.io/pkg/Matching/man/Match.html">Match()</a></code> function does the matching on the resulting output<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a>. Genetic matching is also available in <em>MatchIt</em> by setting <code>method = "genetic"</code> in the call to <code>matchit()</code>, but it just calls <code><a href="https://rdrr.io/pkg/Matching/man/GenMatch.html">GenMatch()</a></code> and <code><a href="https://rdrr.io/pkg/Matching/man/Match.html">Match()</a></code> from <em>Matching</em>.</p>
-<p><code><a href="https://rdrr.io/pkg/Matching/man/GenMatch.html">GenMatch()</a></code> relies on <code><a href="https://rdrr.io/pkg/rgenoud/man/genoud.html">rgenoud::genoud()</a></code>, one implementation of the genetic algorithm in R. There are a few tuning parameters worth understanding to use genetic matching to its full potential. The most important one is the population size (i.e., the number of candidates in each generation of the genetic algorithm), controlled by the <code>pop.size</code> argument. All you need to know is that high values are better and slower. Another one perhaps worth knowing about is the number of generations that have to pass with no improvement in the objective function before the algorithm halts and returns the best candidate it has found, controlled by the <code>wait.generations</code> argument. Here, too, higher values are better and slower.</p>
+<section id="implementation" class="level3">
+<h3 class="anchored" data-anchor-id="implementation">Implementation</h3>
+<p>Genetic matching is implemented in the <em>Matching</em> package in R, which performs genetic matching to estimate <span class="math inline">\(W\)</span>, performs nearest neighbor matching using <span class="math inline">\(\delta^{gmd}(W)\)</span> or another distance matrix, and then estimates the treatment effect<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a>. The <code>GenMatch()</code> function estimates <span class="math inline">\(W\)</span>, and the <code>Match()</code> function does the matching on the resulting output<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a>. Genetic matching is also available in <em>MatchIt</em> by setting <code>method = "genetic"</code> in the call to <code>matchit()</code>, but it just calls <code>GenMatch()</code> and <code>Match()</code> from <em>Matching</em>.</p>
+<p><code>GenMatch()</code> relies on <code>rgenoud::genoud()</code>, one implementation of the genetic algorithm in R. There are a few tuning parameters worth understanding to use genetic matching to its full potential. The most important one is the population size (i.e., the number of candidates in each generation of the genetic algorithm), controlled by the <code>pop.size</code> argument. All you need to know is that high values are better and slower. Another one perhaps worth knowing about is the number of generations that have to pass with no improvement in the objective function before the algorithm halts and returns the best candidate it has found, controlled by the <code>wait.generations</code> argument. Here, too, higher values are better and slower.</p>
 <p>A detail I haven’t emphasized is that the matching method used to to produce the final matched sample using the estimated <span class="math inline">\(W\)</span> should be the same one used in estimating <span class="math inline">\(W\)</span>, because the estimated <span class="math inline">\(W\)</span> are tailored to that matching method (i.e., they only optimize balance when supplied to that <span class="math inline">\(\text{match}()\)</span> function)<a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a>. The matching methods available in <em>Matching</em> are nearest neighbor matching with or without replacement, with or without calipers or exact matching constraints, and with <span class="math inline">\(1:1\)</span> or <span class="math inline">\(k:1\)</span> matching. This is a pretty broad set of matching options, though it is not complete (e.g., optimal and full matching are not available). One thing about genetic matching is that it is <em>slow</em>, so using a fast matching method is useful for not spending forever to get your matches. <em>Matching</em> uses a fast implementation of nearest neighbor matching programmed in C, which makes it fairly fast, though still quite slow for even moderately sized problems.</p>
-</section><section id="the-imbalance-measure" class="level3"><h3 class="anchored" data-anchor-id="the-imbalance-measure">The Imbalance Measure</h3>
+</section>
+<section id="the-imbalance-measure" class="level3">
+<h3 class="anchored" data-anchor-id="the-imbalance-measure">The Imbalance Measure</h3>
 <p>The imbalance measure used in genetic matching is critical to its success as a method. Seeking balance using a poor metric means the resulting matched sample will not be able to reduce bias well, even if the optimal values of <span class="math inline">\(W\)</span> that minimize that imbalance measure have been found. One challenge is that there is no clear best imbalance measure to use. Ideally, it should incorporate balance on all covariates, and not just on their means but on their full distributions, and not just the marginal distributions but the joint distributions. The best imbalance measure depends heavily on the true outcome-generating model, which is inherently unknowable (otherwise we wouldn’t be doing matching in the first place), though there has been some research into it.</p>
-<p>By default, the imbalance measure <code><a href="https://rdrr.io/pkg/Matching/man/GenMatch.html">GenMatch()</a></code> uses is the smallest p-value among the sets of two-sample t-tests and Kolmogorov-Smirnov (KS) tests for each covariate. This is a bit of a strange imbalance measure that doesn’t really show up anywhere else in the literature. <span class="citation" data-cites="diamondGeneticMatchingEstimating2013">Diamond and Sekhon (<a href="#ref-diamondGeneticMatchingEstimating2013" role="doc-biblioref">2013</a>)</span> justify the use of p-values (which are typically disregarded as methods to assess balance) by arguing that here they are simply used to put the mean differences and KS statistic on a uniform scale rather than to be interpreted as p-values to be used in a hypothesis test. However, there has been research into other balance criteria that might perform better. <span class="citation" data-cites="oyenubiDoesChoiceBalancemeasure2020">Oyenubi and Wittenberg (<a href="#ref-oyenubiDoesChoiceBalancemeasure2020" role="doc-biblioref">2020</a>)</span> find that the largest value of a univariate balance measure called the “entropic distance”, which is a relative of the KS statistic, performs well as an imbalance measure. <span class="citation" data-cites="zhuKernelBasedMetricBalance2018">Zhu et al. (<a href="#ref-zhuKernelBasedMetricBalance2018" role="doc-biblioref">2018</a>)</span> find that a multivariate imbalance measure called the “kernel distance” does well; this measure takes into account the full, joint covariate distribution, unlike the other methods which do not consider the joint distribution, explaining its effectiveness. I am partial to the energy distance <span class="citation" data-cites="rizzoEnergyDistance2016 hulingEnergyBalancingCovariate2024">(<a href="#ref-rizzoEnergyDistance2016" role="doc-biblioref">Rizzo and Székely 2016</a>; <a href="#ref-hulingEnergyBalancingCovariate2024" role="doc-biblioref">Huling and Mak 2024</a>)</span>, which is demonstrated to have nice properties and is easy to explain and calculate. Simple balance measures can be effective as well, though; <span class="citation" data-cites="oyenubiDoesChoiceBalancemeasure2020">Oyenubi and Wittenberg (<a href="#ref-oyenubiDoesChoiceBalancemeasure2020" role="doc-biblioref">2020</a>)</span> and <span class="citation" data-cites="stuartPrognosticScorebasedBalance2013">Stuart et al. (<a href="#ref-stuartPrognosticScorebasedBalance2013" role="doc-biblioref">2013</a>)</span> find that standardized mean differences can be effective in assessing balance, even though they only take into account the covariate means and do not consider the joint distribution of the covariates.</p>
-</section><section id="the-covariates" class="level3"><h3 class="anchored" data-anchor-id="the-covariates">The Covariates</h3>
+<p>By default, the imbalance measure <code>GenMatch()</code> uses is the smallest p-value among the sets of two-sample t-tests and Kolmogorov-Smirnov (KS) tests for each covariate. This is a bit of a strange imbalance measure that doesn’t really show up anywhere else in the literature. <span class="citation" data-cites="diamondGeneticMatchingEstimating2013">Diamond and Sekhon (<a href="#ref-diamondGeneticMatchingEstimating2013" role="doc-biblioref">2013</a>)</span> justify the use of p-values (which are typically disregarded as methods to assess balance) by arguing that here they are simply used to put the mean differences and KS statistic on a uniform scale rather than to be interpreted as p-values to be used in a hypothesis test. However, there has been research into other balance criteria that might perform better. <span class="citation" data-cites="oyenubiDoesChoiceBalancemeasure2020">Oyenubi and Wittenberg (<a href="#ref-oyenubiDoesChoiceBalancemeasure2020" role="doc-biblioref">2020</a>)</span> find that the largest value of a univariate balance measure called the “entropic distance”, which is a relative of the KS statistic, performs well as an imbalance measure. <span class="citation" data-cites="zhuKernelBasedMetricBalance2018">Zhu et al. (<a href="#ref-zhuKernelBasedMetricBalance2018" role="doc-biblioref">2018</a>)</span> find that a multivariate imbalance measure called the “kernel distance” does well; this measure takes into account the full, joint covariate distribution, unlike the other methods which do not consider the joint distribution, explaining its effectiveness. I am partial to the energy distance <span class="citation" data-cites="rizzoEnergyDistance2016 hulingEnergyBalancingCovariate2024">(<a href="#ref-rizzoEnergyDistance2016" role="doc-biblioref">Rizzo and Székely 2016</a>; <a href="#ref-hulingEnergyBalancingCovariate2024" role="doc-biblioref">Huling and Mak 2024</a>)</span>, which is demonstrated to have nice properties and is easy to explain and calculate. Simple balance measures can be effective as well, though; <span class="citation" data-cites="oyenubiDoesChoiceBalancemeasure2020">Oyenubi and Wittenberg (<a href="#ref-oyenubiDoesChoiceBalancemeasure2020" role="doc-biblioref">2020</a>)</span> and <span class="citation" data-cites="stuartPrognosticScorebasedBalance2013">Stuart et al. (<a href="#ref-stuartPrognosticScorebasedBalance2013" role="doc-biblioref">2013</a>)</span> find that standardized mean differences can be effective in assessing balance, even though they only take into account the covariate means and do not consider the joint distribution of the covariates.</p>
+</section>
+<section id="the-covariates" class="level3">
+<h3 class="anchored" data-anchor-id="the-covariates">The Covariates</h3>
 <p>The generalized Mahalanobis distance depends on <span class="math inline">\(\mathbf{x}\)</span>–the covariates, <span class="math inline">\(\Sigma\)</span>–the “scaling” matrix (usually the covariance matrix), and <span class="math inline">\(W\)</span>–the weights matrix. These, of course, can all be specified in a variety of ways. <span class="math inline">\(\mathbf{x}\)</span> should contain the covariates one would like balance on, though in principle it doesn’t have to, as long as those covariates are included in the imbalance measure. For example, one might only include 3 of the most important covariates in the calculation of the distance and weights, but optimize balance on all 10 covariates included in the analysis. <span class="citation" data-cites="diamondGeneticMatchingEstimating2013">Diamond and Sekhon (<a href="#ref-diamondGeneticMatchingEstimating2013" role="doc-biblioref">2013</a>)</span> recommend including the propensity score in <span class="math inline">\(\mathbf{x}\)</span>, as close pairs on the propensity score tends to yield well-balanced samples (which is the motivation behind propensity score matching in the first place). On the other hand, <span class="citation" data-cites="kingWhyPropensityScores2019">King and Nielsen (<a href="#ref-kingWhyPropensityScores2019" role="doc-biblioref">2019</a>)</span> recommend against including the propensity score if balance can be achieved without it.</p>
-</section><section id="examples" class="level2"><h2 class="anchored" data-anchor-id="examples">Examples</h2>
+</section>
+<section id="examples" class="level2">
+<h2 class="anchored" data-anchor-id="examples">Examples</h2>
 <p>Below are some examples of genetic matching. First we’ll use <em>Matching</em>, which gives us a bit more insight into how the process goes, and then we’ll perform the same analysis using <em>MatchIt</em> to demonstrate how much easier it is. We’ll use the <code>lalonde</code> dataset in <em>MatchIt</em> for this analysis<a href="#fn6" class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a>.</p>
-<section id="using-matching" class="level3"><h3 class="anchored" data-anchor-id="using-matching">Using <code>Matching</code>
-</h3>
+<section id="using-matching" class="level3">
+<h3 class="anchored" data-anchor-id="using-matching">Using <code>Matching</code></h3>
 <div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="st">"lalonde"</span>, package <span class="op">=</span> <span class="st">"MatchIt"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">covs</span> <span class="op">&lt;-</span> <span class="va">lalonde</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html">subset</a></span><span class="op">(</span>select <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">age</span>, <span class="va">educ</span>, <span class="va">married</span>,</span>
-<span>                                     <span class="va">race</span>, <span class="va">nodegree</span>,</span>
-<span>                                     <span class="va">re74</span>, <span class="va">re75</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">treat</span> <span class="op">&lt;-</span> <span class="va">lalonde</span><span class="op">$</span><span class="va">treat</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"lalonde"</span>, <span class="at">package =</span> <span class="st">"MatchIt"</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>covs <span class="ot">&lt;-</span> lalonde <span class="sc">|&gt;</span> <span class="fu">subset</span>(<span class="at">select =</span> <span class="fu">c</span>(age, educ, married,</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>                                     race, nodegree,</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>                                     re74, re75))</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>treat <span class="ot">&lt;-</span> lalonde<span class="sc">$</span>treat</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>We have a factor variable (<code>race</code>) among our covariates, so we need to turn it into a set of dummy variables for <em>Matching</em> . The <em>cobalt</em> function <code>splitfactor()</code> makes this easy.</p>
 <div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">covs</span> <span class="op">&lt;-</span> <span class="va">covs</span> <span class="op">|&gt;</span> <span class="fu">cobalt</span><span class="fu">::</span><span class="fu"><a href="https://ngreifer.github.io/cobalt/reference/splitfactor.html">splitfactor</a></span><span class="op">(</span>drop.first <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">covs</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>covs <span class="ot">&lt;-</span> covs <span class="sc">|&gt;</span> cobalt<span class="sc">::</span><span class="fu">splitfactor</span>(<span class="at">drop.first =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(covs)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>     age educ married race_black race_hispan race_white nodegree re74 re75
 NSW1  37   11       1          1           0          0        1    0    0
@@ -334,53 +382,53 @@ NSW6  22    9       0          1           0          0        1    0    0</code
 </div>
 <p>We’ll estimate a propensity score to include among the covariates, as recommended by <span class="citation" data-cites="diamondGeneticMatchingEstimating2013">Diamond and Sekhon (<a href="#ref-diamondGeneticMatchingEstimating2013" role="doc-biblioref">2013</a>)</span>.</p>
 <div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co">## Logistic regression PS</span></span>
-<span><span class="va">ps</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/glm.html">glm</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span> <span class="va">race</span> <span class="op">+</span></span>
-<span>            <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span> <span class="op">+</span> <span class="va">re75</span>, data <span class="op">=</span> <span class="va">lalonde</span>,</span>
-<span>          family <span class="op">=</span> <span class="va">binomial</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/stats/fitted.values.html">fitted</a></span><span class="op">(</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co">## Append the PS to the covariates</span></span>
-<span><span class="va">covs_ps</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html">cbind</a></span><span class="op">(</span><span class="va">ps</span>, <span class="va">covs</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Logistic regression PS</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>ps <span class="ot">&lt;-</span> <span class="fu">glm</span>(treat <span class="sc">~</span> age <span class="sc">+</span> educ <span class="sc">+</span> married <span class="sc">+</span> race <span class="sc">+</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>            nodegree <span class="sc">+</span> re74 <span class="sc">+</span> re75, <span class="at">data =</span> lalonde,</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>          <span class="at">family =</span> binomial) <span class="sc">|&gt;</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fitted</span>()</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="do">## Append the PS to the covariates</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>covs_ps <span class="ot">&lt;-</span> <span class="fu">cbind</span>(ps, covs)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>Okay, now we’re finally ready to use functions in <em>Matching</em> to perform genetic matching. The first step is to use <code><a href="https://rdrr.io/pkg/Matching/man/GenMatch.html">GenMatch()</a></code> to compute <span class="math inline">\(W\)</span>, and after that we will use <code><a href="https://rdrr.io/pkg/Matching/man/Match.html">Match()</a></code> to perform the matching using the <code><a href="https://rdrr.io/pkg/Matching/man/GenMatch.html">GenMatch()</a></code> output. To use <code><a href="https://rdrr.io/pkg/Matching/man/GenMatch.html">GenMatch()</a></code>, we have to know what kind of matching we eventually want to do. In this example, we’ll do 2:1 matching with replacement for the ATT. <em>Matching</em> has a few extra quirks that need to be addressed to make the matching work as intended, which I’ll include in the code below without much explanation (since my recommendation is to use <em>MatchIt</em> anyway, which takes care of these automatically).</p>
+<p>Okay, now we’re finally ready to use functions in <em>Matching</em> to perform genetic matching. The first step is to use <code>GenMatch()</code> to compute <span class="math inline">\(W\)</span>, and after that we will use <code>Match()</code> to perform the matching using the <code>GenMatch()</code> output. To use <code>GenMatch()</code>, we have to know what kind of matching we eventually want to do. In this example, we’ll do 2:1 matching with replacement for the ATT. <em>Matching</em> has a few extra quirks that need to be addressed to make the matching work as intended, which I’ll include in the code below without much explanation (since my recommendation is to use <em>MatchIt</em> anyway, which takes care of these automatically).</p>
 <div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/JasjeetSekhon/Matching">Matching</a></span><span class="op">)</span></span>
-<span><span class="co"># Set seed for reproducibility; genetic matching has a random</span></span>
-<span><span class="co"># component</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">333</span><span class="op">)</span></span>
-<span><span class="va">Gen_out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Matching/man/GenMatch.html">GenMatch</a></span><span class="op">(</span></span>
-<span>  Tr <span class="op">=</span> <span class="va">treat</span>,             <span class="co">#Treatment</span></span>
-<span>  X <span class="op">=</span> <span class="va">covs_ps</span>,            <span class="co">#Covariates to match on</span></span>
-<span>  BalanceMatrix <span class="op">=</span> <span class="va">covs</span>,   <span class="co">#Covariance to balance</span></span>
-<span>  estimand <span class="op">=</span> <span class="st">"ATT"</span>,       <span class="co">#Estimand</span></span>
-<span>  M <span class="op">=</span> <span class="fl">2</span>,                  <span class="co">#2:1 matching</span></span>
-<span>  replace <span class="op">=</span> <span class="cn">TRUE</span>,         <span class="co">#With replacement</span></span>
-<span>  ties <span class="op">=</span> <span class="cn">FALSE</span>,           <span class="co">#No ties</span></span>
-<span>  distance.tolerance <span class="op">=</span> <span class="fl">0</span>, <span class="co">#Use precise values</span></span>
-<span>  print.level <span class="op">=</span> <span class="fl">0</span>,        <span class="co">#Don't print output</span></span>
-<span>  pop.size <span class="op">=</span> <span class="fl">200</span>          <span class="co">#Genetic population size; bigger is better</span></span>
-<span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(Matching)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Set seed for reproducibility; genetic matching has a random</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co"># component</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">333</span>)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>Gen_out <span class="ot">&lt;-</span> <span class="fu">GenMatch</span>(</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">Tr =</span> treat,             <span class="co">#Treatment</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">X =</span> covs_ps,            <span class="co">#Covariates to match on</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">BalanceMatrix =</span> covs,   <span class="co">#Covariance to balance</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimand =</span> <span class="st">"ATT"</span>,       <span class="co">#Estimand</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">M =</span> <span class="dv">2</span>,                  <span class="co">#2:1 matching</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">replace =</span> <span class="cn">TRUE</span>,         <span class="co">#With replacement</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">ties =</span> <span class="cn">FALSE</span>,           <span class="co">#No ties</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">distance.tolerance =</span> <span class="dv">0</span>, <span class="co">#Use precise values</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">print.level =</span> <span class="dv">0</span>,        <span class="co">#Don't print output</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">pop.size =</span> <span class="dv">200</span>          <span class="co">#Genetic population size; bigger is better</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>The important part of the <code><a href="https://rdrr.io/pkg/Matching/man/GenMatch.html">GenMatch()</a></code> output is the <code>Weight.matrix</code>, which corresponds to <span class="math inline">\(W\)</span>. It’s not really worth interpreting the weights; they are just whatever values happened to yield the best balance and don’t actually tell you anything about how important any covariate is to the treatment. We can supply the weights to the <code><a href="https://rdrr.io/pkg/Matching/man/Match.html">Match()</a></code> function to do a final round of matching. All the arguments related to matching (e.g., <code>estimand</code>, <code>M</code>, <code>replace</code>, etc.) should be the same between <code><a href="https://rdrr.io/pkg/Matching/man/GenMatch.html">GenMatch()</a></code> and <code><a href="https://rdrr.io/pkg/Matching/man/Match.html">Match()</a></code>. We call <code><a href="https://rdrr.io/pkg/Matching/man/Match.html">Match()</a></code> below.</p>
+<p>The important part of the <code>GenMatch()</code> output is the <code>Weight.matrix</code>, which corresponds to <span class="math inline">\(W\)</span>. It’s not really worth interpreting the weights; they are just whatever values happened to yield the best balance and don’t actually tell you anything about how important any covariate is to the treatment. We can supply the weights to the <code>Match()</code> function to do a final round of matching. All the arguments related to matching (e.g., <code>estimand</code>, <code>M</code>, <code>replace</code>, etc.) should be the same between <code>GenMatch()</code> and <code>Match()</code>. We call <code>Match()</code> below.</p>
 <div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">Match_out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Matching/man/Match.html">Match</a></span><span class="op">(</span></span>
-<span>  Tr <span class="op">=</span> <span class="va">treat</span>,             <span class="co">#Treatment</span></span>
-<span>  X <span class="op">=</span> <span class="va">covs_ps</span>,            <span class="co">#Covariates to match on</span></span>
-<span>  estimand <span class="op">=</span> <span class="st">"ATT"</span>,       <span class="co">#Estimand</span></span>
-<span>  M <span class="op">=</span> <span class="fl">2</span>,                  <span class="co">#2:1 matching</span></span>
-<span>  replace <span class="op">=</span> <span class="cn">TRUE</span>,         <span class="co">#With replacement</span></span>
-<span>  ties <span class="op">=</span> <span class="cn">FALSE</span>,           <span class="co">#No ties</span></span>
-<span>  distance.tolerance <span class="op">=</span> <span class="fl">0</span>, <span class="co">#Use precise values</span></span>
-<span>  Weight.matrix <span class="op">=</span> <span class="va">Gen_out</span><span class="op">$</span><span class="va">Weight.matrix</span>,</span>
-<span>  Weight <span class="op">=</span> <span class="fl">3</span>              <span class="co">#Tell Match() we're using Weight.matrix</span></span>
-<span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>Match_out <span class="ot">&lt;-</span> <span class="fu">Match</span>(</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">Tr =</span> treat,             <span class="co">#Treatment</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">X =</span> covs_ps,            <span class="co">#Covariates to match on</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimand =</span> <span class="st">"ATT"</span>,       <span class="co">#Estimand</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">M =</span> <span class="dv">2</span>,                  <span class="co">#2:1 matching</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">replace =</span> <span class="cn">TRUE</span>,         <span class="co">#With replacement</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">ties =</span> <span class="cn">FALSE</span>,           <span class="co">#No ties</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">distance.tolerance =</span> <span class="dv">0</span>, <span class="co">#Use precise values</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">Weight.matrix =</span> Gen_out<span class="sc">$</span>Weight.matrix,</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">Weight =</span> <span class="dv">3</span>              <span class="co">#Tell Match() we're using Weight.matrix</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>Finally we can take a look at the balance using <code><a href="https://ngreifer.github.io/cobalt/reference/bal.tab.html">cobalt::bal.tab()</a></code>. Here, we check balance not only on the means but also on the KS statistics, since those are part of what is being optimized by the genetic optimization.</p>
+<p>Finally we can take a look at the balance using <code>cobalt::bal.tab()</code>. Here, we check balance not only on the means but also on the KS statistics, since those are part of what is being optimized by the genetic optimization.</p>
 <div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">cobalt</span><span class="fu">::</span><span class="fu"><a href="https://ngreifer.github.io/cobalt/reference/bal.tab.html">bal.tab</a></span><span class="op">(</span><span class="va">Match_out</span>, <span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span> <span class="va">race</span> <span class="op">+</span></span>
-<span>                  <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span> <span class="op">+</span> <span class="va">re75</span>, data <span class="op">=</span> <span class="va">lalonde</span>,</span>
-<span>                stats <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"m"</span>, <span class="st">"ks"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>cobalt<span class="sc">::</span><span class="fu">bal.tab</span>(Match_out, treat <span class="sc">~</span> age <span class="sc">+</span> educ <span class="sc">+</span> married <span class="sc">+</span> race <span class="sc">+</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>                  nodegree <span class="sc">+</span> re74 <span class="sc">+</span> re75, <span class="at">data =</span> lalonde,</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>                <span class="at">stats =</span> <span class="fu">c</span>(<span class="st">"m"</span>, <span class="st">"ks"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Balance Measures
                Type Diff.Adj KS.Adj
@@ -403,26 +451,27 @@ Unmatched              306.        0</code></pre>
 </div>
 </div>
 <p>Below we’ll use <em>MatchIt</em>, which does everything (adjusting the covariate matrix, estimating propensity scores, optimizing <span class="math inline">\(W\)</span>, and matching on the new distance matrix) all at once.</p>
-</section><section id="using-matchit" class="level3"><h3 class="anchored" data-anchor-id="using-matchit">Using <em>MatchIt</em>
-</h3>
+</section>
+<section id="using-matchit" class="level3">
+<h3 class="anchored" data-anchor-id="using-matchit">Using <em>MatchIt</em></h3>
 <p>All we need to do is supply the usual arguments to <code>matchit()</code> and set <code>method = "genetic"</code>. See the <em>MatchIt</em> <a href="https://kosukeimai.github.io/MatchIt/articles/MatchIt.html">vignettes</a> for information on the basic use of <code>matchit()</code>.</p>
 <div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">888</span><span class="op">)</span></span>
-<span><span class="va">matchit_out</span> <span class="op">&lt;-</span> <span class="fu">MatchIt</span><span class="fu">::</span><span class="fu"><a href="https://kosukeimai.github.io/MatchIt/reference/matchit.html">matchit</a></span><span class="op">(</span></span>
-<span>  <span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span> <span class="va">race</span> <span class="op">+</span></span>
-<span>                  <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span> <span class="op">+</span> <span class="va">re75</span>,</span>
-<span>  data <span class="op">=</span> <span class="va">lalonde</span>,</span>
-<span>  method <span class="op">=</span> <span class="st">"genetic"</span>,</span>
-<span>  estimand <span class="op">=</span> <span class="st">"ATT"</span>,</span>
-<span>  ratio <span class="op">=</span> <span class="fl">2</span>,</span>
-<span>  replace <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  pop.size <span class="op">=</span> <span class="fl">200</span></span>
-<span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">888</span>)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>matchit_out <span class="ot">&lt;-</span> MatchIt<span class="sc">::</span><span class="fu">matchit</span>(</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  treat <span class="sc">~</span> age <span class="sc">+</span> educ <span class="sc">+</span> married <span class="sc">+</span> race <span class="sc">+</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>                  nodegree <span class="sc">+</span> re74 <span class="sc">+</span> re75,</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> lalonde,</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">method =</span> <span class="st">"genetic"</span>,</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimand =</span> <span class="st">"ATT"</span>,</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">ratio =</span> <span class="dv">2</span>,</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">replace =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">pop.size =</span> <span class="dv">200</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>By default, <code>matchit()</code> estimates a propensity score using logistic regression and includes it in the matching covariates (but not the covariates on which balance is optimized), just as we did manually using <code><a href="https://rdrr.io/pkg/Matching/man/GenMatch.html">GenMatch()</a></code> above. If you want to use difference variables to balance on from those used to match, use the <code>mahvars</code> argument, which is explained in the documentation for genetic matching (accessible using <code><a href="https://kosukeimai.github.io/MatchIt/reference/method_genetic.html">help("method_genetic", package = "MatchIt")</a></code>).</p>
-<p>We can assess balance using <code><a href="https://rdrr.io/r/base/summary.html">summary()</a></code> or using <code>bal.tab()</code>. We’ll do the latter below.</p>
+<p>By default, <code>matchit()</code> estimates a propensity score using logistic regression and includes it in the matching covariates (but not the covariates on which balance is optimized), just as we did manually using <code>GenMatch()</code> above. If you want to use difference variables to balance on from those used to match, use the <code>mahvars</code> argument, which is explained in the documentation for genetic matching (accessible using <code>help("method_genetic", package = "MatchIt")</code>).</p>
+<p>We can assess balance using <code>summary()</code> or using <code>bal.tab()</code>. We’ll do the latter below.</p>
 <div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">cobalt</span><span class="fu">::</span><span class="fu"><a href="https://ngreifer.github.io/cobalt/reference/bal.tab.html">bal.tab</a></span><span class="op">(</span><span class="va">matchit_out</span>, stats <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"m"</span>, <span class="st">"ks"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>cobalt<span class="sc">::</span><span class="fu">bal.tab</span>(matchit_out, <span class="at">stats =</span> <span class="fu">c</span>(<span class="st">"m"</span>, <span class="st">"ks"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Balance Measures
                 Type Diff.Adj KS.Adj
@@ -446,88 +495,90 @@ Unmatched              305.        0</code></pre>
 </div>
 </div>
 <p>The results will differ due to slight differences in how the two functions process their inputs.</p>
-</section></section><section id="programming-genetic-matching-yourself" class="level2"><h2 class="anchored" data-anchor-id="programming-genetic-matching-yourself">Programming Genetic Matching Yourself</h2>
+</section>
+</section>
+<section id="programming-genetic-matching-yourself" class="level2">
+<h2 class="anchored" data-anchor-id="programming-genetic-matching-yourself">Programming Genetic Matching Yourself</h2>
 <p>Perhaps surprisingly, it’s fairly easy to program genetic matching yourself. You only need the following ingredients:</p>
 <ol type="1">
-<li>A function that creates a distance matrix from a set of weights <span class="math inline">\(W\)</span>
-</li>
+<li>A function that creates a distance matrix from a set of weights <span class="math inline">\(W\)</span></li>
 <li>A function that performs matching on a given distance matrix</li>
 <li>A function that evaluates balance on a given matched sample</li>
 <li>A function that performs the genetic optimization</li>
 </ol>
 <p>These are (fairly) easy to come by, and I’ll show you how to write each of them.</p>
-<p>For the first function, we can use <code><a href="https://kosukeimai.github.io/MatchIt/reference/mahalanobis_dist.html">MatchIt::mahalanobis_dist()</a></code> if we want <span class="math inline">\(\Sigma\)</span> to be the full covariance matrix of the covariates, but it’s actually quite a bit simpler to use <code><a href="https://kosukeimai.github.io/MatchIt/reference/mahalanobis_dist.html">MatchIt::scaled_euclidean_dist()</a></code> to just use the variances of the covariates, which is what <code><a href="https://rdrr.io/pkg/Matching/man/GenMatch.html">GenMatch()</a></code> (and therefore <code>matchit()</code>) does anyway. This is because we can supply to <code>scaled_euclidean_dist()</code> a vector of variances, which we will simply divide by the weights. So, our function for creating the distance matrix given the set of weights will be the following:</p>
+<p>For the first function, we can use <code>MatchIt::mahalanobis_dist()</code> if we want <span class="math inline">\(\Sigma\)</span> to be the full covariance matrix of the covariates, but it’s actually quite a bit simpler to use <code>MatchIt::scaled_euclidean_dist()</code> to just use the variances of the covariates, which is what <code>GenMatch()</code> (and therefore <code>matchit()</code>) does anyway. This is because we can supply to <code>scaled_euclidean_dist()</code> a vector of variances, which we will simply divide by the weights. So, our function for creating the distance matrix given the set of weights will be the following:</p>
 <div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">dist_from_W</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">W</span>, <span class="va">dist_covs</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">variances</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html">apply</a></span><span class="op">(</span><span class="va">dist_covs</span>, <span class="fl">2</span>, <span class="va">var</span><span class="op">)</span></span>
-<span>  <span class="fu">MatchIt</span><span class="fu">::</span><span class="fu"><a href="https://kosukeimai.github.io/MatchIt/reference/mahalanobis_dist.html">scaled_euclidean_dist</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">dist_covs</span>, var <span class="op">=</span> <span class="va">variances</span> <span class="op">/</span> <span class="va">W</span><span class="op">)</span></span>
-<span><span class="op">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>dist_from_W <span class="ot">&lt;-</span> <span class="cf">function</span>(W, dist_covs) {</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  variances <span class="ot">&lt;-</span> <span class="fu">apply</span>(dist_covs, <span class="dv">2</span>, var)</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  MatchIt<span class="sc">::</span><span class="fu">scaled_euclidean_dist</span>(<span class="at">data =</span> dist_covs, <span class="at">var =</span> variances <span class="sc">/</span> W)</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Of course, there are many ways we could make this more efficient. I just want to demonstrate how easy it is to program genetic matching. Programming it <em>well</em> is another story.</p>
-<p>Next, we need a function that performs matching on covariates given a distance matrix. We could use <code><a href="https://rdrr.io/pkg/optmatch/man/fullmatch.html">optmatch::fullmatch()</a></code> for full matching, but <code>matchit()</code> provides a nice, general interface for many matching methods. We can supply the distance matrix to the <code>distance</code> argument of <code>matchit()</code>. A function that takes in a distance matrix and returns a <em>MatchIt</em> object containing the matched sample and matching weights is the following<a href="#fn7" class="footnote-ref" id="fnref7" role="doc-noteref"><sup>7</sup></a>:</p>
+<p>Next, we need a function that performs matching on covariates given a distance matrix. We could use <code>optmatch::fullmatch()</code> for full matching, but <code>matchit()</code> provides a nice, general interface for many matching methods. We can supply the distance matrix to the <code>distance</code> argument of <code>matchit()</code>. A function that takes in a distance matrix and returns a <em>MatchIt</em> object containing the matched sample and matching weights is the following<a href="#fn7" class="footnote-ref" id="fnref7" role="doc-noteref"><sup>7</sup></a>:</p>
 <div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">do_matching_with_dist</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">dist</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="fu">MatchIt</span><span class="fu">::</span><span class="fu"><a href="https://kosukeimai.github.io/MatchIt/reference/matchit.html">matchit</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="fl">1</span>, data <span class="op">=</span> <span class="va">lalonde</span>, distance <span class="op">=</span> <span class="va">dist</span>,</span>
-<span>                   method <span class="op">=</span> <span class="st">"nearest"</span>, ratio <span class="op">=</span> <span class="fl">2</span>, replace <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="op">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>do_matching_with_dist <span class="ot">&lt;-</span> <span class="cf">function</span>(dist) {</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  MatchIt<span class="sc">::</span><span class="fu">matchit</span>(treat <span class="sc">~</span> <span class="dv">1</span>, <span class="at">data =</span> lalonde, <span class="at">distance =</span> dist,</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>                   <span class="at">method =</span> <span class="st">"nearest"</span>, <span class="at">ratio =</span> <span class="dv">2</span>, <span class="at">replace =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>Next, we need a function that takes in a <em>MatchIt</em> object and computes a scalar balance statistic. You can use your favorite balance statistic, but here I’ll use the maximum absolute standardized mean difference (ASMD) of all the covariates in the matched sample<a href="#fn8" class="footnote-ref" id="fnref8" role="doc-noteref"><sup>8</sup></a>. This measure can be easily computed using <code><a href="https://ngreifer.github.io/cobalt/reference/balance-summary.html">cobalt::col_w_smd()</a></code>, which takes in a matrix of covariates, a treatment vector, and a weights vector and returns the weighted ASMDs for each covariate<a href="#fn9" class="footnote-ref" id="fnref9" role="doc-noteref"><sup>9</sup></a>. We will allow the set of covariates to be different from those used to compute the distance measure. We implement this below:</p>
+<p>Next, we need a function that takes in a <em>MatchIt</em> object and computes a scalar balance statistic. You can use your favorite balance statistic, but here I’ll use the maximum absolute standardized mean difference (ASMD) of all the covariates in the matched sample<a href="#fn8" class="footnote-ref" id="fnref8" role="doc-noteref"><sup>8</sup></a>. This measure can be easily computed using <code>cobalt::col_w_smd()</code>, which takes in a matrix of covariates, a treatment vector, and a weights vector and returns the weighted ASMDs for each covariate<a href="#fn9" class="footnote-ref" id="fnref9" role="doc-noteref"><sup>9</sup></a>. We will allow the set of covariates to be different from those used to compute the distance measure. We implement this below:</p>
 <div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">compute_balance</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">m</span>, <span class="va">bal_covs</span>, <span class="va">treat</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">weights</span> <span class="op">&lt;-</span> <span class="fu">cobalt</span><span class="fu">::</span><span class="fu"><a href="https://ngreifer.github.io/cobalt/reference/get.w.html">get.w</a></span><span class="op">(</span><span class="va">m</span><span class="op">)</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">max</a></span><span class="op">(</span><span class="fu">cobalt</span><span class="fu">::</span><span class="fu"><a href="https://ngreifer.github.io/cobalt/reference/balance-summary.html">col_w_smd</a></span><span class="op">(</span><span class="va">bal_covs</span>, <span class="va">treat</span>, <span class="va">weights</span>,</span>
-<span>                        s.d.denom <span class="op">=</span> <span class="st">"treated"</span>,</span>
-<span>                        abs <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="op">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>compute_balance <span class="ot">&lt;-</span> <span class="cf">function</span>(m, bal_covs, treat) {</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  weights <span class="ot">&lt;-</span> cobalt<span class="sc">::</span><span class="fu">get.w</span>(m)</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">max</span>(cobalt<span class="sc">::</span><span class="fu">col_w_smd</span>(bal_covs, treat, weights,</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>                        <span class="at">s.d.denom =</span> <span class="st">"treated"</span>,</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>                        <span class="at">abs =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Okay! We have the key ingredients for our objective function, which takes in a set of covariates weights <span class="math inline">\(W\)</span> and returns a balance statistic that we want to optimize. Let’s put everything together into a single function:</p>
 <div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">objective</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">W_</span>, <span class="va">dist_covs</span>, <span class="va">bal_covs</span>, <span class="va">treat</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">W</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="va">W_</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span>  <span class="fu">dist_from_W</span><span class="op">(</span><span class="va">W</span>, <span class="va">dist_covs</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>    <span class="fu">do_matching_with_dist</span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>    <span class="fu">compute_balance</span><span class="op">(</span><span class="va">bal_covs</span>, <span class="va">treat</span><span class="op">)</span></span>
-<span><span class="op">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>objective <span class="ot">&lt;-</span> <span class="cf">function</span>(W_, dist_covs, bal_covs, treat) {</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  W <span class="ot">&lt;-</span> <span class="fu">exp</span>(<span class="fu">c</span>(<span class="dv">0</span>, W_))</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">dist_from_W</span>(W, dist_covs) <span class="sc">|&gt;</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">do_matching_with_dist</span>() <span class="sc">|&gt;</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">compute_balance</span>(bal_covs, treat)</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>The first line of the function needs explaining. Instead of optimizing over the weights directly, we’re going to optimize over the log of the weights. This ensures the weights can prioritize and de-prioritize variables in a symmetric way<a href="#fn10" class="footnote-ref" id="fnref10" role="doc-noteref"><sup>10</sup></a>. To get back to the weights <code>W</code> used in the distance measure, we need to exponentiate the optimized log-weights <code>W_</code>. Also, instead of optimizing over all the weights, we are going to fix one weight to 1 (i.e., fix one log-weight to 0). This is because the matches are invariant to multiplying all the weights by a constant<a href="#fn11" class="footnote-ref" id="fnref11" role="doc-noteref"><sup>11</sup></a>. So, we can identify the weights by choosing an arbitrary weight to set to 1<a href="#fn12" class="footnote-ref" id="fnref12" role="doc-noteref"><sup>12</sup></a>.</p>
 <p>We can give this function a try to see balance when when the log-weights are all set to 0 (i.e., so all weights are equal to 1), which corresponds to matching using the standard scaled Euclidean distance:</p>
 <div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">W_test</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">ncol</a></span><span class="op">(</span><span class="va">covs_ps</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1</span><span class="op">)</span></span>
-<span><span class="fu">objective</span><span class="op">(</span><span class="va">W_test</span>, dist_covs <span class="op">=</span> <span class="va">covs_ps</span>, bal_covs <span class="op">=</span> <span class="va">covs</span>,</span>
-<span>          treat <span class="op">=</span> <span class="va">treat</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>W_test <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">0</span>, <span class="fu">ncol</span>(covs_ps) <span class="sc">-</span> <span class="dv">1</span>)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">objective</span>(W_test, <span class="at">dist_covs =</span> covs_ps, <span class="at">bal_covs =</span> covs,</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>          <span class="at">treat =</span> treat)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.1280539</code></pre>
 </div>
 </div>
-<p>Now we can supply this to a function that performs the genetic algorithm to optimize our objective function. <code><a href="https://rdrr.io/pkg/Matching/man/GenMatch.html">GenMatch()</a></code> uses <code><a href="https://rdrr.io/pkg/rgenoud/man/genoud.html">rgenoud::genoud()</a></code>, but there is a more modern interface in the R package <em>GA</em>, which we’ll use instead just to demonstrate that the method is software-independent. We’ll use <code><a href="https://github.com/luca-scr/GA/reference/ga.html">GA::ga()</a></code>, which implements the standard genetic algorithm, though other functions are available for more sophisticated methods.</p>
+<p>Now we can supply this to a function that performs the genetic algorithm to optimize our objective function. <code>GenMatch()</code> uses <code>rgenoud::genoud()</code>, but there is a more modern interface in the R package <em>GA</em>, which we’ll use instead just to demonstrate that the method is software-independent. We’ll use <code>GA::ga()</code>, which implements the standard genetic algorithm, though other functions are available for more sophisticated methods.</p>
 <p><code>ga()</code> can only maximize functions, but we want to minimize our imbalance, so we just have to create a new objective function that is the negative of our original.</p>
 <div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co">#Need negative objective to minimize imbalance</span></span>
-<span><span class="va">neg_objective</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">...</span><span class="op">)</span> <span class="op">-</span><span class="fu">objective</span><span class="op">(</span><span class="va">...</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Need negative objective to minimize imbalance</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>neg_objective <span class="ot">&lt;-</span> <span class="cf">function</span>(...) <span class="sc">-</span><span class="fu">objective</span>(...)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>Take a look at the <code><a href="https://github.com/luca-scr/GA/reference/ga.html">GA::ga()</a></code> call below. We specify <code>type = "real-valued"</code> because our weights are real numbers, we supply the negative of our objective function to <code>fitness</code>, and we supply the additional argument to our functions (<code>dist_covs</code>, the covariates used in the distance matrix and the weights of which we are optimizing over; <code>bal_covs</code>, the covariates used to compute the balance statistic that is our criterion; and <code>treat</code>, the treatment vector). We need to provide lower and upper bounds for the weights, and here I’ve supplied -7 and 7, which correspond to weights of <span class="math inline">\(\exp(-7)=.0009\)</span> and <span class="math inline">\(\exp(7)=1096.6\)</span>.</p>
-<p>The next arguments control the speed and performance of the optimization process. I’ve already described <code>popSize</code>, the population size (called <code>pop.size</code> in <code><a href="https://rdrr.io/pkg/Matching/man/GenMatch.html">GenMatch()</a></code>). We are going to let the algorithm run for 500 generations (<code>maxiter</code>, called <code>max.generations</code> in <code><a href="https://rdrr.io/pkg/Matching/man/GenMatch.html">GenMatch()</a></code>/<code>genoud()</code>) but stop if there is no improvement in balance after 100 iterations (<code>run</code>, called <code>wait.generations</code> in <code><a href="https://rdrr.io/pkg/Matching/man/GenMatch.html">GenMatch()</a></code>/<code>genoud()</code>). I’m going to request parallel processing using 4 cores to speed it up, and suppress printing of output<a href="#fn13" class="footnote-ref" id="fnref13" role="doc-noteref"><sup>13</sup></a>.</p>
+<p>Take a look at the <code>GA::ga()</code> call below. We specify <code>type = "real-valued"</code> because our weights are real numbers, we supply the negative of our objective function to <code>fitness</code>, and we supply the additional argument to our functions (<code>dist_covs</code>, the covariates used in the distance matrix and the weights of which we are optimizing over; <code>bal_covs</code>, the covariates used to compute the balance statistic that is our criterion; and <code>treat</code>, the treatment vector). We need to provide lower and upper bounds for the weights, and here I’ve supplied -7 and 7, which correspond to weights of <span class="math inline">\(\exp(-7)=.0009\)</span> and <span class="math inline">\(\exp(7)=1096.6\)</span>.</p>
+<p>The next arguments control the speed and performance of the optimization process. I’ve already described <code>popSize</code>, the population size (called <code>pop.size</code> in <code>GenMatch()</code>). We are going to let the algorithm run for 500 generations (<code>maxiter</code>, called <code>max.generations</code> in <code>GenMatch()</code>/<code>genoud()</code>) but stop if there is no improvement in balance after 100 iterations (<code>run</code>, called <code>wait.generations</code> in <code>GenMatch()</code>/<code>genoud()</code>). I’m going to request parallel processing using 4 cores to speed it up, and suppress printing of output<a href="#fn13" class="footnote-ref" id="fnref13" role="doc-noteref"><sup>13</sup></a>.</p>
 <div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">opt_out</span> <span class="op">&lt;-</span> <span class="fu">GA</span><span class="fu">::</span><span class="fu"><a href="https://github.com/luca-scr/GA/reference/ga.html">ga</a></span><span class="op">(</span></span>
-<span>  type <span class="op">=</span> <span class="st">"real-valued"</span>,</span>
-<span>  fitness <span class="op">=</span> <span class="va">neg_objective</span>,</span>
-<span>  dist_covs <span class="op">=</span> <span class="va">covs_ps</span>,</span>
-<span>  bal_covs <span class="op">=</span> <span class="va">covs</span>,</span>
-<span>  treat <span class="op">=</span> <span class="va">treat</span>,</span>
-<span>  lower <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="op">-</span><span class="fl">7</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">ncol</a></span><span class="op">(</span><span class="va">covs_ps</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1</span><span class="op">)</span>,</span>
-<span>  upper <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fl">7</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">ncol</a></span><span class="op">(</span><span class="va">covs_ps</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1</span><span class="op">)</span>,</span>
-<span>  popSize <span class="op">=</span> <span class="fl">200</span>,</span>
-<span>  maxiter <span class="op">=</span> <span class="fl">500</span>,</span>
-<span>  run <span class="op">=</span> <span class="fl">100</span>,</span>
-<span>  parallel <span class="op">=</span> <span class="fl">4</span>,</span>
-<span>  seed <span class="op">=</span> <span class="fl">567</span>, <span class="co">#set seed here if using parallelization</span></span>
-<span>  monitor <span class="op">=</span> <span class="cn">NULL</span></span>
-<span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>opt_out <span class="ot">&lt;-</span> GA<span class="sc">::</span><span class="fu">ga</span>(</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">type =</span> <span class="st">"real-valued"</span>,</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">fitness =</span> neg_objective,</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">dist_covs =</span> covs_ps,</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">bal_covs =</span> covs,</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">treat =</span> treat,</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">lower =</span> <span class="fu">rep</span>(<span class="sc">-</span><span class="dv">7</span>, <span class="fu">ncol</span>(covs_ps) <span class="sc">-</span> <span class="dv">1</span>),</span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">upper =</span> <span class="fu">rep</span>(<span class="dv">7</span>, <span class="fu">ncol</span>(covs_ps) <span class="sc">-</span> <span class="dv">1</span>),</span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">popSize =</span> <span class="dv">200</span>,</span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">maxiter =</span> <span class="dv">500</span>,</span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">run =</span> <span class="dv">100</span>,</span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">parallel =</span> <span class="dv">4</span>,</span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">seed =</span> <span class="dv">567</span>, <span class="co">#set seed here if using parallelization</span></span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">monitor =</span> <span class="cn">NULL</span></span>
+<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>This takes my computer about 3 minutes to run. We can run some summaries on the output object to examine the results of the optimization:</p>
 <div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">opt_out</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(opt_out)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>── Genetic Algorithm ─────────────────── 
 
@@ -559,38 +610,39 @@ Solutions =
 </div>
 <p>We can see that our final value for the criterion was about -0.0274 and this was achieved by each of the sets of log weights displayed. We can just focus on the first row. It’s not worth over-interpreting these values since their purpose is just to achieve balance and they don’t reveal anything about the causal or statistical relevance of the covariates. But we can see that <code>x9</code> (i.e., <code>re75</code>) was the most important covariate in the distance measure, and <code>x2</code> (i.e., <code>educ</code>) was the least important.</p>
 <div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">opt_out</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(opt_out)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
-<figure class="figure"><p><img src="index_files/figure-html/unnamed-chunk-17-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="576"></p>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-17-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="576"></p>
 </figure>
 </div>
 </div>
 </div>
-<p>We can also see from the plot that close to the best balance was reached pretty quickly in fewer than 50 generations, and refinements after that were very minor. This suggests that if you’re in a rush or just want to test out genetic matching without committing to it, you can wait just a few generations (fewer than 100, which is the default in <code><a href="https://rdrr.io/pkg/Matching/man/GenMatch.html">GenMatch()</a></code>) to get a good sense of its performance.</p>
+<p>We can also see from the plot that close to the best balance was reached pretty quickly in fewer than 50 generations, and refinements after that were very minor. This suggests that if you’re in a rush or just want to test out genetic matching without committing to it, you can wait just a few generations (fewer than 100, which is the default in <code>GenMatch()</code>) to get a good sense of its performance.</p>
 <p>Finally, let’s perform a final round of matching using the found matching weights and assess balance on each covariate in our matched sample.</p>
 <div class="cell" data-layout-align="center">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb23"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co">#Extract weights by transforming log weights from output</span></span>
-<span><span class="va">W</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="va">opt_out</span><span class="op">@</span><span class="va">solution</span><span class="op">[</span><span class="fl">1</span>,<span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co">#Compute distance measure from weights and do matching</span></span>
-<span><span class="va">m.out</span> <span class="op">&lt;-</span> <span class="fu">dist_from_W</span><span class="op">(</span><span class="va">W</span>, <span class="va">covs_ps</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu">do_matching_with_dist</span><span class="op">(</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">m.out</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Extract weights by transforming log weights from output</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>W <span class="ot">&lt;-</span> <span class="fu">exp</span>(<span class="fu">c</span>(<span class="dv">0</span>, opt_out<span class="sc">@</span>solution[<span class="dv">1</span>,]))</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a><span class="co">#Compute distance measure from weights and do matching</span></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>m.out <span class="ot">&lt;-</span> <span class="fu">dist_from_W</span>(W, covs_ps) <span class="sc">|&gt;</span></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">do_matching_with_dist</span>()</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>m.out</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>A `matchit` object
  - method: 2:1 nearest neighbor matching with replacement
  - distance: User-defined (matrix) - number of obs.: 614 (original), 307 (matched)
  - target estimand: ATT</code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb25"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co">#Assess balance. See ?bal.tab for info on the arguments</span></span>
-<span><span class="fu">cobalt</span><span class="fu">::</span><span class="fu"><a href="https://ngreifer.github.io/cobalt/reference/bal.tab.html">bal.tab</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span> <span class="va">race</span> <span class="op">+</span></span>
-<span>                  <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span> <span class="op">+</span> <span class="va">re75</span>,</span>
-<span>                data <span class="op">=</span> <span class="va">lalonde</span>, stats <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"m"</span>, <span class="st">"ks"</span><span class="op">)</span>,</span>
-<span>                binary <span class="op">=</span> <span class="st">"std"</span>, un <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>                weights <span class="op">=</span> <span class="va">m.out</span>,</span>
-<span>                method <span class="op">=</span> <span class="st">"matching"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Assess balance. See ?bal.tab for info on the arguments</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>cobalt<span class="sc">::</span><span class="fu">bal.tab</span>(treat <span class="sc">~</span> age <span class="sc">+</span> educ <span class="sc">+</span> married <span class="sc">+</span> race <span class="sc">+</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>                  nodegree <span class="sc">+</span> re74 <span class="sc">+</span> re75,</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>                <span class="at">data =</span> lalonde, <span class="at">stats =</span> <span class="fu">c</span>(<span class="st">"m"</span>, <span class="st">"ks"</span>),</span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>                <span class="at">binary =</span> <span class="st">"std"</span>, <span class="at">un =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>                <span class="at">weights =</span> m.out,</span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>                <span class="at">method =</span> <span class="st">"matching"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Balance Measures
                Type Diff.Un  KS.Un Diff.Adj KS.Adj
@@ -612,13 +664,18 @@ Matched (Unweighted)  122.       185
 Unmatched             307.         0</code></pre>
 </div>
 </div>
-<p>We can see that after matching, the largest standardized mean difference is indeed 0.0274, well below the usual criterion of .1. That doesn’t mean the sample is fully balanced, though; some KS statistics are a bit high, suggesting that an imbalance measure that accounts for the full distribution of the covariates beyond the means might be more effective. Finally, once satisfactory balance has been found, you can estimate the treatment effect using the methods described in <code><a href="https://kosukeimai.github.io/MatchIt/articles/estimating-effects.html">vignette("estimating-effects", package = "MatchIt")</a></code>. I’ve gone on long enough so I won’t do that here.</p>
+<p>We can see that after matching, the largest standardized mean difference is indeed 0.0274, well below the usual criterion of .1. That doesn’t mean the sample is fully balanced, though; some KS statistics are a bit high, suggesting that an imbalance measure that accounts for the full distribution of the covariates beyond the means might be more effective. Finally, once satisfactory balance has been found, you can estimate the treatment effect using the methods described in <code>vignette("estimating-effects", package = "MatchIt")</code>. I’ve gone on long enough so I won’t do that here.</p>
 <p>Congratulations! You’ve just done genetic matching, three ways!</p>
-</section><section id="references" class="level2">
+</section>
+<section id="references" class="level2">
 
 
 
-</section><div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
+
+</section>
+
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
 <div id="ref-diamondGeneticMatchingEstimating2013" class="csl-entry" role="listitem">
 Diamond, Alexis, and Jasjeet S. Sekhon. 2013. <span>“Genetic Matching for Estimating Causal Effects: A General Multivariate Matching Method for Achieving Balance in Observational Studies.”</span> <em>Review of Economics and Statistics</em> 95 (3): 932945. <a href="https://doi.org/10.1162/REST_a_00318">https://doi.org/10.1162/REST_a_00318</a>.
 </div>
@@ -653,21 +710,24 @@ Stuart, Elizabeth A., Brian K. Lee, and Finbarr P. Leacy. 2013. <span>“Prognos
 Zhu, Yeying, Jennifer S. Savage, and Debashis Ghosh. 2018. <span>“A Kernel-Based Metric for Balance Assessment.”</span> <em>Journal of Causal Inference</em> 6 (2). <a href="https://doi.org/10.1515/jci-2016-0029">https://doi.org/10.1515/jci-2016-0029</a>.
 </div>
 </div></section><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
+
 <ol>
 <li id="fn1"><p>There are several possible ways to compute <span class="math inline">\(\Sigma\)</span>; for example, <span class="citation" data-cites="rubinBiasReductionUsing1980">Rubin (<a href="#ref-rubinBiasReductionUsing1980" role="doc-biblioref">1980</a>)</span> uses the “pooled” covariance matrix, which is a weighted average of the within-group covariances.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn2"><p>Basically, they work by proposing a population of guesses of the parameters to be estimated (e.g., 50 sets of candidate <span class="math inline">\(W\)</span>s), removing the candidates with the worst imbalance, and reproducing and perturbing the remaining candidates slightly (like a genetic mutation), then doing this over and over again so that only the best candidates remain. This is a type of “evolutionary algorithm” because it works a bit like natural selection, where the fittest creatures remain to reproduce but with slight variation, and the least fit die off, improving the overall fitness of the species.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn3"><p><em>Matching</em> uses matching imputation to estimate the treatment effect, which is different from running an outcome regression in the matched sample. See my answer <a href="https://stats.stackexchange.com/a/566981/116195">here</a> for some additional details on this distinction and its implications.<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn4"><p>It’s maybe worth knowing that <code><a href="https://rdrr.io/pkg/Matching/man/GenMatch.html">GenMatch()</a></code> actually uses <span class="math inline">\(\Sigma\)</span> with all the off-diagonal elements set to <span class="math inline">\(0\)</span>. This is not described in its documentation or in the papers describing the method. In practice, this likely makes little difference to the overall matching performance. A benefit of this approach is that you get a nice interpretation of the resulting <span class="math inline">\(W\)</span> as importance of each variable in the match, though this interpretation serves little use in practice.<a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn4"><p>It’s maybe worth knowing that <code>GenMatch()</code> actually uses <span class="math inline">\(\Sigma\)</span> with all the off-diagonal elements set to <span class="math inline">\(0\)</span>. This is not described in its documentation or in the papers describing the method. In practice, this likely makes little difference to the overall matching performance. A benefit of this approach is that you get a nice interpretation of the resulting <span class="math inline">\(W\)</span> as importance of each variable in the match, though this interpretation serves little use in practice.<a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn5"><p>Using a different matching method for the final match than you did in estimating <span class="math inline">\(W\)</span> is possible, but not advised.<a href="#fnref5" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn6"><p>Be careful! There’s a <code>lalonde</code> dataset in <em>Matching</em>, too, which is different.<a href="#fnref6" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn7"><p>Here is seems like we aren’t matching on any covariates by supplying <code>treat ~ 1</code> as the model formula; we are supplying the distance matrix ourselves, so the covariates play no role in the matching beyond that. To speed up the evaluation and prevent <code>matchit()</code> from having to process a whole data frame of covariates, we omit the covariates.<a href="#fnref7" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn8"><p>This same balance statistic can be used in <code>WeightIt</code> and <code>twang</code> for generalized boosted modeling and other methods that involve optimizing a user-supplied criterion.<a href="#fnref8" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn9"><p>We could also have used <code><a href="https://ngreifer.github.io/cobalt/reference/bal.compute.html">cobalt::bal.compute()</a></code>, which provides a variety of different options to use to summarize balance.<a href="#fnref9" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn9"><p>We could also have used <code>cobalt::bal.compute()</code>, which provides a variety of different options to use to summarize balance.<a href="#fnref9" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn10"><p>That is, so a weight of 2 is as easy to find as a weight of 1/2, as these have the same “magnitude”; they correspond to log-weights of .69 and -.69, respectively.<a href="#fnref10" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn11"><p>That is, the exact same matches found for a given set of weights would be found if all those weights were multiplied by, e.g., 100.<a href="#fnref11" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn12"><p>It doesn’t matter which one you choose, but I like to make the propensity score have the scaling weight to assess how much more or less important the covariates are than the propensity score for achieving balance.<a href="#fnref12" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn13"><p>If you’re following along at home, try setting <code>monitor = plot</code> to see a neat plot of the progress of the optimization! We’ll also view this plot after the optimization has finished.<a href="#fnref13" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-</ol></section></div></main><!-- /main --><script id="quarto-html-after-body" type="application/javascript">
+</ol>
+</section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     const icon = "";
     const anchorJS = new window.AnchorJS();
@@ -1071,7 +1131,10 @@ Zhu, Yeying, Jennifer S. Savage, and Debashis Ghosh. 2018. <span>“A Kernel-Bas
       }
     }
   });
-  </script><input type="hidden" id="giscus-base-theme" value="preferred_color_scheme"><input type="hidden" id="giscus-alt-theme" value="preferred_color_scheme"><script>
+  </script>
+<input type="hidden" id="giscus-base-theme" value="preferred_color_scheme">
+<input type="hidden" id="giscus-alt-theme" value="preferred_color_scheme">
+<script>
   function loadGiscus() {
     // Function to get the theme based on body class
     const getTheme = () => {
@@ -1099,7 +1162,8 @@ Zhu, Yeying, Jennifer S. Savage, and Debashis Ghosh. 2018. <span>“A Kernel-Bas
   loadGiscus();
 </script>
 </div> <!-- /content -->
-<footer class="footer"><div class="nav-footer">
+<footer class="footer">
+  <div class="nav-footer">
     <div class="nav-footer-left">
 <a href="http://www.github.com">Noah Greifer</a> ©
 <script>document.write(new Date().getFullYear())</script>
@@ -1112,6 +1176,8 @@ Zhu, Yeying, Jennifer S. Savage, and Debashis Ghosh. 2018. <span>“A Kernel-Bas
     </div>
   </div>
 </footer>
+
+
 
 
 </body></html>

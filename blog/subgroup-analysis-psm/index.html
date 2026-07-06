@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
 <meta charset="utf-8">
 <meta name="generator" content="quarto-1.9.38">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
 <meta name="author" content="Noah Greifer">
 <meta name="dcterms.date" content="2022-09-05">
+
 <title>Subgroup Analysis After Propensity Score Matching Using R – Noah Greifer</title>
 <style>
 /* Default styles provided by pandoc.
@@ -78,6 +81,7 @@ div.csl-indent {
   margin-left: 2em;
 }</style>
 
+
 <script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
 <script src="../../site_libs/quarto-nav/headroom.min.js"></script>
 <script src="../../site_libs/clipboard/clipboard.min.js"></script>
@@ -85,7 +89,7 @@ div.csl-indent {
 <script src="../../site_libs/quarto-search/fuse.min.js"></script>
 <script src="../../site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="../../">
-<link href="../../assets/media/icon.png" rel="icon" type="image/png">
+<link href="../../assets/media/favicon.ico" rel="icon">
 <script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
 <script src="../../site_libs/quarto-html/popper.min.js"></script>
@@ -95,7 +99,8 @@ div.csl-indent {
 <link href="../../site_libs/quarto-html/quarto-syntax-highlighting-de63f62b328812d8e578a4d74e282472.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../site_libs/bootstrap/bootstrap-f8ddab8c30c8d0f2b512aadf102d9b21.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light"><script id="quarto-search-options" type="application/json">{
+<link href="../../site_libs/bootstrap/bootstrap-4cae65ad75248541f9c290a216e05642.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
   "collapse-after": 3,
@@ -120,21 +125,41 @@ div.csl-indent {
     "search-submit-button-title": "Submit",
     "search-label": "Search"
   }
-}</script><script async="" src="https://www.googletagmanager.com/gtag/js?id="></script><script type="text/javascript">
+}</script>
+<script async="" src="https://www.googletagmanager.com/gtag/js?id="></script>
+
+<script type="text/javascript">
 
 window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());
 gtag('config', '', { 'anonymize_ip': true});
-</script><!-- 
+</script>
+
+<!-- 
 Load Academicons v1: https://jpswalsh.github.io/academicons/
---><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+-->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+
 <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+
+
 <!---
 The following code are needed to show dimension citation and altmetrics.
 https://api.altmetric.com/embeds.html
 https://badge.dimensions.ai/
----><script type="text/javascript" src="https://d1bxh8uas1mnw7.cloudfront.net/assets/embed.js"></script><script async="" src="https://badge.dimensions.ai/badge.js" charset="utf-8"></script><script type="text/javascript" src="//cdn.plu.mx/widget-popup.js"></script><script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script><script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script><script type="text/javascript">
+--->
+
+<script type="text/javascript" src="https://d1bxh8uas1mnw7.cloudfront.net/assets/embed.js"></script>
+
+<script async="" src="https://badge.dimensions.ai/badge.js" charset="utf-8"></script>
+
+<script type="text/javascript" src="//cdn.plu.mx/widget-popup.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
 const typesetMath = (el) => {
   if (window.MathJax) {
     // MathJax Typeset
@@ -159,7 +184,9 @@ const typesetMath = (el) => {
 window.Quarto = {
   typesetMath
 };
-</script><link rel="stylesheet" href="../../styles.css">
+</script>
+
+<link rel="stylesheet" href="../../styles.css">
 <meta property="og:title" content="Subgroup Analysis After Propensity Score Matching Using R – Noah Greifer">
 <meta property="og:description" content="Noah Greifer’s website">
 <meta property="og:image" content="https://ngreifer.github.io/blog/subgroup-analysis-psm/index_files/figure-html/unnamed-chunk-9-1.png">
@@ -173,13 +200,18 @@ window.Quarto = {
 <meta name="twitter:image-width" content="1344">
 <meta name="twitter:card" content="summary_large_image">
 </head>
+
 <body class="nav-fixed quarto-light">
 
 <div id="quarto-search-results"></div>
-  <header id="quarto-header" class="headroom fixed-top"><nav class="navbar navbar-expand-lg " data-bs-theme="dark"><div class="navbar-container container-fluid">
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a href="../../index.html" class="navbar-brand navbar-brand-logo">
-    <img src="../../assets/media/icon.png" alt="Noah Greifer" class="navbar-logo light-content"><img src="../../assets/media/icon.png" alt="Noah Greifer" class="navbar-logo dark-content"></a>
+    <img src="../../assets/media/icon.png" alt="Noah Greifer" class="navbar-logo light-content">
+    <img src="../../assets/media/icon.png" alt="Noah Greifer" class="navbar-logo dark-content">
+    </a>
     <a class="navbar-brand" href="../../index.html">
     <span class="navbar-title">Noah Greifer</span>
     </a>
@@ -190,7 +222,7 @@ window.Quarto = {
 </button>
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
-<li class="nav-item">
+  <li class="nav-item">
     <a class="nav-link" href="../../index.html"> 
 <span class="menu-text">Home</span></a>
   </li>  
@@ -207,14 +239,14 @@ window.Quarto = {
 <span class="menu-text">Papers</span></a>
   </li>  
 </ul>
-<ul class="navbar-nav navbar-nav-scroll ms-auto">
-<li class="nav-item compact">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
     <a class="nav-link" href="https://github.com/ngreifer"> <i class="bi bi-github" role="img" aria-label="GitHub">
 </i> 
 <span class="menu-text"></span></a>
   </li>  
 </ul>
-</div> <!-- /navcollapse -->
+          </div> <!-- /navcollapse -->
             <div class="quarto-navbar-tools">
   <a href="" class="quarto-reader-toggle quarto-navigation-tool px-1" onclick="window.quartoToggleReader(); return false;" title="Toggle reader mode">
   <div class="quarto-reader-toggle-btn">
@@ -223,24 +255,32 @@ window.Quarto = {
 </a>
 </div>
       </div> <!-- /container-fluid -->
-    </nav></header><!-- content --><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        <nav id="TOC" role="doc-toc" class="toc-active"><h2 id="toc-title">On this page</h2>
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
    
   <ul>
-<li><a href="#packages-youll-need" id="toc-packages-youll-need" class="nav-link active" data-scroll-target="#packages-youll-need">Packages You’ll Need</a></li>
+  <li><a href="#packages-youll-need" id="toc-packages-youll-need" class="nav-link active" data-scroll-target="#packages-youll-need">Packages You’ll Need</a></li>
   <li><a href="#step-1-subgroup-matching" id="toc-step-1-subgroup-matching" class="nav-link" data-scroll-target="#step-1-subgroup-matching">Step 1: Subgroup Matching</a></li>
   <li><a href="#step-2-assessing-balance-within-subgroups" id="toc-step-2-assessing-balance-within-subgroups" class="nav-link" data-scroll-target="#step-2-assessing-balance-within-subgroups">Step 2: Assessing Balance within Subgroups</a></li>
   <li><a href="#step-3-fitting-the-outcome-model" id="toc-step-3-fitting-the-outcome-model" class="nav-link" data-scroll-target="#step-3-fitting-the-outcome-model">Step 3: Fitting the Outcome Model</a></li>
   <li><a href="#step-4-estimate-the-treatment-effects" id="toc-step-4-estimate-the-treatment-effects" class="nav-link" data-scroll-target="#step-4-estimate-the-treatment-effects">Step 4: Estimate the Treatment Effects</a></li>
   <li><a href="#step-5-reporting-your-results" id="toc-step-5-reporting-your-results" class="nav-link" data-scroll-target="#step-5-reporting-your-results">Step 5: Reporting Your Results</a></li>
   <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
-  </ul></nav>
+  </ul>
+</nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><div class="quarto-title">
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
 <h1 class="title">Subgroup Analysis After Propensity Score Matching Using R</h1>
   <div class="quarto-categories">
     <div class="quarto-category">matching</div>
@@ -273,11 +313,14 @@ window.Quarto = {
   
 
 
-</header><p>Today I’m going to demonstrate performing a subgroup analysis after propensity score matching using R. Subgroup analysis, also known as moderation analysis or the analysis of effect modification, concerns the estimation of treatment effects within subgroups of a pre-treatment covariate. This post assumes you understand how to do propensity score matching. For a general introduction to propensity score matching, I recommend <span class="citation" data-cites="austinIntroductionPropensityScore2011">Austin (<a href="#ref-austinIntroductionPropensityScore2011" role="doc-biblioref">2011</a>)</span> and the <em>MatchIt</em> <a href="https://kosukeimai.github.io/MatchIt/articles/MatchIt.html">introductory vignette</a>. If you understand inverse probability weighting but aren’t too familiar with matching, I recommend my article with Liz Stuart <span class="citation" data-cites="greiferMatchingMethodsConfounder2021a">(<a href="#ref-greiferMatchingMethodsConfounder2021a" role="doc-biblioref">Greifer and Stuart 2021</a>)</span>. For an introduction to subgroup analysis with propensity scores, you can also check out <span class="citation" data-cites="greenExaminingModerationAnalyses2014">Green and Stuart (<a href="#ref-greenExaminingModerationAnalyses2014" role="doc-biblioref">2014</a>)</span>. Here, I’ll mainly try to get to the point.</p>
+</header>
+
+
+<p>Today I’m going to demonstrate performing a subgroup analysis after propensity score matching using R. Subgroup analysis, also known as moderation analysis or the analysis of effect modification, concerns the estimation of treatment effects within subgroups of a pre-treatment covariate. This post assumes you understand how to do propensity score matching. For a general introduction to propensity score matching, I recommend <span class="citation" data-cites="austinIntroductionPropensityScore2011">Austin (<a href="#ref-austinIntroductionPropensityScore2011" role="doc-biblioref">2011</a>)</span> and the <em>MatchIt</em> <a href="https://kosukeimai.github.io/MatchIt/articles/MatchIt.html">introductory vignette</a>. If you understand inverse probability weighting but aren’t too familiar with matching, I recommend my article with Liz Stuart <span class="citation" data-cites="greiferMatchingMethodsConfounder2021a">(<a href="#ref-greiferMatchingMethodsConfounder2021a" role="doc-biblioref">Greifer and Stuart 2021</a>)</span>. For an introduction to subgroup analysis with propensity scores, you can also check out <span class="citation" data-cites="greenExaminingModerationAnalyses2014">Green and Stuart (<a href="#ref-greenExaminingModerationAnalyses2014" role="doc-biblioref">2014</a>)</span>. Here, I’ll mainly try to get to the point.</p>
 <p>The dataset we’ll use today is the famous Lalonde dataset, investigating the effect of a job training program on earnings. We’ll use the version of this dataset that comes with the <em>MatchIt</em> package.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="st">"lalonde"</span>, package <span class="op">=</span> <span class="st">"MatchIt"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">lalonde</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"lalonde"</span>, <span class="at">package =</span> <span class="st">"MatchIt"</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(lalonde)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>     treat age educ   race married nodegree re74 re75       re78
 NSW1     1  37   11  black       1        1    0    0  9930.0460
@@ -290,11 +333,11 @@ NSW6     1  22    9  black       0        1    0    0  4056.4940</code></pre>
 </div>
 <p>The treatment is <code>treat</code>, the outcome in the original study was <code>re78</code> (1978 earnings), and the other variables are pretreatment covariates that we want to adjust for using propensity score matching. In this example, I’ll actually be using a different outcome, <code>re78_0</code>, which is whether the participant’s 1978 earnings were equal to 0 or not, because I want to demonstrate the procedure for a binary outcome. So, we hope the treatment effect is negative, i.e., the risk of 0 earnings decreases for those in the treatment.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">lalonde</span><span class="op">$</span><span class="va">re78_0</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">as.numeric</a></span><span class="op">(</span><span class="va">lalonde</span><span class="op">$</span><span class="va">re78</span> <span class="op">==</span> <span class="fl">0</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>lalonde<span class="sc">$</span>re78_0 <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(lalonde<span class="sc">$</span>re78 <span class="sc">==</span> <span class="dv">0</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Our moderator will be <code>race</code>, a 3-category factor variable.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/with.html">with</a></span><span class="op">(</span><span class="va">lalonde</span>, <span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">race</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">with</span>(lalonde, <span class="fu">table</span>(race))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>race
  black hispan  white 
@@ -302,46 +345,51 @@ NSW6     1  22    9  black       0        1    0    0  4056.4940</code></pre>
 </div>
 </div>
 <p>Our estimand will be the subgroup-specific and marginal average treatment effect on the treated (ATT), using the risk difference as our effect measure.</p>
-<section id="packages-youll-need" class="level3"><h3 class="anchored" data-anchor-id="packages-youll-need">Packages You’ll Need</h3>
+<section id="packages-youll-need" class="level3">
+<h3 class="anchored" data-anchor-id="packages-youll-need">Packages You’ll Need</h3>
 <p>We’ll need a few R packages for this analysis. We’ll need <em>MatchIt</em> and <em>optmatch</em> for the matching, <em>cobalt</em> for the balance assessment, <em>marginaleffects</em> for estimating the treatment effects, and <em>sandwich</em> for computing the standard errors. You can install those using the code below:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"MatchIt"</span>, <span class="st">"optmatch"</span>, <span class="st">"cobalt"</span>,</span>
-<span>                   <span class="st">"marginaleffects"</span>, <span class="st">"sandwich"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="fu">c</span>(<span class="st">"MatchIt"</span>, <span class="st">"optmatch"</span>, <span class="st">"cobalt"</span>,</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>                   <span class="st">"marginaleffects"</span>, <span class="st">"sandwich"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Let’s get into it!</p>
-</section><section id="step-1-subgroup-matching" class="level2"><h2 class="anchored" data-anchor-id="step-1-subgroup-matching">Step 1: Subgroup Matching</h2>
+</section>
+<section id="step-1-subgroup-matching" class="level2">
+<h2 class="anchored" data-anchor-id="step-1-subgroup-matching">Step 1: Subgroup Matching</h2>
 <p>Our first step is to perform the matching. Although there are a few strategies for performing matching for subgroup analysis, in general subgroup-specific matching tends to work best, though it requires a little extra work.</p>
 <p>We’ll do this by splitting the dataset by <code>race</code> and performing a separate matching analysis within each one.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co">#Splitting the data</span></span>
-<span><span class="va">lalonde_b</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html">subset</a></span><span class="op">(</span><span class="va">lalonde</span>, <span class="va">race</span> <span class="op">==</span> <span class="st">"black"</span><span class="op">)</span></span>
-<span><span class="va">lalonde_h</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html">subset</a></span><span class="op">(</span><span class="va">lalonde</span>, <span class="va">race</span> <span class="op">==</span> <span class="st">"hispan"</span><span class="op">)</span></span>
-<span><span class="va">lalonde_w</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html">subset</a></span><span class="op">(</span><span class="va">lalonde</span>, <span class="va">race</span> <span class="op">==</span> <span class="st">"white"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Splitting the data</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>lalonde_b <span class="ot">&lt;-</span> <span class="fu">subset</span>(lalonde, race <span class="sc">==</span> <span class="st">"black"</span>)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>lalonde_h <span class="ot">&lt;-</span> <span class="fu">subset</span>(lalonde, race <span class="sc">==</span> <span class="st">"hispan"</span>)</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>lalonde_w <span class="ot">&lt;-</span> <span class="fu">subset</span>(lalonde, race <span class="sc">==</span> <span class="st">"white"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Here we’ll use full matching because 1:1 matching without replacement, the most common (but worst) way to do propensity score matching, doesn’t work well in this dataset. The process described below works <em>exactly</em> the same for 1:1 and most other kinds of matching as it does for full matching. We’ll estimate propensity scores in each subgroup, here using probit regression, which happens to yield better balance than logistic regression does.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://kosukeimai.github.io/MatchIt/">"MatchIt"</a></span><span class="op">)</span></span>
-<span></span>
-<span><span class="co">#Matching in race == "black"</span></span>
-<span><span class="va">m.out_b</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://kosukeimai.github.io/MatchIt/reference/matchit.html">matchit</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span> <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span> <span class="op">+</span> <span class="va">re75</span>,</span>
-<span>                   data <span class="op">=</span> <span class="va">lalonde_b</span>, method <span class="op">=</span> <span class="st">"full"</span>, estimand <span class="op">=</span> <span class="st">"ATT"</span>,</span>
-<span>                   link <span class="op">=</span> <span class="st">"probit"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co">#Matching in race == "hispan"</span></span>
-<span><span class="va">m.out_h</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://kosukeimai.github.io/MatchIt/reference/matchit.html">matchit</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span> <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span> <span class="op">+</span> <span class="va">re75</span>,</span>
-<span>                   data <span class="op">=</span> <span class="va">lalonde_h</span>, method <span class="op">=</span> <span class="st">"full"</span>, estimand <span class="op">=</span> <span class="st">"ATT"</span>,</span>
-<span>                   link <span class="op">=</span> <span class="st">"probit"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co">#Matching in race == "black"</span></span>
-<span><span class="va">m.out_w</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://kosukeimai.github.io/MatchIt/reference/matchit.html">matchit</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span> <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span> <span class="op">+</span> <span class="va">re75</span>,</span>
-<span>                   data <span class="op">=</span> <span class="va">lalonde_w</span>, method <span class="op">=</span> <span class="st">"full"</span>, estimand <span class="op">=</span> <span class="st">"ATT"</span>,</span>
-<span>                   link <span class="op">=</span> <span class="st">"probit"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"MatchIt"</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="co">#Matching in race == "black"</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>m.out_b <span class="ot">&lt;-</span> <span class="fu">matchit</span>(treat <span class="sc">~</span> age <span class="sc">+</span> educ <span class="sc">+</span> married <span class="sc">+</span> nodegree <span class="sc">+</span> re74 <span class="sc">+</span> re75,</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>                   <span class="at">data =</span> lalonde_b, <span class="at">method =</span> <span class="st">"full"</span>, <span class="at">estimand =</span> <span class="st">"ATT"</span>,</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>                   <span class="at">link =</span> <span class="st">"probit"</span>)</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="co">#Matching in race == "hispan"</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>m.out_h <span class="ot">&lt;-</span> <span class="fu">matchit</span>(treat <span class="sc">~</span> age <span class="sc">+</span> educ <span class="sc">+</span> married <span class="sc">+</span> nodegree <span class="sc">+</span> re74 <span class="sc">+</span> re75,</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>                   <span class="at">data =</span> lalonde_h, <span class="at">method =</span> <span class="st">"full"</span>, <span class="at">estimand =</span> <span class="st">"ATT"</span>,</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>                   <span class="at">link =</span> <span class="st">"probit"</span>)</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="co">#Matching in race == "black"</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>m.out_w <span class="ot">&lt;-</span> <span class="fu">matchit</span>(treat <span class="sc">~</span> age <span class="sc">+</span> educ <span class="sc">+</span> married <span class="sc">+</span> nodegree <span class="sc">+</span> re74 <span class="sc">+</span> re75,</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>                   <span class="at">data =</span> lalonde_w, <span class="at">method =</span> <span class="st">"full"</span>, <span class="at">estimand =</span> <span class="st">"ATT"</span>,</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>                   <span class="at">link =</span> <span class="st">"probit"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-</section><section id="step-2-assessing-balance-within-subgroups" class="level2"><h2 class="anchored" data-anchor-id="step-2-assessing-balance-within-subgroups">Step 2: Assessing Balance within Subgroups</h2>
-<p>We need to assess subgroup balance; we can do that using <code><a href="https://rdrr.io/r/base/summary.html">summary()</a></code> on each <code>matchit</code> object, or we can use functions from <em>cobalt</em>.</p>
-<p>Below are examples of using <code><a href="https://rdrr.io/r/base/summary.html">summary()</a></code> and <code><a href="https://ngreifer.github.io/cobalt/reference/bal.tab.html">cobalt::bal.tab()</a></code> on one <code>matchit</code> object at a time<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>:</p>
+</section>
+<section id="step-2-assessing-balance-within-subgroups" class="level2">
+<h2 class="anchored" data-anchor-id="step-2-assessing-balance-within-subgroups">Step 2: Assessing Balance within Subgroups</h2>
+<p>We need to assess subgroup balance; we can do that using <code>summary()</code> on each <code>matchit</code> object, or we can use functions from <em>cobalt</em>.</p>
+<p>Below are examples of using <code>summary()</code> and <code>cobalt::bal.tab()</code> on one <code>matchit</code> object at a time<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">m.out_b</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(m.out_b)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 Call:
@@ -377,8 +425,8 @@ Matched         87.       156
 Unmatched        0.         0
 Discarded        0.         0</code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://ngreifer.github.io/cobalt/">"cobalt"</a></span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://ngreifer.github.io/cobalt/reference/bal.tab.html">bal.tab</a></span><span class="op">(</span><span class="va">m.out_b</span>, un <span class="op">=</span> <span class="cn">TRUE</span>, stats <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"m"</span>, <span class="st">"ks"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"cobalt"</span>)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">bal.tab</span>(m.out_b, <span class="at">un =</span> <span class="cn">TRUE</span>, <span class="at">stats =</span> <span class="fu">c</span>(<span class="st">"m"</span>, <span class="st">"ks"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Balance Measures
              Type Diff.Un  KS.Un Diff.Adj KS.Adj
@@ -397,19 +445,19 @@ Matched (ESS)          36.25     156
 Matched (Unweighted)   87.       156</code></pre>
 </div>
 </div>
-<p>We can also get a clearer sense of balance overall using <code><a href="https://ngreifer.github.io/cobalt/reference/bal.tab.html">bal.tab()</a></code> by directly supplying the matching weights.</p>
+<p>We can also get a clearer sense of balance overall using <code>bal.tab()</code> by directly supplying the matching weights.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co">#Initialize the weights</span></span>
-<span><span class="va">fm_weights</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">lalonde</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co">#Assign the weights based on the subgroup</span></span>
-<span><span class="va">fm_weights</span><span class="op">[</span><span class="va">lalonde</span><span class="op">$</span><span class="va">race</span> <span class="op">==</span> <span class="st">"black"</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">m.out_b</span><span class="op">$</span><span class="va">weights</span></span>
-<span><span class="va">fm_weights</span><span class="op">[</span><span class="va">lalonde</span><span class="op">$</span><span class="va">race</span> <span class="op">==</span> <span class="st">"hispan"</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">m.out_h</span><span class="op">$</span><span class="va">weights</span></span>
-<span><span class="va">fm_weights</span><span class="op">[</span><span class="va">lalonde</span><span class="op">$</span><span class="va">race</span> <span class="op">==</span> <span class="st">"white"</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">m.out_w</span><span class="op">$</span><span class="va">weights</span></span>
-<span></span>
-<span><span class="fu"><a href="https://ngreifer.github.io/cobalt/reference/bal.tab.html">bal.tab</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span> <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span> <span class="op">+</span> <span class="va">re75</span>,</span>
-<span>        data <span class="op">=</span> <span class="va">lalonde</span>, weights <span class="op">=</span> <span class="va">fm_weights</span>, cluster <span class="op">=</span> <span class="st">"race"</span>,</span>
-<span>        stats <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"m"</span>, <span class="st">"ks"</span><span class="op">)</span>, abs <span class="op">=</span> <span class="cn">TRUE</span>, cluster.summary <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Initialize the weights</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>fm_weights <span class="ot">&lt;-</span> <span class="fu">numeric</span>(<span class="fu">nrow</span>(lalonde))</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="co">#Assign the weights based on the subgroup</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>fm_weights[lalonde<span class="sc">$</span>race <span class="sc">==</span> <span class="st">"black"</span>] <span class="ot">&lt;-</span> m.out_b<span class="sc">$</span>weights</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>fm_weights[lalonde<span class="sc">$</span>race <span class="sc">==</span> <span class="st">"hispan"</span>] <span class="ot">&lt;-</span> m.out_h<span class="sc">$</span>weights</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>fm_weights[lalonde<span class="sc">$</span>race <span class="sc">==</span> <span class="st">"white"</span>] <span class="ot">&lt;-</span> m.out_w<span class="sc">$</span>weights</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a><span class="fu">bal.tab</span>(treat <span class="sc">~</span> age <span class="sc">+</span> educ <span class="sc">+</span> married <span class="sc">+</span> nodegree <span class="sc">+</span> re74 <span class="sc">+</span> re75,</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>        <span class="at">data =</span> lalonde, <span class="at">weights =</span> fm_weights, <span class="at">cluster =</span> <span class="st">"race"</span>,</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>        <span class="at">stats =</span> <span class="fu">c</span>(<span class="st">"m"</span>, <span class="st">"ks"</span>), <span class="at">abs =</span> <span class="cn">TRUE</span>, <span class="at">cluster.summary =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Balance by cluster
 
@@ -475,36 +523,39 @@ Adjusted   113.01 185</code></pre>
 </div>
 </div>
 <p>Using the <code>cluster</code> argument produces balance tables in each subgroup and, because we specified <code>cluster.summary = TRUE</code>, a balance table summarizing across subgroups. To suppress display of the subgroup-specific balance tables (which may be useful if you have many subgroups), you can specify <code>which.cluster = .none</code>.</p>
-<p>To make a plot displaying the balance statistics visually, we can use <code><a href="https://ngreifer.github.io/cobalt/reference/love.plot.html">cobalt::love.plot()</a></code>:</p>
+<p>To make a plot displaying the balance statistics visually, we can use <code>cobalt::love.plot()</code>:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://ngreifer.github.io/cobalt/reference/love.plot.html">love.plot</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span> <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span> <span class="op">+</span> <span class="va">re75</span>,</span>
-<span>        data <span class="op">=</span> <span class="va">lalonde</span>, weights <span class="op">=</span> <span class="va">fm_weights</span>, cluster <span class="op">=</span> <span class="st">"race"</span>,</span>
-<span>        stats <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"m"</span>, <span class="st">"ks"</span><span class="op">)</span>, abs <span class="op">=</span> <span class="cn">TRUE</span>, binary <span class="op">=</span> <span class="st">"std"</span>,</span>
-<span>        which.cluster <span class="op">=</span> <span class="va">.none</span>, agg.fun <span class="op">=</span> <span class="st">"max"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">love.plot</span>(treat <span class="sc">~</span> age <span class="sc">+</span> educ <span class="sc">+</span> married <span class="sc">+</span> nodegree <span class="sc">+</span> re74 <span class="sc">+</span> re75,</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>        <span class="at">data =</span> lalonde, <span class="at">weights =</span> fm_weights, <span class="at">cluster =</span> <span class="st">"race"</span>,</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>        <span class="at">stats =</span> <span class="fu">c</span>(<span class="st">"m"</span>, <span class="st">"ks"</span>), <span class="at">abs =</span> <span class="cn">TRUE</span>, <span class="at">binary =</span> <span class="st">"std"</span>,</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">which.cluster =</span> .none, <span class="at">agg.fun =</span> <span class="st">"max"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="index_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid figure-img" width="672"></p>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
 </div>
 <p>See the <em>cobalt</em> <a href="https://ngreifer.github.io/cobalt/articles/cobalt_A4_love.plot.html">vignette on customizing <code>love.plot()</code></a> to see how to finely control the appearance of the plot.</p>
 <p>From this output, we can see that balance is actually pretty bad; the greatest standardized mean difference (SMD) across subgroups after matching is around .46, which is way too big. In a realistic scenario, we would try different matching methods, maybe resorting to weighting, until we found good balance across the subgroups. In order to validly interpret the subgroup-specific effects and tests for moderation, we need to achieve balance in each subgroup, not just overall. We didn’t get good balance here, but to stay focused on the rest of the procedure, we’ll move forward as if we did.</p>
-</section><section id="step-3-fitting-the-outcome-model" class="level2"><h2 class="anchored" data-anchor-id="step-3-fitting-the-outcome-model">Step 3: Fitting the Outcome Model</h2>
+</section>
+<section id="step-3-fitting-the-outcome-model" class="level2">
+<h2 class="anchored" data-anchor-id="step-3-fitting-the-outcome-model">Step 3: Fitting the Outcome Model</h2>
 <p>Next, we’ll fit the outcome model. It’s important to remember that the outcome model is an intermediate step for estimating the treatment effect; no quantity estimated by the model needs to correspond to the treatment effect directly. We’ll be using a marginal effects procedure to estimate the treatment effects in the next section.</p>
-<p>First, we’ll extract the matched datasets from the <code>matchit</code> objects. We can’t just use the matching weights we extracted earlier because we also need subclass (i.e., pair) membership. We’ll use <code><a href="https://kosukeimai.github.io/MatchIt/reference/match_data.html">match_data()</a></code> from <em>MatchIt</em> to extract the matched datasets, which contain the matching weights and subclass membership in the <code>weights</code> and <code>subclass</code> columns, respectively, and use <code><a href="https://rdrr.io/r/base/cbind.html">rbind()</a></code> to bind them into a single combined dataset<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a>.</p>
+<p>First, we’ll extract the matched datasets from the <code>matchit</code> objects. We can’t just use the matching weights we extracted earlier because we also need subclass (i.e., pair) membership. We’ll use <code>match_data()</code> from <em>MatchIt</em> to extract the matched datasets, which contain the matching weights and subclass membership in the <code>weights</code> and <code>subclass</code> columns, respectively, and use <code>rbind()</code> to bind them into a single combined dataset<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a>.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co">#Extract the matched datasets</span></span>
-<span><span class="va">matched_data_b</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://kosukeimai.github.io/MatchIt/reference/match_data.html">match_data</a></span><span class="op">(</span><span class="va">m.out_b</span><span class="op">)</span></span>
-<span><span class="va">matched_data_h</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://kosukeimai.github.io/MatchIt/reference/match_data.html">match_data</a></span><span class="op">(</span><span class="va">m.out_h</span><span class="op">)</span></span>
-<span><span class="va">matched_data_w</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://kosukeimai.github.io/MatchIt/reference/match_data.html">match_data</a></span><span class="op">(</span><span class="va">m.out_w</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co">#Combine them using rbind()</span></span>
-<span><span class="va">matched_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html">rbind</a></span><span class="op">(</span><span class="va">matched_data_b</span>,</span>
-<span>                      <span class="va">matched_data_h</span>,</span>
-<span>                      <span class="va">matched_data_w</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">matched_data</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Extract the matched datasets</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>matched_data_b <span class="ot">&lt;-</span> <span class="fu">match_data</span>(m.out_b)</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>matched_data_h <span class="ot">&lt;-</span> <span class="fu">match_data</span>(m.out_h)</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>matched_data_w <span class="ot">&lt;-</span> <span class="fu">match_data</span>(m.out_w)</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a><span class="co">#Combine them using rbind()</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>matched_data <span class="ot">&lt;-</span> <span class="fu">rbind</span>(matched_data_b,</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>                      matched_data_h,</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>                      matched_data_w)</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(matched_data)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> [1] "treat"    "age"      "educ"     "race"     "married"  "nodegree" "re74"     "re75"     "re78"     "re78_0"   "distance" "weights"  "subclass"</code></pre>
 </div>
@@ -512,22 +563,24 @@ Adjusted   113.01 185</code></pre>
 <p>Next, we can fit the outcome model. The choice of which model to fit should depend primarily on the best model for the outcome; because we have a binary outcome, we’ll use logistic regression.</p>
 <p>It’s usually a good idea to include covariates in the outcome model. It’s also usually a good idea to allow the treatment to interact with the covariates in the outcome model. It’s also usually a good idea to fit separate models within each subgroup. Combining this all yields a pretty complicated model, which is why it will be so important to use a marginal effects procedure rather than trying to interpret the model’s coefficients. Here’s how we fit this model:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/glm.html">glm</a></span><span class="op">(</span><span class="va">re78_0</span> <span class="op">~</span> <span class="va">race</span> <span class="op">*</span> <span class="op">(</span><span class="va">treat</span> <span class="op">*</span> <span class="op">(</span><span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span> <span class="va">nodegree</span> <span class="op">+</span></span>
-<span>                                       <span class="va">re74</span> <span class="op">+</span> <span class="va">re75</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>           data <span class="op">=</span> <span class="va">matched_data</span>, weights <span class="op">=</span> <span class="va">weights</span>,</span>
-<span>           family <span class="op">=</span> <span class="st">"quasibinomial"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">glm</span>(re78_0 <span class="sc">~</span> race <span class="sc">*</span> (treat <span class="sc">*</span> (age <span class="sc">+</span> educ <span class="sc">+</span> married <span class="sc">+</span> nodegree <span class="sc">+</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>                                       re74 <span class="sc">+</span> re75)),</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>           <span class="at">data =</span> matched_data, <span class="at">weights =</span> weights,</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>           <span class="at">family =</span> <span class="st">"quasibinomial"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>We’re not even going to look at the output of this model, which has 42 parameters. If the model doesn’t fit with your dataset, you can remove interactions between the treatment and some covariates or remove the covariates altogether.</p>
-<p>For a linear model, you can use <code><a href="https://rdrr.io/r/stats/lm.html">lm()</a></code> and remove the <code>family</code> argument. We used <code>family = "quasibinomial"</code> because we want logistic regression for our binary outcome but we are using the matching weights, which otherwise create a (harmless but annoying) warning when run with <code>family = "binomial"</code>.</p>
-</section><section id="step-4-estimate-the-treatment-effects" class="level2"><h2 class="anchored" data-anchor-id="step-4-estimate-the-treatment-effects">Step 4: Estimate the Treatment Effects</h2>
+<p>For a linear model, you can use <code>lm()</code> and remove the <code>family</code> argument. We used <code>family = "quasibinomial"</code> because we want logistic regression for our binary outcome but we are using the matching weights, which otherwise create a (harmless but annoying) warning when run with <code>family = "binomial"</code>.</p>
+</section>
+<section id="step-4-estimate-the-treatment-effects" class="level2">
+<h2 class="anchored" data-anchor-id="step-4-estimate-the-treatment-effects">Step 4: Estimate the Treatment Effects</h2>
 <p>Finally, we can estimate the treatment effects. To do so, we’ll use an average marginal effects procedure as implemented in <em>marginaleffects</em>. First, we’ll estimate the average marginal effect overall, averaging across the subgroups. Again, we’re hoping for a negative treatment effect, which indicates the risk of having zero income decreased among those who received the treatment. Because we are estimating the ATT, we need to subset the data for which the average marginal effects are computed to just the treated units, which we do using the <code>newdata</code> argument (which can be omitted when the ATE is the target estimand). We also need to supply pair membership to ensure the standard errors are correctly computed, which we do by supplying the <code>subclass</code> variable containing pair membership to the <code>vcov</code> argument.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://marginaleffects.com/">"marginaleffects"</a></span><span class="op">)</span></span>
-<span></span>
-<span><span class="co">#Estimate the overall ATT</span></span>
-<span><span class="fu"><a href="https://rdrr.io/pkg/marginaleffects/man/comparisons.html">avg_comparisons</a></span><span class="op">(</span><span class="va">fit</span>, variables <span class="op">=</span> <span class="st">"treat"</span>,</span>
-<span>                newdata <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html">subset</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span>,</span>
-<span>                vcov <span class="op">=</span> <span class="op">~</span><span class="va">subclass</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"marginaleffects"</span>)</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="co">#Estimate the overall ATT</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="fu">avg_comparisons</span>(fit, <span class="at">variables =</span> <span class="st">"treat"</span>,</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>                <span class="at">newdata =</span> <span class="fu">subset</span>(treat <span class="sc">==</span> <span class="dv">1</span>),</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>                <span class="at">vcov =</span> <span class="sc">~</span>subclass)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
  Estimate Std. Error     z Pr(&gt;|z|)   S   2.5 % 97.5 %
@@ -541,10 +594,10 @@ Comparison: 1 - 0</code></pre>
 <p>The estimated risk difference is 0.0305 with a high p-value and a confidence interval containing 0, indicating no evidence of an effect overall. (Note: this doesn’t mean there is no effect! The data are compatible with effects anywhere within the confidence interval, which includes negative and positive effects of a moderate size!)</p>
 <p>New, let’s estimate the subgroup-specific effects by supplying the subgrouping variable, <code>"race"</code>, to the <code>by</code> argument:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb21"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/marginaleffects/man/comparisons.html">avg_comparisons</a></span><span class="op">(</span><span class="va">fit</span>, variables <span class="op">=</span> <span class="st">"treat"</span>,</span>
-<span>                newdata <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html">subset</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span>,</span>
-<span>                vcov <span class="op">=</span> <span class="op">~</span><span class="va">subclass</span>,</span>
-<span>                by <span class="op">=</span> <span class="st">"race"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">avg_comparisons</span>(fit, <span class="at">variables =</span> <span class="st">"treat"</span>,</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>                <span class="at">newdata =</span> <span class="fu">subset</span>(treat <span class="sc">==</span> <span class="dv">1</span>),</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>                <span class="at">vcov =</span> <span class="sc">~</span>subclass,</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>                <span class="at">by =</span> <span class="st">"race"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
    race Estimate Std. Error     z Pr(&gt;|z|)   S   2.5 %  97.5 %
@@ -558,13 +611,13 @@ Comparison: 1 - 0</code></pre>
 </div>
 </div>
 <p>Here, we see that actually there is evidence of treatment effects within subgroups! In the subgroups <code>hispan</code> and <code>white</code>, we see moderately sized negative effects with small p-values and confidence intervals excluding 0, suggesting that there treatment effects in these subgroups.</p>
-<p>We can also test whether the treatment effects differ between groups using the <code>hypothesis</code> argument of <code><a href="https://rdrr.io/pkg/marginaleffects/man/comparisons.html">avg_comparisons()</a></code>:</p>
+<p>We can also test whether the treatment effects differ between groups using the <code>hypothesis</code> argument of <code>avg_comparisons()</code>:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb23"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/marginaleffects/man/comparisons.html">avg_comparisons</a></span><span class="op">(</span><span class="va">fit</span>, variables <span class="op">=</span> <span class="st">"treat"</span>,</span>
-<span>                newdata <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html">subset</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span>,</span>
-<span>                vcov <span class="op">=</span> <span class="op">~</span><span class="va">subclass</span>,</span>
-<span>                by <span class="op">=</span> <span class="st">"race"</span>,</span>
-<span>                hypothesis <span class="op">=</span> <span class="op">~</span><span class="va">pairwise</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">avg_comparisons</span>(fit, <span class="at">variables =</span> <span class="st">"treat"</span>,</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>                <span class="at">newdata =</span> <span class="fu">subset</span>(treat <span class="sc">==</span> <span class="dv">1</span>),</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>                <span class="at">vcov =</span> <span class="sc">~</span>subclass,</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>                <span class="at">by =</span> <span class="st">"race"</span>,</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>                <span class="at">hypothesis =</span> <span class="sc">~</span>pairwise)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
          Hypothesis Estimate Std. Error      z Pr(&gt;|z|)   S  2.5 %  97.5 %
@@ -576,14 +629,14 @@ Type: response</code></pre>
 </div>
 </div>
 <p>We can see evidence that the treatment effect differs between the <code>black</code> and <code>hispan</code> groups, and between the <code>black</code> and <code>white</code> groups. With many subgroups, it might be useful to adjust your p-values for multiple comparisons, which we can do by supplying an argument to <code>p_adjust</code>.</p>
-<p>If you want a single omnibus test for the presence of moderation, you can supply the output of the above to <code>hyppotheses()</code> with <code>joint = TRUE</code>, which we do below<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a>. Note that because one of the comparisons is redundant, we need to change <code>hypothesis</code> to <code>~reference</code> in the call to <code><a href="https://rdrr.io/pkg/marginaleffects/man/comparisons.html">avg_comparisons()</a></code>.</p>
+<p>If you want a single omnibus test for the presence of moderation, you can supply the output of the above to <code>hyppotheses()</code> with <code>joint = TRUE</code>, which we do below<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a>. Note that because one of the comparisons is redundant, we need to change <code>hypothesis</code> to <code>~reference</code> in the call to <code>avg_comparisons()</code>.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb25"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/marginaleffects/man/comparisons.html">avg_comparisons</a></span><span class="op">(</span><span class="va">fit</span>, variables <span class="op">=</span> <span class="st">"treat"</span>,</span>
-<span>                newdata <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html">subset</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span>,</span>
-<span>                vcov <span class="op">=</span> <span class="op">~</span><span class="va">subclass</span>,</span>
-<span>                by <span class="op">=</span> <span class="st">"race"</span>,</span>
-<span>                hypothesis <span class="op">=</span> <span class="op">~</span><span class="va">reference</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/marginaleffects/man/hypotheses.html">hypotheses</a></span><span class="op">(</span>joint <span class="op">=</span> <span class="cn">TRUE</span>, joint_test <span class="op">=</span> <span class="st">"chisq"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">avg_comparisons</span>(fit, <span class="at">variables =</span> <span class="st">"treat"</span>,</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>                <span class="at">newdata =</span> <span class="fu">subset</span>(treat <span class="sc">==</span> <span class="dv">1</span>),</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>                <span class="at">vcov =</span> <span class="sc">~</span>subclass,</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>                <span class="at">by =</span> <span class="st">"race"</span>,</span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>                <span class="at">hypothesis =</span> <span class="sc">~</span>reference) <span class="sc">|&gt;</span></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">hypotheses</span>(<span class="at">joint =</span> <span class="cn">TRUE</span>, <span class="at">joint_test =</span> <span class="st">"chisq"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 
@@ -598,20 +651,28 @@ Type: response</code></pre>
 </div>
 </div>
 <p>Congratulations! You’ve done a subgroup analysis!</p>
-</section><section id="step-5-reporting-your-results" class="level2"><h2 class="anchored" data-anchor-id="step-5-reporting-your-results">Step 5: Reporting Your Results</h2>
+</section>
+<section id="step-5-reporting-your-results" class="level2">
+<h2 class="anchored" data-anchor-id="step-5-reporting-your-results">Step 5: Reporting Your Results</h2>
 <p>A fair bit needs to be included when reporting your results to ensure your analysis is replicable and can be correctly interpreted by your audience. The key things to report are the following:</p>
 <ul>
 <li>The method of estimating the propensity score and performing the matching (noting that these were done within subgroups), including the estimand targeted and whether that estimand was respected by the procedure (using, e.g., a caliper changes the estimand from the one you specify). This should also include the packages used and, even better, the functions used. If you’re using <em>MatchIt</em>, the documentation should also tell you which papers to cite.</li>
 <li>A quick summary of other methods you might have tried and why you went with the one you went with (i.e., because it yielded better balance, a greater effective sample size, etc.).</li>
-<li>Covariate balance, measured broadly; this can include a balance table, a balance plot (like one produced by <code><a href="https://ngreifer.github.io/cobalt/reference/love.plot.html">cobalt::love.plot()</a></code>), or a summary of balance (like providing the largest SMD and KS statistic observed across subgroups). Make sure your description of balance reflects the subgroups, e.g., by having separate tables or plots for each subgroup or clarifying that the statistics presented are averages or the worst case across subgroups.</li>
+<li>Covariate balance, measured broadly; this can include a balance table, a balance plot (like one produced by <code>cobalt::love.plot()</code>), or a summary of balance (like providing the largest SMD and KS statistic observed across subgroups). Make sure your description of balance reflects the subgroups, e.g., by having separate tables or plots for each subgroup or clarifying that the statistics presented are averages or the worst case across subgroups.</li>
 <li>The outcome model you used, especially specifying the form of the model used and how/whether covariates entered the model. Also mention the method used to compute the standard errors (e.g., cluster-robust standard errors with pair membership as the clustering variable).</li>
 <li>Details of the marginal effects procedure used, including the package used, and the method to compute the standard errors (in this case, the delta method, which is the only method available in <em>marginaleffects</em>).</li>
 <li>The treatment effect estimates along with their p-values and confidence intervals, both overall, within subgroups, and for the omnibus test.</li>
-</ul></section><section id="references" class="level2">
+</ul>
+</section>
+<section id="references" class="level2">
 
 
 
-</section><div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
+
+</section>
+
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
 <div id="ref-austinIntroductionPropensityScore2011" class="csl-entry" role="listitem">
 Austin, Peter C. 2011. <span>“An Introduction to Propensity Score Methods for Reducing the Effects of Confounding in Observational Studies.”</span> <em>Multivariate Behavioral Research</em> 46 (3): 399–424. <a href="https://doi.org/10.1080/00273171.2011.568786">https://doi.org/10.1080/00273171.2011.568786</a>.
 </div>
@@ -622,11 +683,14 @@ Green, Kerry M., and Elizabeth A. Stuart. 2014. <span>“Examining Moderation An
 Greifer, Noah, and Elizabeth A Stuart. 2021. <span>“Matching <span>Methods</span> for <span>Confounder Adjustment</span>: <span>An Addition</span> to the <span>Epidemiologist</span>’s <span>Toolbox</span>.”</span> <em>Epidemiologic Reviews</em>, June, mxab003. <a href="https://doi.org/10.1093/epirev/mxab003">https://doi.org/10.1093/epirev/mxab003</a>.
 </div>
 </div></section><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
+
 <ol>
-<li id="fn1"><p>You might notices the mean differences for binary variables differ between the two outputs; that’s because <code><a href="https://rdrr.io/r/base/summary.html">summary()</a></code> standardizes the mean differences whereas <code><a href="https://ngreifer.github.io/cobalt/reference/bal.tab.html">bal.tab()</a></code> does not for binary variables. If you want standardized mean differences for binary variables from <code><a href="https://ngreifer.github.io/cobalt/reference/bal.tab.html">bal.tab()</a></code>, just add the argument <code>binary = "std"</code>.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn2"><p>Note: <code><a href="https://rdrr.io/r/base/cbind.html">rbind()</a></code> must be used for this; functions from other packages, like <code><a href="https://dplyr.tidyverse.org/reference/bind_rows.html">dplyr::bind_rows()</a></code>, will not correctly preserve the subclass structure.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn1"><p>You might notices the mean differences for binary variables differ between the two outputs; that’s because <code>summary()</code> standardizes the mean differences whereas <code>bal.tab()</code> does not for binary variables. If you want standardized mean differences for binary variables from <code>bal.tab()</code>, just add the argument <code>binary = "std"</code>.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p>Note: <code>rbind()</code> must be used for this; functions from other packages, like <code>dplyr::bind_rows()</code>, will not correctly preserve the subclass structure.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn3"><p>We also set <code>joint_test = "chisq"</code> to use a <span class="math inline">\(\chi^2\)</span> test, which is more appropriate for binary outcomes.<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-</ol></section></div></main><!-- /main --><script id="quarto-html-after-body" type="application/javascript">
+</ol>
+</section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     const icon = "";
     const anchorJS = new window.AnchorJS();
@@ -1030,7 +1094,10 @@ Greifer, Noah, and Elizabeth A Stuart. 2021. <span>“Matching <span>Methods</sp
       }
     }
   });
-  </script><input type="hidden" id="giscus-base-theme" value="preferred_color_scheme"><input type="hidden" id="giscus-alt-theme" value="preferred_color_scheme"><script>
+  </script>
+<input type="hidden" id="giscus-base-theme" value="preferred_color_scheme">
+<input type="hidden" id="giscus-alt-theme" value="preferred_color_scheme">
+<script>
   function loadGiscus() {
     // Function to get the theme based on body class
     const getTheme = () => {
@@ -1058,7 +1125,8 @@ Greifer, Noah, and Elizabeth A Stuart. 2021. <span>“Matching <span>Methods</sp
   loadGiscus();
 </script>
 </div> <!-- /content -->
-<footer class="footer"><div class="nav-footer">
+<footer class="footer">
+  <div class="nav-footer">
     <div class="nav-footer-left">
 <a href="http://www.github.com">Noah Greifer</a> ©
 <script>document.write(new Date().getFullYear())</script>
@@ -1071,6 +1139,8 @@ Greifer, Noah, and Elizabeth A Stuart. 2021. <span>“Matching <span>Methods</sp
     </div>
   </div>
 </footer>
+
+
 
 
 </body></html>

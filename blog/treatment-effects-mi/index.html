@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
 <meta charset="utf-8">
 <meta name="generator" content="quarto-1.9.38">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
 <meta name="author" content="Noah Greifer">
 <meta name="dcterms.date" content="2023-02-10">
+
 <title>Estimating Treatment Effects After Weighting with Multiply Imputed Data – Noah Greifer</title>
 <style>
 /* Default styles provided by pandoc.
@@ -59,6 +62,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 }
 </style>
 
+
 <script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
 <script src="../../site_libs/quarto-nav/headroom.min.js"></script>
 <script src="../../site_libs/clipboard/clipboard.min.js"></script>
@@ -66,7 +70,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../../site_libs/quarto-search/fuse.min.js"></script>
 <script src="../../site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="../../">
-<link href="../../assets/media/icon.png" rel="icon" type="image/png">
+<link href="../../assets/media/favicon.ico" rel="icon">
 <script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
 <script src="../../site_libs/quarto-html/popper.min.js"></script>
@@ -76,7 +80,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../../site_libs/quarto-html/quarto-syntax-highlighting-de63f62b328812d8e578a4d74e282472.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../site_libs/bootstrap/bootstrap-f8ddab8c30c8d0f2b512aadf102d9b21.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light"><script id="quarto-search-options" type="application/json">{
+<link href="../../site_libs/bootstrap/bootstrap-4cae65ad75248541f9c290a216e05642.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
   "collapse-after": 3,
@@ -101,21 +106,39 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     "search-submit-button-title": "Submit",
     "search-label": "Search"
   }
-}</script><script async="" src="https://www.googletagmanager.com/gtag/js?id="></script><script type="text/javascript">
+}</script>
+<script async="" src="https://www.googletagmanager.com/gtag/js?id="></script>
+
+<script type="text/javascript">
 
 window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());
 gtag('config', '', { 'anonymize_ip': true});
-</script><!-- 
+</script>
+
+<!-- 
 Load Academicons v1: https://jpswalsh.github.io/academicons/
---><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+-->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+
 <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+
+
 <!---
 The following code are needed to show dimension citation and altmetrics.
 https://api.altmetric.com/embeds.html
 https://badge.dimensions.ai/
----><script type="text/javascript" src="https://d1bxh8uas1mnw7.cloudfront.net/assets/embed.js"></script><script async="" src="https://badge.dimensions.ai/badge.js" charset="utf-8"></script><script type="text/javascript" src="//cdn.plu.mx/widget-popup.js"></script><link rel="stylesheet" href="../../styles.css">
+--->
+
+<script type="text/javascript" src="https://d1bxh8uas1mnw7.cloudfront.net/assets/embed.js"></script>
+
+<script async="" src="https://badge.dimensions.ai/badge.js" charset="utf-8"></script>
+
+<script type="text/javascript" src="//cdn.plu.mx/widget-popup.js"></script>
+
+
+<link rel="stylesheet" href="../../styles.css">
 <meta property="og:title" content="Estimating Treatment Effects After Weighting with Multiply Imputed Data – Noah Greifer">
 <meta property="og:description" content="Noah Greifer’s website">
 <meta property="og:site_name" content="Noah Greifer">
@@ -123,13 +146,18 @@ https://badge.dimensions.ai/
 <meta name="twitter:description" content="Noah Greifer’s website">
 <meta name="twitter:card" content="summary">
 </head>
+
 <body class="nav-fixed quarto-light">
 
 <div id="quarto-search-results"></div>
-  <header id="quarto-header" class="headroom fixed-top"><nav class="navbar navbar-expand-lg " data-bs-theme="dark"><div class="navbar-container container-fluid">
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a href="../../index.html" class="navbar-brand navbar-brand-logo">
-    <img src="../../assets/media/icon.png" alt="Noah Greifer" class="navbar-logo light-content"><img src="../../assets/media/icon.png" alt="Noah Greifer" class="navbar-logo dark-content"></a>
+    <img src="../../assets/media/icon.png" alt="Noah Greifer" class="navbar-logo light-content">
+    <img src="../../assets/media/icon.png" alt="Noah Greifer" class="navbar-logo dark-content">
+    </a>
     <a class="navbar-brand" href="../../index.html">
     <span class="navbar-title">Noah Greifer</span>
     </a>
@@ -140,7 +168,7 @@ https://badge.dimensions.ai/
 </button>
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
-<li class="nav-item">
+  <li class="nav-item">
     <a class="nav-link" href="../../index.html"> 
 <span class="menu-text">Home</span></a>
   </li>  
@@ -157,14 +185,14 @@ https://badge.dimensions.ai/
 <span class="menu-text">Papers</span></a>
   </li>  
 </ul>
-<ul class="navbar-nav navbar-nav-scroll ms-auto">
-<li class="nav-item compact">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
     <a class="nav-link" href="https://github.com/ngreifer"> <i class="bi bi-github" role="img" aria-label="GitHub">
 </i> 
 <span class="menu-text"></span></a>
   </li>  
 </ul>
-</div> <!-- /navcollapse -->
+          </div> <!-- /navcollapse -->
             <div class="quarto-navbar-tools">
   <a href="" class="quarto-reader-toggle quarto-navigation-tool px-1" onclick="window.quartoToggleReader(); return false;" title="Toggle reader mode">
   <div class="quarto-reader-toggle-btn">
@@ -173,29 +201,35 @@ https://badge.dimensions.ai/
 </a>
 </div>
       </div> <!-- /container-fluid -->
-    </nav></header><!-- content --><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        <nav id="TOC" role="doc-toc" class="toc-active"><h2 id="toc-title">On this page</h2>
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
    
   <ul>
-<li><a href="#packages-well-need" id="toc-packages-well-need" class="nav-link active" data-scroll-target="#packages-well-need">Packages we’ll need</a></li>
+  <li><a href="#packages-well-need" id="toc-packages-well-need" class="nav-link active" data-scroll-target="#packages-well-need">Packages we’ll need</a></li>
   <li><a href="#the-data" id="toc-the-data" class="nav-link" data-scroll-target="#the-data">The data</a></li>
   <li><a href="#imputing-the-data" id="toc-imputing-the-data" class="nav-link" data-scroll-target="#imputing-the-data">Imputing the data</a></li>
   <li><a href="#weighting-the-imputed-data" id="toc-weighting-the-imputed-data" class="nav-link" data-scroll-target="#weighting-the-imputed-data">Weighting the imputed data</a></li>
   <li><a href="#fitting-the-outcome-models" id="toc-fitting-the-outcome-models" class="nav-link" data-scroll-target="#fitting-the-outcome-models">Fitting the outcome models</a></li>
   <li><a href="#the-marginaleffects-workflow" id="toc-the-marginaleffects-workflow" class="nav-link" data-scroll-target="#the-marginaleffects-workflow">The <em>marginaleffects</em> workflow</a></li>
-  <li>
-<a href="#the-clarify-workflow" id="toc-the-clarify-workflow" class="nav-link" data-scroll-target="#the-clarify-workflow">The <em>clarify</em> workflow</a>
+  <li><a href="#the-clarify-workflow" id="toc-the-clarify-workflow" class="nav-link" data-scroll-target="#the-clarify-workflow">The <em>clarify</em> workflow</a>
   <ul class="collapse">
-<li><a href="#explaining-differences-between-the-approaches" id="toc-explaining-differences-between-the-approaches" class="nav-link" data-scroll-target="#explaining-differences-between-the-approaches">Explaining differences between the approaches</a></li>
+  <li><a href="#explaining-differences-between-the-approaches" id="toc-explaining-differences-between-the-approaches" class="nav-link" data-scroll-target="#explaining-differences-between-the-approaches">Explaining differences between the approaches</a></li>
+  </ul></li>
   </ul>
-</li>
-  </ul></nav>
+</nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><div class="quarto-title">
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
 <h1 class="title">Estimating Treatment Effects After Weighting with Multiply Imputed Data</h1>
   <div class="quarto-categories">
     <div class="quarto-category">propensity-scores</div>
@@ -227,18 +261,24 @@ https://badge.dimensions.ai/
   
 
 
-</header><p>Multiply imputed data always makes things a little harder. Essentially, you have to perform each step of the analysis in each imputed dataset and then combine the results together in a special way. For basic regression analysis, the <a href="https://amices.org/mice/"><em>mice</em></a> package makes fitting models and combining estimates simple. But when we want to do propensity score matching or weighting before fitting our regression models, and when the quantity we want to estimate is not just a coefficient in a regression model, things get a bit harder.</p>
-<p>For doing matching or weighting in multiply imputed data, the R package <a href="https://cran.r-project.org/package=MatchThem"><em>MatchThem</em></a> does the job. It essentially provides wrappers for <code><a href="https://kosukeimai.github.io/MatchIt/reference/matchit.html">MatchIt::matchit()</a></code> and <code><a href="https://ngreifer.github.io/WeightIt/reference/weightit.html">WeightIt::weightit()</a></code> for multiply imputed data. It extends <em>mice</em>’s functionality for fitting regression models in multiply imputed data by automatically incorporating the matched or weighted structure into the estimation of the outcome models. It uses <code><a href="https://amices.org/mice/reference/pool.html">mice::pool()</a></code> to pool estimates across multiply imputed data.</p>
+</header>
+
+
+<p>Multiply imputed data always makes things a little harder. Essentially, you have to perform each step of the analysis in each imputed dataset and then combine the results together in a special way. For basic regression analysis, the <a href="https://amices.org/mice/"><em>mice</em></a> package makes fitting models and combining estimates simple. But when we want to do propensity score matching or weighting before fitting our regression models, and when the quantity we want to estimate is not just a coefficient in a regression model, things get a bit harder.</p>
+<p>For doing matching or weighting in multiply imputed data, the R package <a href="https://cran.r-project.org/package=MatchThem"><em>MatchThem</em></a> does the job. It essentially provides wrappers for <code>MatchIt::matchit()</code> and <code>WeightIt::weightit()</code> for multiply imputed data. It extends <em>mice</em>’s functionality for fitting regression models in multiply imputed data by automatically incorporating the matched or weighted structure into the estimation of the outcome models. It uses <code>mice::pool()</code> to pool estimates across multiply imputed data.</p>
 <p>But for estimating treatment effects, it’s often not as simple as using a regression coefficient. If we include covariates in our outcome model but want a marginal effect, we need to use an average marginal effects procedure (i.e., g-computation) to compute it within each imputed dataset, and then combine the results afterward. The <a href="https://marginaleffects.com/"><em>marginaleffects</em></a> package provides a wonderful interface for performing g-computation, but for multiply imputed data, it can require some programming by the analyst. In this guide, I’ll show you how to do that programming to combine treatment effect estimates across multiple imputed datasets.</p>
 <p>An alternative to using <em>marginaleffects</em> is to use the <a href="iqss.github.io/clarify"><em>clarify</em></a> package. <em>clarify</em> can also be used to perform g-computation, but it uses simulation-based inference to compute the uncertainty bounds for the estimate. An advantage of simulation-based inference for multiply imputed data is that combining estimates across imputed datasets is much more straightforward. In this guide, I’ll also show you how to use <em>clarify</em> to combine treatment effect estimates across imputed datasets.</p>
-<section id="packages-well-need" class="level3"><h3 class="anchored" data-anchor-id="packages-well-need">Packages we’ll need</h3>
+<section id="packages-well-need" class="level3">
+<h3 class="anchored" data-anchor-id="packages-well-need">Packages we’ll need</h3>
 <p>We will need the following packages for this demonstration: <em>cobalt</em>, <em>mice</em>, <em>MatchThem</em>, <em>WeightIt</em>, <em>marginaleffects</em>, and <em>clarify</em>.</p>
-</section><section id="the-data" class="level3"><h3 class="anchored" data-anchor-id="the-data">The data</h3>
+</section>
+<section id="the-data" class="level3">
+<h3 class="anchored" data-anchor-id="the-data">The data</h3>
 <p>As usual, we’ll be using a version of the <code>lalonde</code> dataset. Here will use the <code>lalonde_mis</code> dataset in <em>cobalt</em>, which has missing values.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="st">"lalonde_mis"</span>, package <span class="op">=</span> <span class="st">"cobalt"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">lalonde_mis</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"lalonde_mis"</span>, <span class="at">package =</span> <span class="st">"cobalt"</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(lalonde_mis)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>     treat             age             educ           race        married          nodegree           re74              re75              re78        
  Min.   :0.0000   Min.   :16.00   Min.   : 0.00   black :243   Min.   :0.0000   Min.   :0.0000   Min.   :    0.0   Min.   :    0.0   Min.   :    0.0  
@@ -251,28 +291,32 @@ https://badge.dimensions.ai/
 </div>
 </div>
 <p>You can see there are some missing values in <code>married</code>, <code>re74</code>, and <code>re75</code>.</p>
-</section><section id="imputing-the-data" class="level3"><h3 class="anchored" data-anchor-id="imputing-the-data">Imputing the data</h3>
+</section>
+<section id="imputing-the-data" class="level3">
+<h3 class="anchored" data-anchor-id="imputing-the-data">Imputing the data</h3>
 <p>Here, we’ll use <em>mice</em> to impute the data. Although typically something like 20 imputation is sufficient, for the method <em>clarify</em> uses, it needs way more, so we’ll use 50. We’ll use the default settings, but you should tailor the imputation to fit the needs of your dataset. (I always like to use a machine learning method for my imputations). We’ll also set a seed to ensure replicability.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/amices/mice">"mice"</a></span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">12345</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">imp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://amices.org/mice/reference/mice.html">mice</a></span><span class="op">(</span><span class="va">lalonde_mis</span>, m <span class="op">=</span> <span class="fl">50</span>, printFlag <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"mice"</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">12345</span>)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>imp <span class="ot">&lt;-</span> <span class="fu">mice</span>(lalonde_mis, <span class="at">m =</span> <span class="dv">50</span>, <span class="at">printFlag =</span> <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p><code><a href="https://amices.org/mice/reference/mice.html">mice()</a></code> returns a <code>mids</code> object, which contains the imputed datasets. Although we could extract the datasets using <code><a href="https://tidyr.tidyverse.org/reference/complete.html">complete()</a></code>, we’ll supply this object directly to our function for estimating the propensity score weights.</p>
-</section><section id="weighting-the-imputed-data" class="level3"><h3 class="anchored" data-anchor-id="weighting-the-imputed-data">Weighting the imputed data</h3>
-<p>We’ll use <code><a href="https://rdrr.io/pkg/MatchThem/man/weightthem.html">MatchThem::weightthem()</a></code> to estimate propensity score weights in the imputed datasets. We could also use <code><a href="https://rdrr.io/pkg/MatchThem/man/matchthem.html">MatchThem::matchthem()</a></code> to do matching; the process is basically identical<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>. Here we’ll use logistic regression (🤢) to estimate ATT weights to keep things quick and simple.</p>
+<p><code>mice()</code> returns a <code>mids</code> object, which contains the imputed datasets. Although we could extract the datasets using <code>complete()</code>, we’ll supply this object directly to our function for estimating the propensity score weights.</p>
+</section>
+<section id="weighting-the-imputed-data" class="level3">
+<h3 class="anchored" data-anchor-id="weighting-the-imputed-data">Weighting the imputed data</h3>
+<p>We’ll use <code>MatchThem::weightthem()</code> to estimate propensity score weights in the imputed datasets. We could also use <code>MatchThem::matchthem()</code> to do matching; the process is basically identical<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>. Here we’ll use logistic regression (🤢) to estimate ATT weights to keep things quick and simple.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/FarhadPishgar/MatchThem">"MatchThem"</a></span><span class="op">)</span></span>
-<span><span class="va">w.imp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/MatchThem/man/weightthem.html">weightthem</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">race</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span> <span class="va">nodegree</span> <span class="op">+</span></span>
-<span>                      <span class="va">re74</span> <span class="op">+</span> <span class="va">re75</span>, data <span class="op">=</span> <span class="va">imp</span>, method <span class="op">=</span> <span class="st">"glm"</span>,</span>
-<span>                    estimand <span class="op">=</span> <span class="st">"ATT"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"MatchThem"</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>w.imp <span class="ot">&lt;-</span> <span class="fu">weightthem</span>(treat <span class="sc">~</span> age <span class="sc">+</span> educ <span class="sc">+</span> race <span class="sc">+</span> married <span class="sc">+</span> nodegree <span class="sc">+</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>                      re74 <span class="sc">+</span> re75, <span class="at">data =</span> imp, <span class="at">method =</span> <span class="st">"glm"</span>,</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>                    <span class="at">estimand =</span> <span class="st">"ATT"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Let’s assess balance using <em>cobalt</em>.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://ngreifer.github.io/cobalt/">"cobalt"</a></span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://ngreifer.github.io/cobalt/reference/bal.tab.html">bal.tab</a></span><span class="op">(</span><span class="va">w.imp</span>, stats <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"m"</span>, <span class="st">"ks"</span><span class="op">)</span>, abs <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"cobalt"</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">bal.tab</span>(w.imp, <span class="at">stats =</span> <span class="fu">c</span>(<span class="st">"m"</span>, <span class="st">"ks"</span>), <span class="at">abs =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Balance summary across all imputations
                 Type Mean.Diff.Adj Max.Diff.Adj Mean.KS.Adj Max.KS.Adj
@@ -294,54 +338,60 @@ Adjusted   100.19 185</code></pre>
 </div>
 </div>
 <p>Balance could be a bit better on <code>age</code>, but we’re going to move on because we have things to do.</p>
-</section><section id="fitting-the-outcome-models" class="level3"><h3 class="anchored" data-anchor-id="fitting-the-outcome-models">Fitting the outcome models</h3>
+</section>
+<section id="fitting-the-outcome-models" class="level3">
+<h3 class="anchored" data-anchor-id="fitting-the-outcome-models">Fitting the outcome models</h3>
 <p>Our next step is to fit the outcome model in each imputed dataset. Here, our outcome will be <code>re78 == 0</code>, i.e., whether a unit’s earnings in 1978 were 0. Ideally, treatment reduces this risk. Although our estimand will be a risk ratio, because we’re doing g-computation, we can fit a model for the outcome that actually makes sense rather than choosing one based on the convenient interpretation of its coefficients. So, we’ll fit a logistic regression outcome model to really hit home that we need a post-estimation method to estimate our quantity of interest and can’t rely on our model coefficients.</p>
-<p>Although <em>MatchThem</em> has functionality for fitting models to the imputed datasets that incorporate the weights, for our purposes, it is better to extract the imputed datasets and fit each model manually in a loop. We’ll use <code><a href="https://ngreifer.github.io/WeightIt/reference/glm_weightit.html">glm_weightit()</a></code> in <em>WeightIt</em> to do so, as it correctly incorporates the uncertainty in estimating the propensity scores into the standard errors of the model coefficients.</p>
+<p>Although <em>MatchThem</em> has functionality for fitting models to the imputed datasets that incorporate the weights, for our purposes, it is better to extract the imputed datasets and fit each model manually in a loop. We’ll use <code>glm_weightit()</code> in <em>WeightIt</em> to do so, as it correctly incorporates the uncertainty in estimating the propensity scores into the standard errors of the model coefficients.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://ngreifer.github.io/WeightIt/">"WeightIt"</a></span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">fits</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_along</a></span><span class="op">(</span><span class="va">w.imp</span><span class="op">$</span><span class="va">models</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">i</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tidyr.tidyverse.org/reference/complete.html">complete</a></span><span class="op">(</span><span class="va">w.imp</span>, <span class="va">i</span><span class="op">)</span></span>
-<span>  <span class="va">W</span> <span class="op">&lt;-</span> <span class="va">w.imp</span><span class="op">$</span><span class="va">models</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span></span>
-<span></span>
-<span>  <span class="fu"><a href="https://ngreifer.github.io/WeightIt/reference/glm_weightit.html">glm_weightit</a></span><span class="op">(</span><span class="va">re78</span> <span class="op">==</span> <span class="fl">0</span> <span class="op">~</span> <span class="va">treat</span> <span class="op">+</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span> <span class="va">race</span> <span class="op">+</span></span>
-<span>                 <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span> <span class="op">+</span> <span class="va">re75</span>, data <span class="op">=</span> <span class="va">data</span>,</span>
-<span>               weightit <span class="op">=</span> <span class="va">W</span>, family <span class="op">=</span> <span class="va">binomial</span><span class="op">)</span></span>
-<span><span class="op">}</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"WeightIt"</span>)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>fits <span class="ot">&lt;-</span> <span class="fu">lapply</span>(<span class="fu">seq_along</span>(w.imp<span class="sc">$</span>models), <span class="cf">function</span>(i) {</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  data <span class="ot">&lt;-</span> <span class="fu">complete</span>(w.imp, i)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  W <span class="ot">&lt;-</span> w.imp<span class="sc">$</span>models[[i]]</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">glm_weightit</span>(re78 <span class="sc">==</span> <span class="dv">0</span> <span class="sc">~</span> treat <span class="sc">+</span> age <span class="sc">+</span> educ <span class="sc">+</span> married <span class="sc">+</span> race <span class="sc">+</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>                 nodegree <span class="sc">+</span> re74 <span class="sc">+</span> re75, <span class="at">data =</span> data,</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>               <span class="at">weightit =</span> W, <span class="at">family =</span> binomial)</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>If we wanted to interpret the pooled coefficients from our outcome model (and we had included correct estimation of the standard errors, which we didn’t here), we could use <code>pool(fits) |&gt; summary()</code> to get them. But none of that is true here so we’ll move on and save the pooling till after we estimate the quantity of interest.</p>
-</section><section id="the-marginaleffects-workflow" class="level2"><h2 class="anchored" data-anchor-id="the-marginaleffects-workflow">The <em>marginaleffects</em> workflow</h2>
-<p>Now we have our list of models. Our next step is to estimate the ATT risk ratio in each one (with the correct standard error) and pool the results. If the only quantity we want is the treatment effect, this is easy. We can use <code><a href="https://rdrr.io/pkg/marginaleffects/man/comparisons.html">marginaleffects::avg_comparisons()</a></code> on each model and then use <code><a href="https://amices.org/mice/reference/pool.html">mice::pool()</a></code> to pool the results. In our call to <code><a href="https://rdrr.io/pkg/marginaleffects/man/comparisons.html">avg_comparisons()</a></code>, we need to subset the data used to fit each model to just the treated units and supply this to <code>newdata</code> and specify that we want the log risk ratio of the average estimated potential outcomes by supplying <code>"lnratioavg"</code> to <code>comparison</code><a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a>.</p>
+</section>
+<section id="the-marginaleffects-workflow" class="level2">
+<h2 class="anchored" data-anchor-id="the-marginaleffects-workflow">The <em>marginaleffects</em> workflow</h2>
+<p>Now we have our list of models. Our next step is to estimate the ATT risk ratio in each one (with the correct standard error) and pool the results. If the only quantity we want is the treatment effect, this is easy. We can use <code>marginaleffects::avg_comparisons()</code> on each model and then use <code>mice::pool()</code> to pool the results. In our call to <code>avg_comparisons()</code>, we need to subset the data used to fit each model to just the treated units and supply this to <code>newdata</code> and specify that we want the log risk ratio of the average estimated potential outcomes by supplying <code>"lnratioavg"</code> to <code>comparison</code><a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a>.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://marginaleffects.com/">"marginaleffects"</a></span><span class="op">)</span></span>
-<span><span class="va">comp.imp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">lapply</a></span><span class="op">(</span><span class="va">fits</span>, <span class="kw">function</span><span class="op">(</span><span class="va">fit</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/marginaleffects/man/comparisons.html">avg_comparisons</a></span><span class="op">(</span><span class="va">fit</span>, newdata <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html">subset</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span>,</span>
-<span>                  variables <span class="op">=</span> <span class="st">"treat"</span>,</span>
-<span>                  comparison <span class="op">=</span> <span class="st">"lnratioavg"</span><span class="op">)</span></span>
-<span><span class="op">}</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">pooled.comp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://amices.org/mice/reference/as.mira.html">as.mira</a></span><span class="op">(</span><span class="va">comp.imp</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu">mice</span><span class="fu">::</span><span class="fu"><a href="https://amices.org/mice/reference/pool.html">pool</a></span><span class="op">(</span>dfcom <span class="op">=</span> <span class="cn">Inf</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"marginaleffects"</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>comp.imp <span class="ot">&lt;-</span> <span class="fu">lapply</span>(fits, <span class="cf">function</span>(fit) {</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">avg_comparisons</span>(fit, <span class="at">newdata =</span> <span class="fu">subset</span>(treat <span class="sc">==</span> <span class="dv">1</span>),</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>                  <span class="at">variables =</span> <span class="st">"treat"</span>,</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>                  <span class="at">comparison =</span> <span class="st">"lnratioavg"</span>)</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>pooled.comp <span class="ot">&lt;-</span> <span class="fu">as.mira</span>(comp.imp) <span class="sc">|&gt;</span> mice<span class="sc">::</span><span class="fu">pool</span>(<span class="at">dfcom =</span> <span class="cn">Inf</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>Finally, we can use <code><a href="https://rdrr.io/r/base/summary.html">summary()</a></code> on the resulting object, adding the arguments <code>conf.int = TRUE</code> to request confidence intervals and <code>exponentiate = TRUE</code> to get the risk ratio from the log risk ratio.</p>
+<p>Finally, we can use <code>summary()</code> on the resulting object, adding the arguments <code>conf.int = TRUE</code> to request confidence intervals and <code>exponentiate = TRUE</code> to get the risk ratio from the log risk ratio.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">pooled.comp</span>, conf.int <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>        exponentiate <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(pooled.comp, <span class="at">conf.int =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>        <span class="at">exponentiate =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>   term  estimate std.error  statistic      df   p.value     2.5 %  97.5 %  conf.low conf.high
 1 treat 0.9355889 0.2063013 -0.3227277 7417106 0.7469015 0.6244261 1.40181 0.6244261   1.40181</code></pre>
 </div>
 </div>
 <p>We find a risk ratio of approximately 0.936, 95% CI: [0.624, 1.402], indicating that in our sample, the risk of having zero earnings in 1978 decreased slightly for those who received treatment, but we don’t have strong evidence for such an effect in the population.</p>
-</section><section id="the-clarify-workflow" class="level2"><h2 class="anchored" data-anchor-id="the-clarify-workflow">The <em>clarify</em> workflow</h2>
+</section>
+<section id="the-clarify-workflow" class="level2">
+<h2 class="anchored" data-anchor-id="the-clarify-workflow">The <em>clarify</em> workflow</h2>
 <p>The <em>clarify</em> workflow for multiply imputed data is very similar to its workflow for regular data. How simulation-based inference works broadly is that sets of parameters are drawn from a distribution after fitting the model; this distribution is often assumed to be multivariate normal with the mean vector equal to the estimated coefficients and the covariance equal to the asymptotic covariance matrix of the coefficients. Many (e.g., 1000) sets of coefficients are drawn, and a quantity of interest is computed using each set, forming a “posterior” distribution of the quantity of interest. This posterior is then used for inference: its standard deviation can be used as the quantity’s standard error, and its quantiles can be used as confidence intervals. For more information on this methodology, see the <em>clarify</em> <a href="https://iqss.github.io/clarify/">website</a> and its references.</p>
 <p>With multiply imputed data, this process is done for the model fit to each imputed dataset, and then the distributions of the quantities of interest are simply combined to form a single distribution, which is used for inference. In Bayesian terms, this would be called “mixing draws”. The variance of this mixture distribution approaches the variance of the estimate computed using Rubin’s rules when the number of imputations is high.</p>
-<p>To use <em>clarify</em>, we supply the list of fitted models to <code><a href="https://iqss.github.io/clarify/reference/misim.html">clarify::misim()</a></code>, which draws the coefficients from their implied distributions from each model. We also need to specify the method for computing the covariance matrix (here, using the same HC3 robust covariance we used with <em>marginaleffects</em> to account for the weights). We will only request 200 replications per fitted model since we have 50 imputations, which gives us 10,000 replicates (likely more than enough for stable inference).</p>
+<p>To use <em>clarify</em>, we supply the list of fitted models to <code>clarify::misim()</code>, which draws the coefficients from their implied distributions from each model. We also need to specify the method for computing the covariance matrix (here, using the same HC3 robust covariance we used with <em>marginaleffects</em> to account for the weights). We will only request 200 replications per fitted model since we have 50 imputations, which gives us 10,000 replicates (likely more than enough for stable inference).</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/iqss/clarify">"clarify"</a></span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">sim.imp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://iqss.github.io/clarify/reference/misim.html">misim</a></span><span class="op">(</span><span class="va">fits</span>, n <span class="op">=</span> <span class="fl">200</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">sim.imp</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"clarify"</span>)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>sim.imp <span class="ot">&lt;-</span> <span class="fu">misim</span>(fits, <span class="at">n =</span> <span class="dv">200</span>)</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>sim.imp</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>A &lt;clarify_misim&gt; object
  - 10 coefficients, 50 imputations with 200 simulated values each
@@ -349,12 +399,12 @@ Adjusted   100.19 185</code></pre>
 </div>
 </div>
 <p>(Note: because we used a quasi-binomial model, a scaled t-distribution was used to draw the coefficients. In practice this will give similar draws to a normal distribution.)</p>
-<p>The output of <code><a href="https://iqss.github.io/clarify/reference/misim.html">misim()</a></code> is then fed to a function for computing the quantity of interest in each draw; here, we’ll be using <code><a href="https://iqss.github.io/clarify/reference/sim_ame.html">clarify::sim_ame()</a></code>, which is appropriate for computing marginal risks in a subset of the data (i.e., the ATT risk ratio). We supply the treatment variable to <code>var</code> and subset the data to just the treated units using <code>subset</code> to request the ATT. Although we can use the <code>contrast</code> argument to request the (log) risk ratio, we can compute that afterward quickly from the marginal risks. (Using <code>cl = 3</code> uses parallel computing with 3 cores but only if you are on a Mac. See the <code><a href="https://iqss.github.io/clarify/reference/sim_ame.html">sim_ame()</a></code> documentation for more information on how to use the <code>cl</code> argument.)</p>
+<p>The output of <code>misim()</code> is then fed to a function for computing the quantity of interest in each draw; here, we’ll be using <code>clarify::sim_ame()</code>, which is appropriate for computing marginal risks in a subset of the data (i.e., the ATT risk ratio). We supply the treatment variable to <code>var</code> and subset the data to just the treated units using <code>subset</code> to request the ATT. Although we can use the <code>contrast</code> argument to request the (log) risk ratio, we can compute that afterward quickly from the marginal risks. (Using <code>cl = 3</code> uses parallel computing with 3 cores but only if you are on a Mac. See the <code>sim_ame()</code> documentation for more information on how to use the <code>cl</code> argument.)</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">sim.att</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://iqss.github.io/clarify/reference/sim_ame.html">sim_ame</a></span><span class="op">(</span><span class="va">sim.imp</span>, var <span class="op">=</span> <span class="st">"treat"</span>,</span>
-<span>                   subset <span class="op">=</span> <span class="va">treat</span> <span class="op">==</span> <span class="fl">1</span>, cl <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">sim.att</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>sim.att <span class="ot">&lt;-</span> <span class="fu">sim_ame</span>(sim.imp, <span class="at">var =</span> <span class="st">"treat"</span>,</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>                   <span class="at">subset =</span> treat <span class="sc">==</span> <span class="dv">1</span>, <span class="at">cl =</span> <span class="dv">3</span>)</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>sim.att</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>A &lt;clarify_est&gt; object (from `sim_ame()`)
  - Average adjusted predictions for `treat`
@@ -365,13 +415,13 @@ Adjusted   100.19 185</code></pre>
  E[Y(1)] 0.2430</code></pre>
 </div>
 </div>
-<p>To compute the risk ratio, we can use <code><a href="https://rdrr.io/r/base/transform.html">transform()</a></code>:</p>
+<p>To compute the risk ratio, we can use <code>transform()</code>:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">sim.att</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/transform.html">transform</a></span><span class="op">(</span><span class="va">sim.att</span>, RR <span class="op">=</span> <span class="va">`E[Y(1)]`</span><span class="op">/</span><span class="va">`E[Y(0)]`</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>sim.att <span class="ot">&lt;-</span> <span class="fu">transform</span>(sim.att, <span class="at">RR =</span> <span class="st">`</span><span class="at">E[Y(1)]</span><span class="st">`</span><span class="sc">/</span><span class="st">`</span><span class="at">E[Y(0)]</span><span class="st">`</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>Finally, we can compute our confidence intervals and p-values around the estimated marginal risks and risk ratio using <code><a href="https://rdrr.io/r/base/summary.html">summary()</a></code>:</p>
+<p>Finally, we can compute our confidence intervals and p-values around the estimated marginal risks and risk ratio using <code>summary()</code>:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">sim.att</span>, null <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span>RR <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(sim.att, <span class="at">null =</span> <span class="fu">c</span>(<span class="at">RR =</span> <span class="dv">1</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>        Estimate 2.5 % 97.5 % P-value
 E[Y(0)]    0.260 0.192  0.354       .
@@ -380,20 +430,28 @@ RR         0.936 0.626  1.387    0.74</code></pre>
 </div>
 </div>
 <p>Here, we find a risk ratio of approximately 0.936, 95% CI: [0.626, 1.387]. The estimates, confidence intervals, and p-values we get from the two methods line up well.</p>
-<p>By default, <em>clarify</em> uses quantile-based confidence intervals and computes the p-values by inverting them (i.e., finding the largest confidence level that yields an interval that excludes the null value and computing the p-value as one minus that level). Wald confidence intervals and p-values can also be request by setting <code>method = "wald"</code> in the call to <code><a href="https://rdrr.io/r/base/summary.html">summary()</a></code>, but these are only recommended if the quantity has a normal distribution (which the risk ratio does not).</p>
-<section id="explaining-differences-between-the-approaches" class="level3"><h3 class="anchored" data-anchor-id="explaining-differences-between-the-approaches">Explaining differences between the approaches</h3>
-<p>Both the delta method- and simulation-based inference approaches are valid, but sometimes you will get results that disagree. The estimates of the quantities of interest may disagree because of how <code><a href="https://amices.org/mice/reference/pool.html">mice::pool()</a></code> and <code><a href="https://iqss.github.io/clarify/reference/sim_ame.html">clarify::sim_ame()</a></code> combine estimates across imputations.</p>
+<p>By default, <em>clarify</em> uses quantile-based confidence intervals and computes the p-values by inverting them (i.e., finding the largest confidence level that yields an interval that excludes the null value and computing the p-value as one minus that level). Wald confidence intervals and p-values can also be request by setting <code>method = "wald"</code> in the call to <code>summary()</code>, but these are only recommended if the quantity has a normal distribution (which the risk ratio does not).</p>
+<section id="explaining-differences-between-the-approaches" class="level3">
+<h3 class="anchored" data-anchor-id="explaining-differences-between-the-approaches">Explaining differences between the approaches</h3>
+<p>Both the delta method- and simulation-based inference approaches are valid, but sometimes you will get results that disagree. The estimates of the quantities of interest may disagree because of how <code>mice::pool()</code> and <code>clarify::sim_ame()</code> combine estimates across imputations.</p>
 <p>Rubin’s rules involve simply taking the mean of the estimates across imputations. This works well when the quantity is collapsible, linear, or has a symmetric (ideally normal) distribution. If the quantity of interest is none of those but can be transformed from a quantity that does have those properties, Rubin’s rules can be apply to this intermediate quantity before transforming the estimate to get the final results. This is exactly what we did in the <em>marginaleffects</em> workflow when we computed the log risk ratio before pooling and then exponentiating the pooled log risk ratio to arrive at the risk ratio. If we had gone straight into pooling the risk ratio, the resulting estimate might not have been consistent.</p>
 <p><em>clarify</em> works by first using Rubin’s pooling rules on the model coefficients, which we assume to be normally distributed, and then computing the quantity of interest in each imputed dataset using draws from the pooled coefficients. A benefit of this strategy is that we don’t have to wonder whether the quantity of interest satisfies the above properties. The resulting estimates will be consistent because no pooling is done on them; the pooling happens only in the first step.</p>
 <p>Confidence intervals may differ slightly between the two methods, and this could be due to two reasons: 1) the delta method and simulation-based inferences naturally compute confidence intervals in different ways, with the delta method using a first-order Taylor series approximation and assuming normality of the quantity of interest, and simulation-based inference using simulation to generate a “posterior” for the quantity of interest and using its quantiles as the interval; and 2) simulation-based inference requires many imputations for the variance of the posterior to equal the variance of the Rubin’s rules pooled estimate. More imputations is always better for both methods, so do as many as you can.</p>
 <p>How should you choose between the delta method and simulation-based inference? Use whichever will get you published, of course! (Just kidding.) Use the one you find most trustworthy, that your audience will find the most trustworthy, and that balances the assumptions you are willing to make with the desired precision of the estimate. You might also use the one that seems more natural to you, either conceptually or in terms of usability. Frankly, I find <em>clarify</em> to be easier to use when the quantity of interest is more complicated than a single comparison (e.g., for subgroup analysis or for computing average marginal risks), but <em>marginaleffects</em> can be faster, doesn’t rely on a stochastic process, and is better-backed by statistical theory. Confirming you get similar results with both methods is always a good idea, and the plotting diagnostics in <em>clarify</em> can be used to determine whether any difference might be due to the failure of the delta method due to violation of one of its assumptions.</p>
 
 
-</section></section><div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
+</section>
+</section>
+
+
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
+
 <ol>
 <li id="fn1"><p>The key differences is that pair membership needs to be accounted for in estimation of the variance of the outcome model coefficients; this is usually as simply as specifying <code>vcov = ~subclass</code> to functions in <em>marginaleffects</em> or <em>clarify</em>.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn2"><p>Note: we need the log risk ratio because Rubin’s pooling rules don’t apply to the risk ratio but do to the log risk ratio. We will exponentiate the log risk ratio and its confidence interval after pooling.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-</ol></section></div></main><!-- /main --><script id="quarto-html-after-body" type="application/javascript">
+</ol>
+</section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     const icon = "";
     const anchorJS = new window.AnchorJS();
@@ -797,7 +855,10 @@ RR         0.936 0.626  1.387    0.74</code></pre>
       }
     }
   });
-  </script><input type="hidden" id="giscus-base-theme" value="preferred_color_scheme"><input type="hidden" id="giscus-alt-theme" value="preferred_color_scheme"><script>
+  </script>
+<input type="hidden" id="giscus-base-theme" value="preferred_color_scheme">
+<input type="hidden" id="giscus-alt-theme" value="preferred_color_scheme">
+<script>
   function loadGiscus() {
     // Function to get the theme based on body class
     const getTheme = () => {
@@ -825,7 +886,8 @@ RR         0.936 0.626  1.387    0.74</code></pre>
   loadGiscus();
 </script>
 </div> <!-- /content -->
-<footer class="footer"><div class="nav-footer">
+<footer class="footer">
+  <div class="nav-footer">
     <div class="nav-footer-left">
 <a href="http://www.github.com">Noah Greifer</a> ©
 <script>document.write(new Date().getFullYear())</script>
@@ -838,6 +900,8 @@ RR         0.936 0.626  1.387    0.74</code></pre>
     </div>
   </div>
 </footer>
+
+
 
 
 </body></html>

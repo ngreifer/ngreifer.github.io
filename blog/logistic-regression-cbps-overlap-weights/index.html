@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
 <meta charset="utf-8">
 <meta name="generator" content="quarto-1.9.38">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
 <meta name="author" content="Noah Greifer">
 <meta name="dcterms.date" content="2024-03-12">
+
 <title>Musings on Logistic Regression, CBPS, and Overlap Weights – Noah Greifer</title>
 <style>
 /* Default styles provided by pandoc.
@@ -78,6 +81,7 @@ div.csl-indent {
   margin-left: 2em;
 }</style>
 
+
 <script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
 <script src="../../site_libs/quarto-nav/headroom.min.js"></script>
 <script src="../../site_libs/clipboard/clipboard.min.js"></script>
@@ -85,7 +89,7 @@ div.csl-indent {
 <script src="../../site_libs/quarto-search/fuse.min.js"></script>
 <script src="../../site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="../../">
-<link href="../../assets/media/icon.png" rel="icon" type="image/png">
+<link href="../../assets/media/favicon.ico" rel="icon">
 <script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
 <script src="../../site_libs/quarto-html/popper.min.js"></script>
@@ -95,7 +99,8 @@ div.csl-indent {
 <link href="../../site_libs/quarto-html/quarto-syntax-highlighting-de63f62b328812d8e578a4d74e282472.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../site_libs/bootstrap/bootstrap-f8ddab8c30c8d0f2b512aadf102d9b21.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light"><script id="quarto-search-options" type="application/json">{
+<link href="../../site_libs/bootstrap/bootstrap-4cae65ad75248541f9c290a216e05642.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
   "collapse-after": 3,
@@ -120,21 +125,41 @@ div.csl-indent {
     "search-submit-button-title": "Submit",
     "search-label": "Search"
   }
-}</script><script async="" src="https://www.googletagmanager.com/gtag/js?id="></script><script type="text/javascript">
+}</script>
+<script async="" src="https://www.googletagmanager.com/gtag/js?id="></script>
+
+<script type="text/javascript">
 
 window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());
 gtag('config', '', { 'anonymize_ip': true});
-</script><!-- 
+</script>
+
+<!-- 
 Load Academicons v1: https://jpswalsh.github.io/academicons/
---><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+-->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+
 <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+
+
 <!---
 The following code are needed to show dimension citation and altmetrics.
 https://api.altmetric.com/embeds.html
 https://badge.dimensions.ai/
----><script type="text/javascript" src="https://d1bxh8uas1mnw7.cloudfront.net/assets/embed.js"></script><script async="" src="https://badge.dimensions.ai/badge.js" charset="utf-8"></script><script type="text/javascript" src="//cdn.plu.mx/widget-popup.js"></script><script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script><script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script><script type="text/javascript">
+--->
+
+<script type="text/javascript" src="https://d1bxh8uas1mnw7.cloudfront.net/assets/embed.js"></script>
+
+<script async="" src="https://badge.dimensions.ai/badge.js" charset="utf-8"></script>
+
+<script type="text/javascript" src="//cdn.plu.mx/widget-popup.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
 const typesetMath = (el) => {
   if (window.MathJax) {
     // MathJax Typeset
@@ -159,7 +184,9 @@ const typesetMath = (el) => {
 window.Quarto = {
   typesetMath
 };
-</script><link rel="stylesheet" href="../../styles.css">
+</script>
+
+<link rel="stylesheet" href="../../styles.css">
 <meta property="og:title" content="Musings on Logistic Regression, CBPS, and Overlap Weights – Noah Greifer">
 <meta property="og:description" content="Noah Greifer’s website">
 <meta property="og:site_name" content="Noah Greifer">
@@ -167,13 +194,18 @@ window.Quarto = {
 <meta name="twitter:description" content="Noah Greifer’s website">
 <meta name="twitter:card" content="summary">
 </head>
+
 <body class="nav-fixed quarto-light">
 
 <div id="quarto-search-results"></div>
-  <header id="quarto-header" class="headroom fixed-top"><nav class="navbar navbar-expand-lg " data-bs-theme="dark"><div class="navbar-container container-fluid">
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a href="../../index.html" class="navbar-brand navbar-brand-logo">
-    <img src="../../assets/media/icon.png" alt="Noah Greifer" class="navbar-logo light-content"><img src="../../assets/media/icon.png" alt="Noah Greifer" class="navbar-logo dark-content"></a>
+    <img src="../../assets/media/icon.png" alt="Noah Greifer" class="navbar-logo light-content">
+    <img src="../../assets/media/icon.png" alt="Noah Greifer" class="navbar-logo dark-content">
+    </a>
     <a class="navbar-brand" href="../../index.html">
     <span class="navbar-title">Noah Greifer</span>
     </a>
@@ -184,7 +216,7 @@ window.Quarto = {
 </button>
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
-<li class="nav-item">
+  <li class="nav-item">
     <a class="nav-link" href="../../index.html"> 
 <span class="menu-text">Home</span></a>
   </li>  
@@ -201,14 +233,14 @@ window.Quarto = {
 <span class="menu-text">Papers</span></a>
   </li>  
 </ul>
-<ul class="navbar-nav navbar-nav-scroll ms-auto">
-<li class="nav-item compact">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
     <a class="nav-link" href="https://github.com/ngreifer"> <i class="bi bi-github" role="img" aria-label="GitHub">
 </i> 
 <span class="menu-text"></span></a>
   </li>  
 </ul>
-</div> <!-- /navcollapse -->
+          </div> <!-- /navcollapse -->
             <div class="quarto-navbar-tools">
   <a href="" class="quarto-reader-toggle quarto-navigation-tool px-1" onclick="window.quartoToggleReader(); return false;" title="Toggle reader mode">
   <div class="quarto-reader-toggle-btn">
@@ -217,30 +249,36 @@ window.Quarto = {
 </a>
 </div>
       </div> <!-- /container-fluid -->
-    </nav></header><!-- content --><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        <nav id="TOC" role="doc-toc" class="toc-active"><h2 id="toc-title">On this page</h2>
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
    
   <ul>
-<li><a href="#logistic-regression-and-m-estimation" id="toc-logistic-regression-and-m-estimation" class="nav-link active" data-scroll-target="#logistic-regression-and-m-estimation">Logistic Regression and M-estimation</a></li>
+  <li><a href="#logistic-regression-and-m-estimation" id="toc-logistic-regression-and-m-estimation" class="nav-link active" data-scroll-target="#logistic-regression-and-m-estimation">Logistic Regression and M-estimation</a></li>
   <li><a href="#covariate-balancing-propensity-score-cbps" id="toc-covariate-balancing-propensity-score-cbps" class="nav-link" data-scroll-target="#covariate-balancing-propensity-score-cbps">Covariate Balancing Propensity Score (CBPS)</a></li>
   <li><a href="#ato-weights" id="toc-ato-weights" class="nav-link" data-scroll-target="#ato-weights">ATO Weights</a></li>
-  <li>
-<a href="#demonstration-in-r" id="toc-demonstration-in-r" class="nav-link" data-scroll-target="#demonstration-in-r">Demonstration in R</a>
+  <li><a href="#demonstration-in-r" id="toc-demonstration-in-r" class="nav-link" data-scroll-target="#demonstration-in-r">Demonstration in R</a>
   <ul class="collapse">
-<li><a href="#logistic-regression-via-m-estimation" id="toc-logistic-regression-via-m-estimation" class="nav-link" data-scroll-target="#logistic-regression-via-m-estimation">Logistic regression via M-estimation</a></li>
+  <li><a href="#logistic-regression-via-m-estimation" id="toc-logistic-regression-via-m-estimation" class="nav-link" data-scroll-target="#logistic-regression-via-m-estimation">Logistic regression via M-estimation</a></li>
   <li><a href="#cbps-via-m-estimation" id="toc-cbps-via-m-estimation" class="nav-link" data-scroll-target="#cbps-via-m-estimation">CBPS via M-estimation</a></li>
   <li><a href="#overlap-weights-from-canonical-link-glm" id="toc-overlap-weights-from-canonical-link-glm" class="nav-link" data-scroll-target="#overlap-weights-from-canonical-link-glm">Overlap weights from canonical link GLM</a></li>
-  </ul>
-</li>
+  </ul></li>
   <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">Conclusion</a></li>
   <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
-  </ul></nav>
+  </ul>
+</nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><div class="quarto-title">
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
 <h1 class="title">Musings on Logistic Regression, CBPS, and Overlap Weights</h1>
   <div class="quarto-categories">
     <div class="quarto-category">logistic regression</div>
@@ -271,8 +309,12 @@ window.Quarto = {
   
 
 
-</header><p>As I’ve been studying M-estimation and the covariate balancing propensity score (CBPS) <span class="citation" data-cites="imaiCovariateBalancingPropensity2014">(<a href="#ref-imaiCovariateBalancingPropensity2014" role="doc-biblioref">Imai and Ratkovic 2014</a>)</span>, I’ve been noticing some interesting connections between these methods and want to share them with you.</p>
-<section id="logistic-regression-and-m-estimation" class="level2"><h2 class="anchored" data-anchor-id="logistic-regression-and-m-estimation">Logistic Regression and M-estimation</h2>
+</header>
+
+
+<p>As I’ve been studying M-estimation and the covariate balancing propensity score (CBPS) <span class="citation" data-cites="imaiCovariateBalancingPropensity2014">(<a href="#ref-imaiCovariateBalancingPropensity2014" role="doc-biblioref">Imai and Ratkovic 2014</a>)</span>, I’ve been noticing some interesting connections between these methods and want to share them with you.</p>
+<section id="logistic-regression-and-m-estimation" class="level2">
+<h2 class="anchored" data-anchor-id="logistic-regression-and-m-estimation">Logistic Regression and M-estimation</h2>
 <p>First, what is logistic regression? I’ll discuss that in more detail in another post, but briefly it’s a way of modeling the relationship between <span class="math inline">\(K\)</span> predictors <span class="math inline">\(\mathbf{X}\)</span> (which include an intercept) and an outcome <span class="math inline">\(A\)</span> (yes, I’ll use <span class="math inline">\(A\)</span> for the outcome, and I’ll also use it to mean the treatment in an observational study since the context is fitting a model for the treatment to estimate propensity scores), where that relationship is specified to be</p>
 <p><span class="math display">\[
 p_i = P(A_i = 1|\mathbf{X}_i)=\text{expit}(\mathbf{X}_i\beta)
@@ -288,14 +330,18 @@ p_i = P(A_i = 1|\mathbf{X}_i)=\text{expit}(\mathbf{X}_i\beta)
 \]</span></p>
 <p>It’s kind of crazy that it’s so simple when logistic regression seems so complicated and nonlinear. We estimate the coefficients in logistic regression simply by finding the values of <span class="math inline">\(\beta\)</span> that are used to compute <span class="math inline">\(p_i\)</span> that make this estimating equation equal 0 for each predictor. In practice, this can be done by using a “root-solver”, i.e., a function that finds the roots of a system of equations.</p>
 <p>Another cool thing (which we’ll come back to) is that this estimating equation is not just for logistic regression but is also for any generalized linear model with a canonical link; indeed, that’s what defines the canonical link. For binomial regression, the logit link is the canonical link. For Poisson regression, it’s the log link, and for linear regression, it’s the identity link. That is, these three models can be estimated using the exact estimating equations I wrote above but with <span class="math inline">\(p_i\)</span> computed using the respective formula (<span class="math inline">\(p_i=\exp(\mathbf{X}_i\beta)\)</span> for the log link and <span class="math inline">\(p_i=\mathbf{X}_i\beta\)</span> for the identity link).</p>
-</section><section id="covariate-balancing-propensity-score-cbps" class="level2"><h2 class="anchored" data-anchor-id="covariate-balancing-propensity-score-cbps">Covariate Balancing Propensity Score (CBPS)</h2>
+</section>
+<section id="covariate-balancing-propensity-score-cbps" class="level2">
+<h2 class="anchored" data-anchor-id="covariate-balancing-propensity-score-cbps">Covariate Balancing Propensity Score (CBPS)</h2>
 <p>You may have heard of CBPS before; it’s a way of estimating the propensity score in an observational study using logistic regression in such a way that balance is automatically achieved on the covariate means. How does this work? Instead of using the above estimation equations to estimate the coefficients, CBPS uses a different set of estimation equations, in particular<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a></p>
 <p><span class="math display">\[
 \frac{1}{N}\sum_{i=1}^N{\left(\frac{A_i}{p_i} - \frac{1-A_i}{1-p_i}\right)X_{ki}}=0
 \]</span></p>
 <p>The keen propensity score weighting enjoyer might notice something familiar about this estimating equation; it looks a lot like the weighted mean difference of <span class="math inline">\(X_k\)</span> when using inverse probability weights for the ATE, that is <span class="math inline">\(w^{ATE}_i=\frac{A_i}{p_i} + \frac{1-A_i}{1-p_i}\)</span>. And indeed, this is so! The weighted difference in means is usually expressed as <span class="math inline">\(\frac{\sum_i{w_i A_i X_{ki}}}{\sum{w_i A_i}} - \frac{\sum_i{w_i (1-A_i) X_{ki}}}{\sum{w_i (1-A_i)}}\)</span>, but when <span class="math inline">\(\sum_i{A_i/p_i} = \sum_i{(1-A_i)/(1-p_i)}\)</span>, which is satisfied when an intercept is in <span class="math inline">\(\mathbf{X}\)</span>, the estimating equation and the weighted difference in means are identical. That means what CBPS does is find the coefficients <span class="math inline">\(\beta\)</span> such that weighted difference in means is equal to 0 for each covariate <span class="math inline">\(X_k\)</span> when the weights are computed using the ATE formula applied to the probabilities generated by <span class="math inline">\(\beta\)</span>. It’s pretty ingenious, which is why it made such a splash!</p>
 <p>The idea of using estimating equations that correspond to covariate balance was also proposed by <span class="citation" data-cites="grahamInverseProbabilityTilting2012">Graham et al. (<a href="#ref-grahamInverseProbabilityTilting2012" role="doc-biblioref">2012</a>)</span> as “inverse probability tilting”; it turns out when applied to the ATT (described later) these methods are identical.</p>
-</section><section id="ato-weights" class="level2"><h2 class="anchored" data-anchor-id="ato-weights">ATO Weights</h2>
+</section>
+<section id="ato-weights" class="level2">
+<h2 class="anchored" data-anchor-id="ato-weights">ATO Weights</h2>
 <p>A propensity score weighting enjoyer may have also heard of overlap weights or ATO weights <span class="citation" data-cites="liBalancingCovariatesPropensity2018">(<a href="#ref-liBalancingCovariatesPropensity2018" role="doc-biblioref">Li et al. 2018</a>)</span>. These are weights computed as <span class="math display">\[
 w^{ATO}_i=A_i(1-p_i) + (1-A_i)p_i=p_i(1-p_i)w^{ATE}_i
 \]</span>Overlap weights upweight the area of “overlap”, i.e., the area where units in the treated and control groups have approximately equal propensity scores (i.e., close to .5). They were developed as such because they yield an effect estimate with the most precision of any weights of the form <span class="math inline">\(h(X_i)w_i^{ATE}\)</span> assuming the outcome variance is the same in both groups. Another cool thing about them is that they yield exact mean balance when logistic regression is used to estimate the propensity scores. It turns out this exact mean balance comes directly from the estimating equations for logistic regression, which I’ll demonstrate below.</p>
@@ -305,71 +351,74 @@ w^{ATO}_i=A_i(1-p_i) + (1-A_i)p_i=p_i(1-p_i)w^{ATE}_i
 \]</span></p>
 <p>This seems like an odd thing to do, but take a look at the formula for the ATO weights above. You’ll notice the logistic regression estimating equation now looks just like the formula for the weighted difference in means using the ATO weights! So, the solution to the logistic regression estimating equations, which sets their value to 0, also makes the weighted difference in means computed using the ATO weights exactly equal to 0.</p>
 <p>This is why using CBPS for the ATO is redundant; the usual logistic regression propensity scores <em>are</em> covariate balancing propensity scores when targeting the ATO!</p>
-</section><section id="demonstration-in-r" class="level2"><h2 class="anchored" data-anchor-id="demonstration-in-r">Demonstration in R</h2>
+</section>
+<section id="demonstration-in-r" class="level2">
+<h2 class="anchored" data-anchor-id="demonstration-in-r">Demonstration in R</h2>
 <p>Okay, let’s take a look of all this in R. First, I’ll show you how to use M-estimation to fit a logistic regression model and CBPS, and then I’ll show you how each method balances the covariates in different ways.</p>
-<section id="logistic-regression-via-m-estimation" class="level3"><h3 class="anchored" data-anchor-id="logistic-regression-via-m-estimation">Logistic regression via M-estimation</h3>
-<p>First, we specify the estimating equations. For logistic regression, we create the function <code>s_bar_lr()</code>, which takes in a vector of coefficient estimates, the treatment, and the covariates, and returns the value of the estimating equations. The first step is to compute <span class="math inline">\(p_i\)</span> as <span class="math inline">\(\text{expit}(\mathbf{X}_i\beta)\)</span> (in R, expit is called <code><a href="https://rdrr.io/r/stats/Logistic.html">plogis()</a></code>). Then, we supply that to the estimating equation and compute the means.</p>
+<section id="logistic-regression-via-m-estimation" class="level3">
+<h3 class="anchored" data-anchor-id="logistic-regression-via-m-estimation">Logistic regression via M-estimation</h3>
+<p>First, we specify the estimating equations. For logistic regression, we create the function <code>s_bar_lr()</code>, which takes in a vector of coefficient estimates, the treatment, and the covariates, and returns the value of the estimating equations. The first step is to compute <span class="math inline">\(p_i\)</span> as <span class="math inline">\(\text{expit}(\mathbf{X}_i\beta)\)</span> (in R, expit is called <code>plogis()</code>). Then, we supply that to the estimating equation and compute the means.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">s_bar_lr</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">b</span>, <span class="va">A</span>, <span class="va">X</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Logistic.html">plogis</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/drop.html">drop</a></span><span class="op">(</span><span class="va">X</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html">%*%</a></span> <span class="va">b</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/colSums.html">colMeans</a></span><span class="op">(</span><span class="op">(</span><span class="va">A</span> <span class="op">-</span> <span class="va">p</span><span class="op">)</span> <span class="op">*</span> <span class="va">X</span><span class="op">)</span></span>
-<span><span class="op">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>s_bar_lr <span class="ot">&lt;-</span> <span class="cf">function</span>(b, A, X) {</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  p <span class="ot">&lt;-</span> <span class="fu">plogis</span>(<span class="fu">drop</span>(X <span class="sc">%*%</span> b))</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">colMeans</span>((A <span class="sc">-</span> p) <span class="sc">*</span> X)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>When we find the values of <code>b</code> that make this vector equal to 0, we have found the maximum likelihood estimates of logistic regression coefficients. Let’s take a look at this in action. We’ll use <code><a href="https://rdrr.io/pkg/rootSolve/man/multiroot.html">rootSolve::multiroot()</a></code> to find the roots. This takes in a function, some starting values, and other variables you need to supply to the function, and finds the values of the desired parameters that make the function return a vector of 0s. We’ll use the <code>lalonde</code> dataset as an example.</p>
+<p>When we find the values of <code>b</code> that make this vector equal to 0, we have found the maximum likelihood estimates of logistic regression coefficients. Let’s take a look at this in action. We’ll use <code>rootSolve::multiroot()</code> to find the roots. This takes in a function, some starting values, and other variables you need to supply to the function, and finds the values of the desired parameters that make the function return a vector of 0s. We’ll use the <code>lalonde</code> dataset as an example.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://ngreifer.github.io/cobalt/">"cobalt"</a></span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"cobalt"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stderr">
 <pre><code> cobalt (Version 4.6.3, Build Date: 2026-05-29)</code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="st">"lalonde"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">X</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/model.matrix.html">model.matrix</a></span><span class="op">(</span><span class="op">~</span><span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span> <span class="va">nodegree</span>, data <span class="op">=</span> <span class="va">lalonde</span><span class="op">)</span></span>
-<span><span class="va">A</span> <span class="op">&lt;-</span> <span class="va">lalonde</span><span class="op">$</span><span class="va">treat</span></span>
-<span></span>
-<span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu">rootSolve</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/rootSolve/man/multiroot.html">multiroot</a></span><span class="op">(</span><span class="va">s_bar_lr</span>,</span>
-<span>                            start <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">ncol</a></span><span class="op">(</span><span class="va">X</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>                            A <span class="op">=</span> <span class="va">A</span>, X <span class="op">=</span> <span class="va">X</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/stats/setNames.html">setNames</a></span><span class="op">(</span><span class="va">out</span><span class="op">$</span><span class="va">root</span>, <span class="fu"><a href="https://rdrr.io/r/base/colnames.html">colnames</a></span><span class="op">(</span><span class="va">X</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"lalonde"</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">model.matrix</span>(<span class="sc">~</span>age <span class="sc">+</span> educ <span class="sc">+</span> married <span class="sc">+</span> nodegree, <span class="at">data =</span> lalonde)</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>A <span class="ot">&lt;-</span> lalonde<span class="sc">$</span>treat</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>out <span class="ot">&lt;-</span> rootSolve<span class="sc">::</span><span class="fu">multiroot</span>(s_bar_lr,</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>                            <span class="at">start =</span> <span class="fu">rep</span>(<span class="dv">0</span>, <span class="fu">ncol</span>(X)),</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>                            <span class="at">A =</span> A, <span class="at">X =</span> X)</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="fu">setNames</span>(out<span class="sc">$</span>root, <span class="fu">colnames</span>(X))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>(Intercept)         age        educ     married    nodegree 
 -2.54468907  0.01024968  0.12644332 -1.52238592  0.98034779 </code></pre>
 </div>
 </div>
-<p>And we’ll do the same using logistic regression as implemented in <code><a href="https://rdrr.io/r/stats/glm.html">glm()</a></code> just to show we get the same estimates:</p>
+<p>And we’ll do the same using logistic regression as implemented in <code>glm()</code> just to show we get the same estimates:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/glm.html">glm</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span> <span class="va">nodegree</span>, data <span class="op">=</span> <span class="va">lalonde</span>,</span>
-<span>           family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html">binomial</a></span><span class="op">(</span><span class="st">"logit"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html">coef</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">glm</span>(treat <span class="sc">~</span> age <span class="sc">+</span> educ <span class="sc">+</span> married <span class="sc">+</span> nodegree, <span class="at">data =</span> lalonde,</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>           <span class="at">family =</span> <span class="fu">binomial</span>(<span class="st">"logit"</span>))</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="fu">coef</span>(fit)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>(Intercept)         age        educ     married    nodegree 
 -2.54468907  0.01024968  0.12644332 -1.52238592  0.98034779 </code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/all.equal.html">all.equal</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html">coef</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>,</span>
-<span>          <span class="va">out</span><span class="op">$</span><span class="va">root</span>,</span>
-<span>          check.attributes <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">all.equal</span>(<span class="fu">coef</span>(fit),</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>          out<span class="sc">$</span>root,</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>          <span class="at">check.attributes =</span> <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] TRUE</code></pre>
 </div>
 </div>
 <p>And we can see that when we supply those values to the estimating equations, we get a vector of 0s:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">s_bar_lr</span><span class="op">(</span><span class="va">out</span><span class="op">$</span><span class="va">root</span>, <span class="va">A</span>, <span class="va">X</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fl">7</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">s_bar_lr</span>(out<span class="sc">$</span>root, A, X) <span class="sc">|&gt;</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">round</span>(<span class="dv">7</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>(Intercept)         age        educ     married    nodegree 
           0           0           0           0           0 </code></pre>
 </div>
 </div>
-<p>Now let’s compute ATO weights from the propensity scores estimated from this model and compute the weighted mean differences (we’ll use <code><a href="https://ngreifer.github.io/cobalt/reference/balance-summary.html">col_w_smd()</a></code> from <em>cobalt</em>, which computes weighted standardized mean differences column-wise for a matrix of covariates; we’ll omit the intercept here as well):</p>
+<p>Now let’s compute ATO weights from the propensity scores estimated from this model and compute the weighted mean differences (we’ll use <code>col_w_smd()</code> from <em>cobalt</em>, which computes weighted standardized mean differences column-wise for a matrix of covariates; we’ll omit the intercept here as well):</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Logistic.html">plogis</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/drop.html">drop</a></span><span class="op">(</span><span class="va">X</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html">%*%</a></span> <span class="va">out</span><span class="op">$</span><span class="va">root</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">w_ATO</span> <span class="op">&lt;-</span> <span class="va">A</span> <span class="op">*</span> <span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="va">p</span><span class="op">)</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="va">A</span><span class="op">)</span> <span class="op">*</span> <span class="va">p</span></span>
-<span></span>
-<span><span class="fu"><a href="https://ngreifer.github.io/cobalt/reference/balance-summary.html">col_w_smd</a></span><span class="op">(</span><span class="va">X</span><span class="op">[</span>, <span class="op">-</span><span class="fl">1</span><span class="op">]</span>, <span class="va">A</span>, <span class="va">w_ATO</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fl">7</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="fu">plogis</span>(<span class="fu">drop</span>(X <span class="sc">%*%</span> out<span class="sc">$</span>root))</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>w_ATO <span class="ot">&lt;-</span> A <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> p) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">-</span> A) <span class="sc">*</span> p</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="fu">col_w_smd</span>(X[, <span class="sc">-</span><span class="dv">1</span>], A, w_ATO) <span class="sc">|&gt;</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">round</span>(<span class="dv">7</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>     age     educ  married nodegree 
        0        0        0        0 </code></pre>
@@ -377,56 +426,58 @@ w^{ATO}_i=A_i(1-p_i) + (1-A_i)p_i=p_i(1-p_i)w^{ATE}_i
 </div>
 <p>The ATO weights exactly balance the covariate means, as promised. If we compute the ATE weights, though, we find balance is good but not perfect.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">w_ATE</span> <span class="op">&lt;-</span> <span class="va">A</span> <span class="op">/</span> <span class="va">p</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="va">A</span><span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="va">p</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://ngreifer.github.io/cobalt/reference/balance-summary.html">col_w_smd</a></span><span class="op">(</span><span class="va">X</span><span class="op">[</span>,<span class="op">-</span><span class="fl">1</span><span class="op">]</span>, <span class="va">A</span>, <span class="va">w_ATE</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>w_ATE <span class="ot">&lt;-</span> A <span class="sc">/</span> p <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">-</span> A) <span class="sc">/</span> (<span class="dv">1</span> <span class="sc">-</span> p)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="fu">col_w_smd</span>(X[,<span class="sc">-</span><span class="dv">1</span>], A, w_ATE)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>         age         educ      married     nodegree 
 -0.066562991  0.059888054 -0.028829997 -0.004447331 </code></pre>
 </div>
 </div>
-</section><section id="cbps-via-m-estimation" class="level3"><h3 class="anchored" data-anchor-id="cbps-via-m-estimation">CBPS via M-estimation</h3>
+</section>
+<section id="cbps-via-m-estimation" class="level3">
+<h3 class="anchored" data-anchor-id="cbps-via-m-estimation">CBPS via M-estimation</h3>
 <p>Now let’s use M-estimation to fit the CBPS model for the propensity scores. For this, we’ll use a different function that corresponds to the weighted difference in means for ATE weights. I’ll call this one <code>s_bar_cb()</code>.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">s_bar_cb</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">b</span>, <span class="va">A</span>, <span class="va">X</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Logistic.html">plogis</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/drop.html">drop</a></span><span class="op">(</span><span class="va">X</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html">%*%</a></span> <span class="va">b</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/colSums.html">colMeans</a></span><span class="op">(</span><span class="op">(</span><span class="va">A</span> <span class="op">/</span> <span class="va">p</span> <span class="op">-</span> <span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="va">A</span><span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="va">p</span><span class="op">)</span><span class="op">)</span> <span class="op">*</span> <span class="va">X</span><span class="op">)</span></span>
-<span><span class="op">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>s_bar_cb <span class="ot">&lt;-</span> <span class="cf">function</span>(b, A, X) {</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  p <span class="ot">&lt;-</span> <span class="fu">plogis</span>(<span class="fu">drop</span>(X <span class="sc">%*%</span> b))</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">colMeans</span>((A <span class="sc">/</span> p <span class="sc">-</span> (<span class="dv">1</span> <span class="sc">-</span> A) <span class="sc">/</span> (<span class="dv">1</span> <span class="sc">-</span> p)) <span class="sc">*</span> X)</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>We’ll again estimate the coefficients using M-estimation.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu">rootSolve</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/rootSolve/man/multiroot.html">multiroot</a></span><span class="op">(</span><span class="va">s_bar_cb</span>,</span>
-<span>                            start <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">ncol</a></span><span class="op">(</span><span class="va">X</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>                            A <span class="op">=</span> <span class="va">A</span>, X <span class="op">=</span> <span class="va">X</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/stats/setNames.html">setNames</a></span><span class="op">(</span><span class="va">out</span><span class="op">$</span><span class="va">root</span>, <span class="fu"><a href="https://rdrr.io/r/base/colnames.html">colnames</a></span><span class="op">(</span><span class="va">X</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>out <span class="ot">&lt;-</span> rootSolve<span class="sc">::</span><span class="fu">multiroot</span>(s_bar_cb,</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>                            <span class="at">start =</span> <span class="fu">rep</span>(<span class="dv">0</span>, <span class="fu">ncol</span>(X)),</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>                            <span class="at">A =</span> A, <span class="at">X =</span> X)</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="fu">setNames</span>(out<span class="sc">$</span>root, <span class="fu">colnames</span>(X))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> (Intercept)          age         educ      married     nodegree 
 -2.907727232  0.004142096  0.168217307 -1.535394932  1.110766225 </code></pre>
 </div>
 </div>
-<p>The coefficients aren’t too different from the usual logistic regression coefficients. Let’s compare them to the coefficients estimated from <code><a href="https://rdrr.io/pkg/CBPS/man/CBPS.html">CBPS::CBPS()</a></code>:</p>
+<p>The coefficients aren’t too different from the usual logistic regression coefficients. Let’s compare them to the coefficients estimated from <code>CBPS::CBPS()</code>:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">fit_cb</span> <span class="op">&lt;-</span> <span class="fu">CBPS</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/CBPS/man/CBPS.html">CBPS</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span> <span class="va">nodegree</span>,</span>
-<span>                     data <span class="op">=</span> <span class="va">lalonde</span>, ATT <span class="op">=</span> <span class="fl">0</span>, method <span class="op">=</span> <span class="st">"exact"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/all.equal.html">all.equal</a></span><span class="op">(</span><span class="va">out</span><span class="op">$</span><span class="va">root</span>,</span>
-<span>          <span class="fu"><a href="https://rdrr.io/r/base/drop.html">drop</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html">coef</a></span><span class="op">(</span><span class="va">fit_cb</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>          check.attributes <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>          tolerance <span class="op">=</span> <span class="fl">1e-4</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>fit_cb <span class="ot">&lt;-</span> CBPS<span class="sc">::</span><span class="fu">CBPS</span>(treat <span class="sc">~</span> age <span class="sc">+</span> educ <span class="sc">+</span> married <span class="sc">+</span> nodegree,</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>                     <span class="at">data =</span> lalonde, <span class="at">ATT =</span> <span class="dv">0</span>, <span class="at">method =</span> <span class="st">"exact"</span>)</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="fu">all.equal</span>(out<span class="sc">$</span>root,</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>          <span class="fu">drop</span>(<span class="fu">coef</span>(fit_cb)),</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>          <span class="at">check.attributes =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>          <span class="at">tolerance =</span> <span class="fl">1e-4</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] TRUE</code></pre>
 </div>
 </div>
 <p>Looks like we got them right<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a>! Let’s compute balance using the estimated ATE weights:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb21"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Logistic.html">plogis</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/drop.html">drop</a></span><span class="op">(</span><span class="va">X</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html">%*%</a></span> <span class="va">out</span><span class="op">$</span><span class="va">root</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">w_ATE_cb</span> <span class="op">&lt;-</span> <span class="va">A</span> <span class="op">/</span> <span class="va">p</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="va">A</span><span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="va">p</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://ngreifer.github.io/cobalt/reference/balance-summary.html">col_w_smd</a></span><span class="op">(</span><span class="va">X</span><span class="op">[</span>,<span class="op">-</span><span class="fl">1</span><span class="op">]</span>, <span class="va">A</span>, <span class="va">w_ATE_cb</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fl">7</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="fu">plogis</span>(<span class="fu">drop</span>(X <span class="sc">%*%</span> out<span class="sc">$</span>root))</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>w_ATE_cb <span class="ot">&lt;-</span> A <span class="sc">/</span> p <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">-</span> A) <span class="sc">/</span> (<span class="dv">1</span> <span class="sc">-</span> p)</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a><span class="fu">col_w_smd</span>(X[,<span class="sc">-</span><span class="dv">1</span>], A, w_ATE_cb) <span class="sc">|&gt;</span></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">round</span>(<span class="dv">7</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>     age     educ  married nodegree 
        0        0        0        0 </code></pre>
@@ -434,52 +485,54 @@ w^{ATO}_i=A_i(1-p_i) + (1-A_i)p_i=p_i(1-p_i)w^{ATE}_i
 </div>
 <p>It turns out it’s pretty simple to make CBPS weights for the ATT or ATC, too; just apply the ATT or ATC weights formula to the estimating equations and then compute the weights from the resulting coefficients. I’ll demonstrate this without much commentary for the ATT below, noting that ATT weights are <span class="math inline">\(w_i^{ATT}=A + (1- A)\frac{p_i}{1-p_i}=p_i w_i^{ATE}\)</span>.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb23"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">s_bar_cb_att</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">b</span>, <span class="va">A</span>, <span class="va">X</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Logistic.html">plogis</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/drop.html">drop</a></span><span class="op">(</span><span class="va">X</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html">%*%</a></span> <span class="va">b</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/colSums.html">colMeans</a></span><span class="op">(</span><span class="op">(</span><span class="va">A</span> <span class="op">-</span> <span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="va">A</span><span class="op">)</span> <span class="op">*</span> <span class="va">p</span> <span class="op">/</span> <span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="va">p</span><span class="op">)</span><span class="op">)</span> <span class="op">*</span> <span class="va">X</span><span class="op">)</span></span>
-<span><span class="op">}</span></span>
-<span></span>
-<span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu">rootSolve</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/rootSolve/man/multiroot.html">multiroot</a></span><span class="op">(</span><span class="va">s_bar_cb_att</span>,</span>
-<span>                            start <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">ncol</a></span><span class="op">(</span><span class="va">X</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>                            A <span class="op">=</span> <span class="va">A</span>, X <span class="op">=</span> <span class="va">X</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Logistic.html">plogis</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/drop.html">drop</a></span><span class="op">(</span><span class="va">X</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html">%*%</a></span> <span class="va">out</span><span class="op">$</span><span class="va">root</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">w_ATT_cb</span> <span class="op">&lt;-</span> <span class="va">A</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="va">A</span><span class="op">)</span> <span class="op">*</span> <span class="va">p</span> <span class="op">/</span> <span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="va">p</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://ngreifer.github.io/cobalt/reference/balance-summary.html">col_w_smd</a></span><span class="op">(</span><span class="va">X</span><span class="op">[</span>, <span class="op">-</span><span class="fl">1</span><span class="op">]</span>, <span class="va">A</span>, <span class="va">w_ATT_cb</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fl">7</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>s_bar_cb_att <span class="ot">&lt;-</span> <span class="cf">function</span>(b, A, X) {</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>  p <span class="ot">&lt;-</span> <span class="fu">plogis</span>(<span class="fu">drop</span>(X <span class="sc">%*%</span> b))</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">colMeans</span>((A <span class="sc">-</span> (<span class="dv">1</span> <span class="sc">-</span> A) <span class="sc">*</span> p <span class="sc">/</span> (<span class="dv">1</span> <span class="sc">-</span> p)) <span class="sc">*</span> X)</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>out <span class="ot">&lt;-</span> rootSolve<span class="sc">::</span><span class="fu">multiroot</span>(s_bar_cb_att,</span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>                            <span class="at">start =</span> <span class="fu">rep</span>(<span class="dv">0</span>, <span class="fu">ncol</span>(X)),</span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>                            <span class="at">A =</span> A, <span class="at">X =</span> X)</span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="fu">plogis</span>(<span class="fu">drop</span>(X <span class="sc">%*%</span> out<span class="sc">$</span>root))</span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a>w_ATT_cb <span class="ot">&lt;-</span> A <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">-</span> A) <span class="sc">*</span> p <span class="sc">/</span> (<span class="dv">1</span> <span class="sc">-</span> p)</span>
+<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a><span class="fu">col_w_smd</span>(X[, <span class="sc">-</span><span class="dv">1</span>], A, w_ATT_cb) <span class="sc">|&gt;</span></span>
+<span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">round</span>(<span class="dv">7</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>     age     educ  married nodegree 
        0        0        0        0 </code></pre>
 </div>
 </div>
-</section><section id="overlap-weights-from-canonical-link-glm" class="level3"><h3 class="anchored" data-anchor-id="overlap-weights-from-canonical-link-glm">Overlap weights from canonical link GLM</h3>
-<p>I told you earlier that all generalized linear models with a canonical link have the same estimating equations as logistic regression, and I also told you that the estimating equations for logistic regression imply exact balance on the covariate means when using ATO weights. It turns out that this means if you use any generalized linear model with a canonical link, you also get exact mean balance when using ATO weights computed from its predicted values. I’ll demonstrate that below with Poisson and linear regression. This time I’ll skip the M-estimation and just use <code><a href="https://rdrr.io/r/stats/glm.html">glm()</a></code> to compute the propensity scores.</p>
+</section>
+<section id="overlap-weights-from-canonical-link-glm" class="level3">
+<h3 class="anchored" data-anchor-id="overlap-weights-from-canonical-link-glm">Overlap weights from canonical link GLM</h3>
+<p>I told you earlier that all generalized linear models with a canonical link have the same estimating equations as logistic regression, and I also told you that the estimating equations for logistic regression imply exact balance on the covariate means when using ATO weights. It turns out that this means if you use any generalized linear model with a canonical link, you also get exact mean balance when using ATO weights computed from its predicted values. I’ll demonstrate that below with Poisson and linear regression. This time I’ll skip the M-estimation and just use <code>glm()</code> to compute the propensity scores.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb25"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># Poisson PS</span></span>
-<span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/glm.html">glm</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span> <span class="va">nodegree</span>, data <span class="op">=</span> <span class="va">lalonde</span>,</span>
-<span>         family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html">poisson</a></span><span class="op">(</span><span class="st">"log"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/stats/fitted.values.html">fitted</a></span><span class="op">(</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">w_ATO_pois</span> <span class="op">&lt;-</span> <span class="va">A</span> <span class="op">*</span> <span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="va">p</span><span class="op">)</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="va">A</span><span class="op">)</span> <span class="op">*</span> <span class="va">p</span></span>
-<span></span>
-<span><span class="fu"><a href="https://ngreifer.github.io/cobalt/reference/balance-summary.html">col_w_smd</a></span><span class="op">(</span><span class="va">X</span><span class="op">[</span>, <span class="op">-</span><span class="fl">1</span><span class="op">]</span>, <span class="va">A</span>, <span class="va">w_ATO_pois</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fl">7</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Poisson PS</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="fu">glm</span>(treat <span class="sc">~</span> age <span class="sc">+</span> educ <span class="sc">+</span> married <span class="sc">+</span> nodegree, <span class="at">data =</span> lalonde,</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">family =</span> <span class="fu">poisson</span>(<span class="st">"log"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fitted</span>()</span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>w_ATO_pois <span class="ot">&lt;-</span> A <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> p) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">-</span> A) <span class="sc">*</span> p</span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a><span class="fu">col_w_smd</span>(X[, <span class="sc">-</span><span class="dv">1</span>], A, w_ATO_pois) <span class="sc">|&gt;</span></span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">round</span>(<span class="dv">7</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>     age     educ  married nodegree 
        0        0        0        0 </code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb27"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># Linear PS</span></span>
-<span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/glm.html">glm</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span> <span class="va">nodegree</span>, data <span class="op">=</span> <span class="va">lalonde</span>,</span>
-<span>         family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html">gaussian</a></span><span class="op">(</span><span class="st">"identity"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/stats/fitted.values.html">fitted</a></span><span class="op">(</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">w_ATO_lin</span> <span class="op">&lt;-</span> <span class="va">A</span> <span class="op">*</span> <span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="va">p</span><span class="op">)</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="va">A</span><span class="op">)</span> <span class="op">*</span> <span class="va">p</span></span>
-<span></span>
-<span><span class="fu"><a href="https://ngreifer.github.io/cobalt/reference/balance-summary.html">col_w_smd</a></span><span class="op">(</span><span class="va">X</span><span class="op">[</span>, <span class="op">-</span><span class="fl">1</span><span class="op">]</span>, <span class="va">A</span>, <span class="va">w_ATO_lin</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fl">7</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Linear PS</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="fu">glm</span>(treat <span class="sc">~</span> age <span class="sc">+</span> educ <span class="sc">+</span> married <span class="sc">+</span> nodegree, <span class="at">data =</span> lalonde,</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">family =</span> <span class="fu">gaussian</span>(<span class="st">"identity"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fitted</span>()</span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>w_ATO_lin <span class="ot">&lt;-</span> A <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> p) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">-</span> A) <span class="sc">*</span> p</span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a><span class="fu">col_w_smd</span>(X[, <span class="sc">-</span><span class="dv">1</span>], A, w_ATO_lin) <span class="sc">|&gt;</span></span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">round</span>(<span class="dv">7</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>     age     educ  married nodegree 
        0        0        0        0 </code></pre>
@@ -487,27 +540,35 @@ w^{ATO}_i=A_i(1-p_i) + (1-A_i)p_i=p_i(1-p_i)w^{ATE}_i
 </div>
 <p>Okay, but before I end, I want to show you something cool and maybe unexpected about the linear regression ATO weights. This was inspired by a finding in <span class="citation" data-cites="hazlettUnderstandingAvoidingWeights2024">Hazlett and Shinkre (<a href="#ref-hazlettUnderstandingAvoidingWeights2024" role="doc-biblioref">2024</a>)</span>. Consider estimating a treatment effect using a linear regression of the outcome on the treatment and covariates but with no interaction between them. It turns out the coefficient on treatment is exactly equal to the weighted difference in means computed using the linear regression propensity score ATO weights. See below:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb29"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">re78</span> <span class="op">~</span> <span class="va">treat</span> <span class="op">+</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span> <span class="va">nodegree</span>,</span>
-<span>          data <span class="op">=</span> <span class="va">lalonde</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html">coef</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">[</span><span class="st">"treat"</span><span class="op">]</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">lm</span>(re78 <span class="sc">~</span> treat <span class="sc">+</span> age <span class="sc">+</span> educ <span class="sc">+</span> married <span class="sc">+</span> nodegree,</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>          <span class="at">data =</span> lalonde)</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a><span class="fu">coef</span>(fit)[<span class="st">"treat"</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>   treat 
 207.3495 </code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb31"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># Computing weighted difference in means; not standardized</span></span>
-<span><span class="fu"><a href="https://ngreifer.github.io/cobalt/reference/balance-summary.html">col_w_smd</a></span><span class="op">(</span><span class="va">lalonde</span><span class="op">$</span><span class="va">re78</span>, <span class="va">A</span>, <span class="va">w_ATO_lin</span>, std <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Computing weighted difference in means; not standardized</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="fu">col_w_smd</span>(lalonde<span class="sc">$</span>re78, A, w_ATO_lin, <span class="at">std =</span> <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 207.3495</code></pre>
 </div>
 </div>
 <p>That’s pretty crazy! That means we can interpret this linear regression estimate as an overlap-weighted difference in means, where the propensity scores used in the overlap weights are fitted using linear regression (i.e., the linear probability model). Of course, the linear probability model is a pretty bad propensity score model since it can yield propensity scores greater than 1 and less than 0, which yield negative and possibly extreme ATO weights, unlike the logistic regression-based ATO weights, which are always positive and never extreme.</p>
-</section></section><section id="conclusion" class="level2"><h2 class="anchored" data-anchor-id="conclusion">Conclusion</h2>
+</section>
+</section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">Conclusion</h2>
 <p>Hopefully you found this moderately interesting and learned something about M-estimation, logistic regression, CBPS, and overlap weights!</p>
-</section><section id="references" class="level2">
+</section>
+<section id="references" class="level2">
 
 
 
-</section><div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
+
+</section>
+
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
 <div id="ref-grahamInverseProbabilityTilting2012" class="csl-entry" role="listitem">
 Graham, Bryan S., Cristine Campos De Xavier Pinto, and Daniel Egel. 2012. <span>“Inverse Probability Tilting for Moment Condition Models with Missing Data.”</span> <em>The Review of Economic Studies</em> 79 (3): 1053–79. <a href="https://doi.org/10.1093/restud/rdr047">https://doi.org/10.1093/restud/rdr047</a>.
 </div>
@@ -527,11 +588,14 @@ Ross, Rachael K, Paul N Zivich, Jeffrey S A Stringer, and Stephen R Cole. 2024. 
 Stefanski, Leonard A., and Dennis D. Boos. 2002. <span>“The Calculus of m-Estimation.”</span> <em>The American Statistician</em> 56 (1): 29–38. <a href="https://doi.org/10.1198/000313002753631330">https://doi.org/10.1198/000313002753631330</a>.
 </div>
 </div></section><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
+
 <ol>
 <li id="fn1"><p>This is because when the derivative of a function is equal to 0, we are at its maximum (or minimum, but in this case we know it’s the maximum). The goal is to maximize the (log) likelihood, the usual maximum likelihood estimates occur when the derivative of the (log) likelihood are equal to zero. One can either maximize the likelihood by finding the maximum value it attains or by finding when its derivative is zero.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn2"><p>This is for the just- or exactly-identified CBPS; the over-identified version (which is the default in the <em>CBPS</em> package) combines both the logistic regression and modified estimating equations below; because there are now more estimating equations than parameters, this is instead solved using generalized method of moments (GMM).<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn3"><p>Actually, the coefficients we computed are more accurate than those from <code><a href="https://rdrr.io/pkg/CBPS/man/CBPS.html">CBPS::CBPS()</a></code>.<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-</ol></section></div></main><!-- /main --><script id="quarto-html-after-body" type="application/javascript">
+<li id="fn3"><p>Actually, the coefficients we computed are more accurate than those from <code>CBPS::CBPS()</code>.<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     const icon = "";
     const anchorJS = new window.AnchorJS();
@@ -935,7 +999,10 @@ Stefanski, Leonard A., and Dennis D. Boos. 2002. <span>“The Calculus of m-Esti
       }
     }
   });
-  </script><input type="hidden" id="giscus-base-theme" value="preferred_color_scheme"><input type="hidden" id="giscus-alt-theme" value="preferred_color_scheme"><script>
+  </script>
+<input type="hidden" id="giscus-base-theme" value="preferred_color_scheme">
+<input type="hidden" id="giscus-alt-theme" value="preferred_color_scheme">
+<script>
   function loadGiscus() {
     // Function to get the theme based on body class
     const getTheme = () => {
@@ -963,7 +1030,8 @@ Stefanski, Leonard A., and Dennis D. Boos. 2002. <span>“The Calculus of m-Esti
   loadGiscus();
 </script>
 </div> <!-- /content -->
-<footer class="footer"><div class="nav-footer">
+<footer class="footer">
+  <div class="nav-footer">
     <div class="nav-footer-left">
 <a href="http://www.github.com">Noah Greifer</a> ©
 <script>document.write(new Date().getFullYear())</script>
@@ -976,6 +1044,8 @@ Stefanski, Leonard A., and Dennis D. Boos. 2002. <span>“The Calculus of m-Esti
     </div>
   </div>
 </footer>
+
+
 
 
 </body></html>

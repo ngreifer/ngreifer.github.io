@@ -4,10 +4,6 @@
     "items": []
   },
   {
-    "listing": "/papers/index.html",
-    "items": []
-  },
-  {
     "listing": "/blog/index.html",
     "items": [
       "/blog/an-odds-ratio-paradox/index.html",
@@ -18,5 +14,9 @@
       "/blog/genetic-matching/index.html",
       "/blog/subgroup-analysis-psm/index.html"
     ]
+  },
+  {
+    "listing": "/papers/index.html",
+    "items": []
   }
 ]

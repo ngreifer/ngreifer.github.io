@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
 <meta charset="utf-8">
 <meta name="generator" content="quarto-1.9.38">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
 <meta name="author" content="Noah Greifer">
 <meta name="dcterms.date" content="2022-10-24">
+
 <title>Using the Fractional Weighted Bootstrap with Propensity Score Weighting – Noah Greifer</title>
 <style>
 /* Default styles provided by pandoc.
@@ -78,6 +81,7 @@ div.csl-indent {
   margin-left: 2em;
 }</style>
 
+
 <script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
 <script src="../../site_libs/quarto-nav/headroom.min.js"></script>
 <script src="../../site_libs/clipboard/clipboard.min.js"></script>
@@ -85,7 +89,7 @@ div.csl-indent {
 <script src="../../site_libs/quarto-search/fuse.min.js"></script>
 <script src="../../site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="../../">
-<link href="../../assets/media/icon.png" rel="icon" type="image/png">
+<link href="../../assets/media/favicon.ico" rel="icon">
 <script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
 <script src="../../site_libs/quarto-html/popper.min.js"></script>
@@ -95,7 +99,8 @@ div.csl-indent {
 <link href="../../site_libs/quarto-html/quarto-syntax-highlighting-de63f62b328812d8e578a4d74e282472.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../site_libs/bootstrap/bootstrap-f8ddab8c30c8d0f2b512aadf102d9b21.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light"><script id="quarto-search-options" type="application/json">{
+<link href="../../site_libs/bootstrap/bootstrap-4cae65ad75248541f9c290a216e05642.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
   "collapse-after": 3,
@@ -120,21 +125,39 @@ div.csl-indent {
     "search-submit-button-title": "Submit",
     "search-label": "Search"
   }
-}</script><script async="" src="https://www.googletagmanager.com/gtag/js?id="></script><script type="text/javascript">
+}</script>
+<script async="" src="https://www.googletagmanager.com/gtag/js?id="></script>
+
+<script type="text/javascript">
 
 window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());
 gtag('config', '', { 'anonymize_ip': true});
-</script><!-- 
+</script>
+
+<!-- 
 Load Academicons v1: https://jpswalsh.github.io/academicons/
---><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+-->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+
 <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+
+
 <!---
 The following code are needed to show dimension citation and altmetrics.
 https://api.altmetric.com/embeds.html
 https://badge.dimensions.ai/
----><script type="text/javascript" src="https://d1bxh8uas1mnw7.cloudfront.net/assets/embed.js"></script><script async="" src="https://badge.dimensions.ai/badge.js" charset="utf-8"></script><script type="text/javascript" src="//cdn.plu.mx/widget-popup.js"></script><meta name="quarto:status" content="draft">
+--->
+
+<script type="text/javascript" src="https://d1bxh8uas1mnw7.cloudfront.net/assets/embed.js"></script>
+
+<script async="" src="https://badge.dimensions.ai/badge.js" charset="utf-8"></script>
+
+<script type="text/javascript" src="//cdn.plu.mx/widget-popup.js"></script>
+<meta name="quarto:status" content="draft">
+
+
 <link rel="stylesheet" href="../../styles.css">
 <meta property="og:title" content="Using the Fractional Weighted Bootstrap with Propensity Score Weighting – Noah Greifer">
 <meta property="og:description" content="Noah Greifer’s website">
@@ -143,13 +166,18 @@ https://badge.dimensions.ai/
 <meta name="twitter:description" content="Noah Greifer’s website">
 <meta name="twitter:card" content="summary">
 </head>
+
 <body class="nav-fixed quarto-light">
 
 <div id="quarto-search-results"></div>
-  <header id="quarto-header" class="headroom fixed-top"><div id="quarto-draft-alert" class="alert alert-warning"><i class="bi bi-pencil-square"></i>Draft</div><nav class="navbar navbar-expand-lg " data-bs-theme="dark"><div class="navbar-container container-fluid">
+  <header id="quarto-header" class="headroom fixed-top"><div id="quarto-draft-alert" class="alert alert-warning"><i class="bi bi-pencil-square"></i>Draft</div>
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a href="../../index.html" class="navbar-brand navbar-brand-logo">
-    <img src="../../assets/media/icon.png" alt="Noah Greifer" class="navbar-logo light-content"><img src="../../assets/media/icon.png" alt="Noah Greifer" class="navbar-logo dark-content"></a>
+    <img src="../../assets/media/icon.png" alt="Noah Greifer" class="navbar-logo light-content">
+    <img src="../../assets/media/icon.png" alt="Noah Greifer" class="navbar-logo dark-content">
+    </a>
     <a class="navbar-brand" href="../../index.html">
     <span class="navbar-title">Noah Greifer</span>
     </a>
@@ -160,7 +188,7 @@ https://badge.dimensions.ai/
 </button>
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
-<li class="nav-item">
+  <li class="nav-item">
     <a class="nav-link" href="../../index.html"> 
 <span class="menu-text">Home</span></a>
   </li>  
@@ -177,14 +205,14 @@ https://badge.dimensions.ai/
 <span class="menu-text">Papers</span></a>
   </li>  
 </ul>
-<ul class="navbar-nav navbar-nav-scroll ms-auto">
-<li class="nav-item compact">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
     <a class="nav-link" href="https://github.com/ngreifer"> <i class="bi bi-github" role="img" aria-label="GitHub">
 </i> 
 <span class="menu-text"></span></a>
   </li>  
 </ul>
-</div> <!-- /navcollapse -->
+          </div> <!-- /navcollapse -->
             <div class="quarto-navbar-tools">
   <a href="" class="quarto-reader-toggle quarto-navigation-tool px-1" onclick="window.quartoToggleReader(); return false;" title="Toggle reader mode">
   <div class="quarto-reader-toggle-btn">
@@ -193,14 +221,20 @@ https://badge.dimensions.ai/
 </a>
 </div>
       </div> <!-- /container-fluid -->
-    </nav></header><!-- content --><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
         
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><div class="quarto-title">
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
 <h1 class="title">Using the Fractional Weighted Bootstrap with Propensity Score Weighting</h1>
   <div class="quarto-categories">
     <div class="quarto-category">propensity-scores</div>
@@ -231,7 +265,10 @@ https://badge.dimensions.ai/
   
 
 
-</header><p>There are a number of methods one can use to estimate the standard error of a treatment effect estimate after propensity score weighting. In practice, we often use a robust (sandwich) standard error that treats the weights as fixed. These are available in the <code>sandwich</code> and <code>survey</code> packages. This fails to take into account the variability in estimating the weights. For basic methods and when estimating the ATE, it is known that these standard errors are conservative <span class="citation" data-cites="robinsMarginalStructuralModels2000">(<a href="#ref-robinsMarginalStructuralModels2000" role="doc-biblioref">Robins et al. 2000</a>)</span>, which is nice. For the ATT and for more complicated methods, though, these standard errors are not always conservative, and can therefore lead to invalid inferences <span class="citation" data-cites="chanGloballyEfficientNonparametric2016">Reifeis and Hudgens (<a href="#ref-reifeisVarianceTreatmentEffect2020" role="doc-biblioref">2020</a>)</span>. The uncertainty of the estimation of the propensity scores or weights needs to be taken into account for valid inference.</p>
+</header>
+
+
+<p>There are a number of methods one can use to estimate the standard error of a treatment effect estimate after propensity score weighting. In practice, we often use a robust (sandwich) standard error that treats the weights as fixed. These are available in the <code>sandwich</code> and <code>survey</code> packages. This fails to take into account the variability in estimating the weights. For basic methods and when estimating the ATE, it is known that these standard errors are conservative <span class="citation" data-cites="robinsMarginalStructuralModels2000">(<a href="#ref-robinsMarginalStructuralModels2000" role="doc-biblioref">Robins et al. 2000</a>)</span>, which is nice. For the ATT and for more complicated methods, though, these standard errors are not always conservative, and can therefore lead to invalid inferences <span class="citation" data-cites="chanGloballyEfficientNonparametric2016">Reifeis and Hudgens (<a href="#ref-reifeisVarianceTreatmentEffect2020" role="doc-biblioref">2020</a>)</span>. The uncertainty of the estimation of the propensity scores or weights needs to be taken into account for valid inference.</p>
 <p>When a logistic regression or other parametric model is used to estimate the weights, M-estimation can be used to incorporate the uncertainty in estimating the propensity score into the standard error of the treatment effect estimate<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>. <span class="citation" data-cites="luncefordStratificationWeightingPropensity2004">Zhou et al. (<a href="#ref-zhouPropensityScoreWeighting2020a" role="doc-biblioref">2020</a>)</span>. This is fairly limiting and in some cases requires manual programming by the analyst using a generalized estimating equations solver like <code>geex</code>. The <code>PSweight</code> package also uses M-estimation but has a limited set of propensity score models available.</p>
 <p>Because the treatment effect estimator is normally distributed, bootstrapping the whole process of estimating the weights and the treatment effect can be an effective way to capture variability in both steps of the process. It’s also especially helpful when it’s not immediately clear how to to set up the estimation equations for the propensity score part of the model, e.g., when a machine learning or optimization-based method is used to estimate the propensity scores. Bootstrapping involves drawing a new sample with replacement form the original sample, estimating the weights and treatment effect in each sample, and using the resulting distribution from doing this process many times as the sampling distribution of the effect estimate, from which confidence intervals can be computed. This is a popular method and tends to work well in a variety of circumstances <span class="citation" data-cites="austinBootstrapVsAsymptotic2022">(<a href="#ref-austinBootstrapVsAsymptotic2022" role="doc-biblioref">Austin 2022</a>)</span>.</p>
 <p>The traditional bootstrap can have problems with sparse variables (covariates, treatment, or outcome). A potential solution is the fractional weighted bootstrap <span class="citation" data-cites="xuApplicationsFractionalRandomWeightBootstrap2020a rubinBayesianBootstrap1981">(<a href="#ref-xuApplicationsFractionalRandomWeightBootstrap2020a" role="doc-biblioref">Xu et al. 2020</a>; also known as the Bayesian bootstrap, <a href="#ref-rubinBayesianBootstrap1981" role="doc-biblioref">Rubin 1981</a>)</span>, which can be used instead. The fractional weighted bootstrap (FWB) involves drawing weights for each unit from a distribution of weights and computing weighted estimates within each bootstrap sample. The traditional bootstrap can be seen as a weighted bootstrap in which each unit receives an integer weight drawn from a multinomial or Poisson distribution; the FWB allows those weights to be continuously valued (i.e., “fractional”). The FWB is implemented in R in my <code>fwb</code> package, which is meant to be a drop-in for the <code>boot</code> package, which performs the traditional bootstrap.</p>
@@ -239,9 +276,9 @@ https://badge.dimensions.ai/
 <p>An important limitation when using the FWB is that the weights need to be incorporated into every step of the analysis correctly. For propensity score weighting, this means that the model used to estimate the weights and the outcome need to accommodate sampling weights. Not all methods and packages do.</p>
 <p>We’ll be using <code>WeightIt</code> to estimate the weights. This post can be seen as a supplement to the main <code>WeightIt</code> vignette, which describes the use of the traditional bootstrap for estimating confidence intervals. We’ll use the <code>lalonde</code> dataset that comes with <code>cobalt</code> and <code>MatchIt</code>.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://ngreifer.github.io/WeightIt/">WeightIt</a></span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="st">"lalonde"</span>, package <span class="op">=</span> <span class="st">"cobalt"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">lalonde</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(WeightIt)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"lalonde"</span>, <span class="at">package =</span> <span class="st">"cobalt"</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(lalonde)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>  treat age educ   race married nodegree re74 re75       re78
 1     1  37   11  black       1        1    0    0  9930.0460
@@ -253,15 +290,15 @@ https://badge.dimensions.ai/
 </div>
 </div>
 <p>Our goal will be to estimate the average treatment effect on the treated (ATT) of the <code>treat</code> variable on the outcome <code>re78</code>, adjusting for the other variables in the dataset. Our plan will be to use weighting combined with an outcome model to adjust for confounding.</p>
-<p>The main weighting function of <code>WeightIt</code> is <code><a href="https://ngreifer.github.io/WeightIt/reference/weightit.html">weightit()</a></code>, which provides an interface to many different weighting methods. Each method has a help page devoted to it (e.g., <code>method_ps</code> for GLM propensity score weighting, <code>method_ebal</code> for entropy balancing). Each help page has a “Sampling Weights” section that describes whether sampling weights are support for the given method. In order to use the FWB, we need to make sure sampling weights are supported. For example, sampling weights are currently not supported with <code>method = "bart"</code>.</p>
+<p>The main weighting function of <code>WeightIt</code> is <code>weightit()</code>, which provides an interface to many different weighting methods. Each method has a help page devoted to it (e.g., <code>method_ps</code> for GLM propensity score weighting, <code>method_ebal</code> for entropy balancing). Each help page has a “Sampling Weights” section that describes whether sampling weights are support for the given method. In order to use the FWB, we need to make sure sampling weights are supported. For example, sampling weights are currently not supported with <code>method = "bart"</code>.</p>
 <p>We’ll use energy balancing <span class="citation" data-cites="hulingEnergyBalancingCovariate2022">(<a href="#ref-hulingEnergyBalancingCovariate2022" role="doc-biblioref">Huling and Mak, n.d.</a>)</span>, which involves estimating weights the directly balance the covariates by minimizing the “energy distance” (i.e., the difference between the joint distributions of the covariates in the groups). Because energy balancing weights are not estimated using maximum likelihood, it’s not straightforward to convert their estimation into an M-estimation system of estimating equations, but they are estimated quickly, which means they can be estimated in the bootstrap without having to wait too long (unlike some machine learning methods).</p>
-<p>We’ll go through the whole process of assessing balance as you normally would, but the focus here will be on the FWB. First we estimate the weights and assess balance using <code><a href="https://ngreifer.github.io/cobalt/reference/bal.tab.html">cobalt::bal.tab()</a></code>.</p>
+<p>We’ll go through the whole process of assessing balance as you normally would, but the focus here will be on the FWB. First we estimate the weights and assess balance using <code>cobalt::bal.tab()</code>.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">w.out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ngreifer.github.io/WeightIt/reference/weightit.html">weightit</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">race</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span></span>
-<span>                    <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span> <span class="op">+</span> <span class="va">re75</span>,</span>
-<span>                  data <span class="op">=</span> <span class="va">lalonde</span>, estimand <span class="op">=</span> <span class="st">"ATT"</span>,</span>
-<span>                  method <span class="op">=</span> <span class="st">"energy"</span><span class="op">)</span></span>
-<span><span class="va">w.out</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>w.out <span class="ot">&lt;-</span> <span class="fu">weightit</span>(treat <span class="sc">~</span> age <span class="sc">+</span> educ <span class="sc">+</span> race <span class="sc">+</span> married <span class="sc">+</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>                    nodegree <span class="sc">+</span> re74 <span class="sc">+</span> re75,</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>                  <span class="at">data =</span> lalonde, <span class="at">estimand =</span> <span class="st">"ATT"</span>,</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>                  <span class="at">method =</span> <span class="st">"energy"</span>)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>w.out</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>A weightit object
  - method: "energy" (energy balancing)
@@ -271,7 +308,7 @@ https://badge.dimensions.ai/
  - estimand: ATT (focal: 1)
  - covariates: age, educ, race, married, nodegree, re74, re75</code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">cobalt</span><span class="fu">::</span><span class="fu"><a href="https://ngreifer.github.io/cobalt/reference/bal.tab.html">bal.tab</a></span><span class="op">(</span><span class="va">w.out</span>, stats <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"m"</span>, <span class="st">"ks"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>cobalt<span class="sc">::</span><span class="fu">bal.tab</span>(w.out, <span class="at">stats =</span> <span class="fu">c</span>(<span class="st">"m"</span>, <span class="st">"ks"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Balance Measures
                Type Diff.Adj KS.Adj
@@ -291,16 +328,16 @@ Unadjusted  429.       185
 Adjusted     41.82     185</code></pre>
 </div>
 </div>
-<p>Balance looks pretty good, so let’s estimate the treatment effect. We’ll fit a linear model for the outcome and use <code><a href="https://rdrr.io/pkg/marginaleffects/man/comparisons.html">marginaleffects::comparisons()</a></code> to compute the ATT. We need to supply the estimated weights to the model fitting function to be sure the CBPS weights are included.</p>
+<p>Balance looks pretty good, so let’s estimate the treatment effect. We’ll fit a linear model for the outcome and use <code>marginaleffects::comparisons()</code> to compute the ATT. We need to supply the estimated weights to the model fitting function to be sure the CBPS weights are included.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">re78</span> <span class="op">~</span> <span class="va">treat</span> <span class="op">*</span> <span class="op">(</span><span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">race</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span></span>
-<span>                    <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span> <span class="op">+</span> <span class="va">re75</span><span class="op">)</span>,</span>
-<span>                  data <span class="op">=</span> <span class="va">lalonde</span>, weights <span class="op">=</span> <span class="va">w.out</span><span class="op">$</span><span class="va">weights</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu">marginaleffects</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/marginaleffects/man/comparisons.html">avg_comparisons</a></span><span class="op">(</span></span>
-<span>  <span class="va">fit</span>, variables <span class="op">=</span> <span class="st">"treat"</span>, vcov <span class="op">=</span> <span class="st">"HC3"</span>, weights <span class="op">=</span> <span class="st">"(weights)"</span>,</span>
-<span>  newdata <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html">subset</a></span><span class="op">(</span><span class="va">lalonde</span>, <span class="va">treat</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span></span>
-<span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">lm</span>(re78 <span class="sc">~</span> treat <span class="sc">*</span> (age <span class="sc">+</span> educ <span class="sc">+</span> race <span class="sc">+</span> married <span class="sc">+</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>                    nodegree <span class="sc">+</span> re74 <span class="sc">+</span> re75),</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>                  <span class="at">data =</span> lalonde, <span class="at">weights =</span> w.out<span class="sc">$</span>weights)</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>marginaleffects<span class="sc">::</span><span class="fu">avg_comparisons</span>(</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  fit, <span class="at">variables =</span> <span class="st">"treat"</span>, <span class="at">vcov =</span> <span class="st">"HC3"</span>, <span class="at">weights =</span> <span class="st">"(weights)"</span>,</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">newdata =</span> <span class="fu">subset</span>(lalonde, treat <span class="sc">==</span> <span class="dv">1</span>)</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Warning: These arguments are not known to be supported for models of class
 `lm`: weights. All arguments are still passed to the model-specific prediction
@@ -321,34 +358,34 @@ Comparison: 1 - 0</code></pre>
 </div>
 </div>
 <p>There is our effect estimate and confidence interval estimate using a robust standard error that fails to take into account estimation of the weights<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a>.</p>
-<p>Now let’s move on to the bootstrap. First, we have to write a function that takes in a dataset and a set of weights and returns an effect estimate. In this function, we estimate the weights, fit the outcome model with the weights, and compute an average marginal effect to be used as our ATT. It’s critical that the bootstrap weights be supplied to the <code>s.weights</code> argument of <code><a href="https://ngreifer.github.io/WeightIt/reference/weightit.html">weightit()</a></code> to ensure they are incorporated into estimation of the weights. In effect estimation, the weights need to be multiplied by the weights returned by <code><a href="https://ngreifer.github.io/WeightIt/reference/weightit.html">weightit()</a></code> before being used in the outcome model.</p>
+<p>Now let’s move on to the bootstrap. First, we have to write a function that takes in a dataset and a set of weights and returns an effect estimate. In this function, we estimate the weights, fit the outcome model with the weights, and compute an average marginal effect to be used as our ATT. It’s critical that the bootstrap weights be supplied to the <code>s.weights</code> argument of <code>weightit()</code> to ensure they are incorporated into estimation of the weights. In effect estimation, the weights need to be multiplied by the weights returned by <code>weightit()</code> before being used in the outcome model.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">fwb_fun</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">data</span>, <span class="va">w</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="co">#Estimate the weights</span></span>
-<span>  <span class="va">w.out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ngreifer.github.io/WeightIt/reference/weightit.html">weightit</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">race</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span></span>
-<span>                    <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span> <span class="op">+</span> <span class="va">re75</span>,</span>
-<span>                  data <span class="op">=</span> <span class="va">data</span>, estimand <span class="op">=</span> <span class="st">"ATT"</span>,</span>
-<span>                  method <span class="op">=</span> <span class="st">"energy"</span>, s.weights <span class="op">=</span> <span class="va">w</span><span class="op">)</span></span>
-<span></span>
-<span>  <span class="co">#Fit the outcome model</span></span>
-<span>  <span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">re78</span> <span class="op">~</span> <span class="va">treat</span> <span class="op">*</span> <span class="op">(</span><span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">race</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span></span>
-<span>                    <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span> <span class="op">+</span> <span class="va">re75</span><span class="op">)</span>,</span>
-<span>                  data <span class="op">=</span> <span class="va">data</span>,</span>
-<span>            weights <span class="op">=</span> <span class="va">w.out</span><span class="op">$</span><span class="va">weights</span> <span class="op">*</span> <span class="va">w</span><span class="op">)</span></span>
-<span></span>
-<span>  <span class="co">#Estimate the marginal effects; no vcov required</span></span>
-<span>  <span class="va">ame</span> <span class="op">&lt;-</span> <span class="fu">marginaleffects</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/marginaleffects/man/comparisons.html">avg_comparisons</a></span><span class="op">(</span></span>
-<span>    <span class="va">fit</span>, variables <span class="op">=</span> <span class="st">"treat"</span>, vcov <span class="op">=</span> <span class="cn">FALSE</span>, weights <span class="op">=</span> <span class="st">"(weights)"</span>,</span>
-<span>    newdata <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html">subset</a></span><span class="op">(</span><span class="va">data</span>, <span class="va">treat</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span></span>
-<span>  <span class="op">)</span></span>
-<span></span>
-<span>  <span class="co">#Return the estimate</span></span>
-<span>  <span class="va">ame</span><span class="op">$</span><span class="va">estimate</span></span>
-<span><span class="op">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>fwb_fun <span class="ot">&lt;-</span> <span class="cf">function</span>(data, w) {</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="co">#Estimate the weights</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  w.out <span class="ot">&lt;-</span> <span class="fu">weightit</span>(treat <span class="sc">~</span> age <span class="sc">+</span> educ <span class="sc">+</span> race <span class="sc">+</span> married <span class="sc">+</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>                    nodegree <span class="sc">+</span> re74 <span class="sc">+</span> re75,</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>                  <span class="at">data =</span> data, <span class="at">estimand =</span> <span class="st">"ATT"</span>,</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>                  <span class="at">method =</span> <span class="st">"energy"</span>, <span class="at">s.weights =</span> w)</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>  <span class="co">#Fit the outcome model</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>  fit <span class="ot">&lt;-</span> <span class="fu">lm</span>(re78 <span class="sc">~</span> treat <span class="sc">*</span> (age <span class="sc">+</span> educ <span class="sc">+</span> race <span class="sc">+</span> married <span class="sc">+</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>                    nodegree <span class="sc">+</span> re74 <span class="sc">+</span> re75),</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>                  <span class="at">data =</span> data,</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>            <span class="at">weights =</span> w.out<span class="sc">$</span>weights <span class="sc">*</span> w)</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>  <span class="co">#Estimate the marginal effects; no vcov required</span></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>  ame <span class="ot">&lt;-</span> marginaleffects<span class="sc">::</span><span class="fu">avg_comparisons</span>(</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>    fit, <span class="at">variables =</span> <span class="st">"treat"</span>, <span class="at">vcov =</span> <span class="cn">FALSE</span>, <span class="at">weights =</span> <span class="st">"(weights)"</span>,</span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">newdata =</span> <span class="fu">subset</span>(data, treat <span class="sc">==</span> <span class="dv">1</span>)</span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>  <span class="co">#Return the estimate</span></span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>  ame<span class="sc">$</span>estimate</span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>If we supply the original dataset and a vector of unit weights, we get back our original estimate:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">fwb_fun</span><span class="op">(</span><span class="va">lalonde</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">lalonde</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fwb_fun</span>(lalonde, <span class="fu">rep</span>(<span class="dv">1</span>, <span class="fu">nrow</span>(lalonde)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Warning: These arguments are not known to be supported for models of class
 `lm`: weights. All arguments are still passed to the model-specific prediction
@@ -362,11 +399,11 @@ https://github.com/vincentarelbundock/marginaleffects/issues</code></pre>
 <pre><code>[1] 582.4907</code></pre>
 </div>
 </div>
-<p>Now let’s run this 2000 times to get our distribution of effects. We’ll use <code><a href="https://ngreifer.github.io/fwb/reference/fwb.html">fwb::fwb()</a></code>, which takes in a dataset and a bootstrap function. We need to set a seed to ensure our results are replicable.</p>
+<p>Now let’s run this 2000 times to get our distribution of effects. We’ll use <code>fwb::fwb()</code>, which takes in a dataset and a bootstrap function. We need to set a seed to ensure our results are replicable.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">654</span>, <span class="st">"L'Ecuyer-CMRG"</span><span class="op">)</span></span>
-<span><span class="va">fwb_out</span> <span class="op">&lt;-</span> <span class="fu">fwb</span><span class="fu">::</span><span class="fu"><a href="https://ngreifer.github.io/fwb/reference/fwb.html">fwb</a></span><span class="op">(</span><span class="va">lalonde</span>, <span class="va">fwb_fun</span>, R <span class="op">=</span> <span class="fl">20</span>,</span>
-<span>                    cl <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">654</span>, <span class="st">"L'Ecuyer-CMRG"</span>)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>fwb_out <span class="ot">&lt;-</span> fwb<span class="sc">::</span><span class="fu">fwb</span>(lalonde, fwb_fun, <span class="at">R =</span> <span class="dv">20</span>,</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>                    <span class="at">cl =</span> <span class="dv">4</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Warning: These arguments are not known to be supported for models of class
 `lm`: weights. All arguments are still passed to the model-specific prediction
@@ -384,6 +421,8 @@ known arguments, in order to avoid raising this warning:
 https://github.com/vincentarelbundock/marginaleffects/issues</code></pre>
 </div>
 </div>
+
+
 
 
 
@@ -416,10 +455,13 @@ Xu, Li, Chris Gotwalt, Yili Hong, Caleb B. King, and William Q. Meeker. 2020. <s
 Zhou, Yunji, Roland A Matsouaka, and Laine Thomas. 2020. <span>“Propensity Score Weighting Under Limited Overlap and Model Misspecification.”</span> <em>Statistical Methods in Medical Research</em> 29 (12): 3721–56. <a href="https://doi.org/10.1177/0962280220940334">https://doi.org/10.1177/0962280220940334</a>.
 </div>
 </div></section><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
+
 <ol>
 <li id="fn1"><p>Sometimes the standard errors resulting from M-estimation are also called “sandwich” standard errors; in each paper you read that mentions these, you will need to read in detail to figure out whether they mean sandwich standard errors that account for estimation of the propensity score (i.e., used M-estimation) or those that don’t (i.e., used a robust standard error only for the outcome model).<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn2"><p>I’ll explain some of the arguments to <code>comparisons()</code> here. The <code>vcov</code> argument lets you request a special type of standard error; here I requested the HC3 robust sandwich standard error. This is the most straightforward way to get robust standard errors. The <code>weights</code> argument is superfluous here because we are estimating the ATT (and all weights for the treated are equal to 1), but it’s good practice to include it. Setting <code>weights = "(weights)"</code> ensure that the exact weights that were used in the regression model are used to compute the average marginal effect. Finally, the <code>newdata</code> argument allows use to request that the ATT be estimated by restricting the computation of the marginal effects to the treated units before averaging them. For more details, see the <code>marginaleffects</code> website and documentation.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-</ol></section></div></main><!-- /main --><script id="quarto-html-after-body" type="application/javascript">
+</ol>
+</section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     const icon = "";
     const anchorJS = new window.AnchorJS();
@@ -823,7 +865,10 @@ Zhou, Yunji, Roland A Matsouaka, and Laine Thomas. 2020. <span>“Propensity Sco
       }
     }
   });
-  </script><input type="hidden" id="giscus-base-theme" value="preferred_color_scheme"><input type="hidden" id="giscus-alt-theme" value="preferred_color_scheme"><script>
+  </script>
+<input type="hidden" id="giscus-base-theme" value="preferred_color_scheme">
+<input type="hidden" id="giscus-alt-theme" value="preferred_color_scheme">
+<script>
   function loadGiscus() {
     // Function to get the theme based on body class
     const getTheme = () => {
@@ -851,7 +896,8 @@ Zhou, Yunji, Roland A Matsouaka, and Laine Thomas. 2020. <span>“Propensity Sco
   loadGiscus();
 </script>
 </div> <!-- /content -->
-<footer class="footer"><div class="nav-footer">
+<footer class="footer">
+  <div class="nav-footer">
     <div class="nav-footer-left">
 <a href="http://www.github.com">Noah Greifer</a> ©
 <script>document.write(new Date().getFullYear())</script>
@@ -864,6 +910,8 @@ Zhou, Yunji, Roland A Matsouaka, and Laine Thomas. 2020. <span>“Propensity Sco
     </div>
   </div>
 </footer>
+
+
 
 
 </body></html>
