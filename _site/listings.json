@@ -1,5 +1,13 @@
 [
   {
+    "listing": "/software/index.html",
+    "items": []
+  },
+  {
+    "listing": "/papers/index.html",
+    "items": []
+  },
+  {
     "listing": "/blog/index.html",
     "items": [
       "/blog/an-odds-ratio-paradox/index.html",
@@ -10,25 +18,5 @@
       "/blog/genetic-matching/index.html",
       "/blog/subgroup-analysis-psm/index.html"
     ]
-  },
-  {
-    "listing": "/packages.html",
-    "items": []
-  },
-  {
-    "listing": "/packages/packages.html",
-    "items": []
-  },
-  {
-    "listing": "/packages/index.html",
-    "items": []
-  },
-  {
-    "listing": "/software/index.html",
-    "items": []
-  },
-  {
-    "listing": "/papers/index.html",
-    "items": []
   }
 ]
