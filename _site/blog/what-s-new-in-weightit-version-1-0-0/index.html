@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.38">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Noah Greifer">
+<meta name="dcterms.date" content="2024-03-21">
+
+<title>What’s New in WeightIt Version 1.0.0 – Noah Greifer</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<link href="../../assets/media/icon.png" rel="icon" type="image/png">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-de63f62b328812d8e578a4d74e282472.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-f8ddab8c30c8d0f2b512aadf102d9b21.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script async="" src="https://www.googletagmanager.com/gtag/js?id="></script>
+
+<script type="text/javascript">
+
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', '', { 'anonymize_ip': true});
+</script>
+
+<!-- 
+Load Academicons v1: https://jpswalsh.github.io/academicons/
+-->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+
+<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+
+
+<!---
+The following code are needed to show dimension citation and altmetrics.
+https://api.altmetric.com/embeds.html
+https://badge.dimensions.ai/
+--->
+
+<script type="text/javascript" src="https://d1bxh8uas1mnw7.cloudfront.net/assets/embed.js"></script>
+
+<script async="" src="https://badge.dimensions.ai/badge.js" charset="utf-8"></script>
+
+<script type="text/javascript" src="//cdn.plu.mx/widget-popup.js"></script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+<meta property="og:title" content="What’s New in WeightIt Version 1.0.0 – Noah Greifer">
+<meta property="og:description" content="Noah Greifer’s website">
+<meta property="og:site_name" content="Noah Greifer">
+<meta name="twitter:title" content="What’s New in WeightIt Version 1.0.0 – Noah Greifer">
+<meta name="twitter:description" content="Noah Greifer’s website">
+<meta name="twitter:card" content="summary">
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../../assets/media/icon.png" alt="Noah Greifer" class="navbar-logo light-content">
+    <img src="../../assets/media/icon.png" alt="Noah Greifer" class="navbar-logo dark-content">
+    </a>
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Noah Greifer</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../blog/index.html"> 
+<span class="menu-text">Blog</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../software/index.html"> 
+<span class="menu-text">Software</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../papers/index.html"> 
+<span class="menu-text">Papers</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/ngreifer"> <i class="bi bi-github" role="img" aria-label="GitHub">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-reader-toggle quarto-navigation-tool px-1" onclick="window.quartoToggleReader(); return false;" title="Toggle reader mode">
+  <div class="quarto-reader-toggle-btn">
+  <i class="bi"></i>
+  </div>
+</a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#new-implementation-of-cbps" id="toc-new-implementation-of-cbps" class="nav-link active" data-scroll-target="#new-implementation-of-cbps">New implementation of CBPS</a></li>
+  <li><a href="#new-weighting-method-inverse-probability-tilting-ipt" id="toc-new-weighting-method-inverse-probability-tilting-ipt" class="nav-link" data-scroll-target="#new-weighting-method-inverse-probability-tilting-ipt">New weighting method: inverse probability tilting (IPT)</a></li>
+  <li><a href="#fitting-weighted-regression-models" id="toc-fitting-weighted-regression-models" class="nav-link" data-scroll-target="#fitting-weighted-regression-models">Fitting Weighted Regression Models</a></li>
+  <li><a href="#other-updates" id="toc-other-updates" class="nav-link" data-scroll-target="#other-updates">Other updates</a></li>
+  <li><a href="#closing-thoughts" id="toc-closing-thoughts" class="nav-link" data-scroll-target="#closing-thoughts">Closing Thoughts</a></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">What’s New in <em>WeightIt</em> Version 1.0.0</h1>
+  <div class="quarto-categories">
+    <div class="quarto-category">R</div>
+    <div class="quarto-category">propensity-scores</div>
+  </div>
+  </div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Noah Greifer </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">March 21, 2024</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>My R package <a href="https://ngreifer.github.io/WeightIt/"><em>WeightIt</em></a> has a huge new update, making it one of the biggest updates since I started the project. Version 1.0.0 introduces a few breaking changes, including the possibility that old results will not align with results from newer version of the package. In most cases, though, this only means improvements (i.e., better balance).</p>
+<p>For those that don’t know, <em>WeightIt</em> is an R package designed to provide access to propensity score weighting (also known as inverse probability weighting) and its variations in a way that facilitates the use of advanced and modern methods and best practices. It provides a simple, unified interface to many different methods of estimating weights to balance groups in observational studies, including those that use generalized linear models, machine learning methods, and convex optimization. <em>WeightIt</em> provides support for binary, multi-category, continuous, and longitudinal treatments and directly interfaces with <a href="https://ngreifer.github.io/cobalt/"><em>cobalt</em></a> for assessing balance after weighting.</p>
+<p>Version 1.0.0 has several new features that I wanted to explain in a blog post rather than just in the <a href="https://ngreifer.github.io/WeightIt/news/index.html">NEWS</a> document associated with the package because it’s important to me that these new features are appreciated. There are three primary updates that I’ll discuss, along with some minor ones. Those three are updates to the covariate balancing propensity score, a new method called inverse probability tilting, and new support for fitting weighted outcome regression models that account for estimation of the weights in the standard errors.</p>
+<section id="new-implementation-of-cbps" class="level2">
+<h2 class="anchored" data-anchor-id="new-implementation-of-cbps">New implementation of CBPS</h2>
+<p>The covariate balancing propensity score <span class="citation" data-cites="imai2014">(CBPS, <a href="#ref-imai2014" role="doc-biblioref">Imai and Ratkovic 2014</a>)</span> is a method of estimating propensity scores using generalized linear models (e.g., logistic regression). I described CBPS in my <a href="https://ngreifer.github.io/blog/logistic-regression-cbps-overlap-weights/">last blog post</a>, so I’ll be brief here. Essentially, you have the score equations for a logistic regression, the roots of which are the logistic regression coefficients. You also have moment conditions that correspond to mean balance on the included covariates in the weighted sample. There are two versions of CBPS: the just-identified version, which finds the logistic regression coefficients that only solve the balance moment conditions, and the over-identified version, which finds the logistic regression coefficients that attempt to solve both the logistic regression score equations and the balance moments conditions. Because in general it is impossible to solve both sets of conditions exactly with a single set of coefficients, the conditions are weighted in a specific way to manage the trade-off between achieving balance and maximizing the likelihood using generalized method of moments (GMM) estimation. The form of this weighting occurs with a weighting matrix, which is a function of the coefficients and can either be estimated once, in what is called the “two-step” estimator, or it can be continuously updated as the coefficients are estimated.</p>
+<p>There are versions of CBPS for the ATT, ATC, and ATE (logistic regression on its own <a href="https://ngreifer.github.io/blog/logistic-regression-cbps-overlap-weights/#:~:text=This%20is%20why%20there%20is%20no%20%E2%80%9CATO%E2%80%9D%20option%20when%20using%20CBPS%3B%20the%20usual%20logistic%20regression%20propensity%20scores%20are%20covariate%20balancing%20propensity%20scores%20when%20targeting%20the%20ATO!">is a CBPS for the ATO</a>), as well as versions for multi-category and continuous treatments. The multi-category version replaces the logistic regression coefficients with coefficients in a multinomial logistic regression, and the continuous treatment version replaces the logistic regression coefficients with linear regression coefficients for the generalized propensity score <span class="citation" data-cites="fongCovariateBalancingPropensity2018">(<a href="#ref-fongCovariateBalancingPropensity2018" role="doc-biblioref">Fong et al. 2018</a>)</span>.</p>
+<p>Previously, estimating the CBPS propensity scores and weights by specifying <code>method = "cbps"</code> in <code>weightit()</code> was done entirely in the <em>CBPS</em> package, which was written by the developers of the method. The package is great and does what it claims to do, but its code is very hard to read and debug, it is not very customizable, and there are ways in which the package is limited or buggy. I decided to finally figure out what CBPS was for myself as part of a broader task of understanding M-estimation (discussed later), and in doing so I realized I had the skills to program my own CBPS, and so that’s what I did, taking some inspiration from the original package. This means you can use CBPS in <em>WeightIt</em> without requiring <em>CBPS</em> as a dependency, and there are some additional options not available in <em>CBPS</em> that are now available to <em>WeightIt</em> users. I’ll outline the main changes below:</p>
+<ul>
+<li><p>The default methods are now different, which is important when comparing the output of <code>weightit()</code> to that of <code>CBPS::CBPS()</code> or versions of <em>WeightIt</em> prior to 1.0.0. Now, the default is to use the just-identified version of CBPS, whereas previously the default was the over-identified version. The just-identified version has several benefits: 1) it is faster (since the over-identified version has to fit the just-identified version first anyway), 2) it yields better balance on the means, and 3) it is compatible with using M-estimation to account for uncertainty in the weights. It is still possible to request the over-identified version by setting <code>over = TRUE</code>, and whether the two-step estimator is to be used can be controlled by the <code>twostep</code> argument, which has the same default behavior as previously (<code>TRUE</code> by default, which is faster but potentially less accurate).</p></li>
+<li><p>With multi-category treatments, the ATT and ATE can be targeted natively and the estimation supports any number of treatment groups. Previously, CBPS for the ATT and for more than 4 groups were only supported in an <em>ad hoc</em> way because these options are not available in the <em>CBPS</em> package. Now they are programmed directly in, so the results for them align with what one would expect based on theory. It should also be much faster to run because only one optimization is required (whereas previously multiple calls to <code>CBPS::CBPS()</code> were required). There was also a bug in the over-identified version of the CBPS for multi-category treatments in the <em>CBPS</em> package; it turns out this bug nudged the coefficients toward better balance, which is usually a good thing, but it meant they no longer lined up with what you would expect based on theory. This bug is not present in the new <em>WeightIt</em> implementation.</p></li>
+<li><p>With continuous treatments, the weighting matrix for the over-identified CBPS now has a slightly different form from that in <em>CBPS</em>. (Specifically, it does not integrate out the treatment, which is done for the other treatment types). This makes it more likely to converge. That said, one should probably always use the just-identified version.</p></li>
+<li><p>Link functions other than logit are allowed for binary treatments. The CBPS as described in <span class="citation" data-cites="imai2014">Imai and Ratkovic (<a href="#ref-imai2014" role="doc-biblioref">2014</a>)</span> was general enough that any generalized linear model could be used, but focus was primarily on logistic regression because it is the most common model for binary outcomes. The <em>CBPS</em> package only supports logistic regression. <em>WeightIt</em> supports almost any link (in particular, logit, probit, complimentary log-log, cauchit, log, and identity). It turns out these are very easy to implement; the only differences are changing the inverse link used to compute the propensity scores and modifying the logistic regression score equations to include additional terms that are required for non-canonical links. In practice, logistic regression is all one should need, but it is nice to have these other options available in case you get better balance or precision using one of them, just as is the case when using propensity scores estimated from generalized linear models alone.</p></li>
+</ul>
+<p>Some things are missing from the original CBPS implementation, though. Any other arguments to <code>CBPS::CBPS()</code> (e.g., <code>baseline.formula</code> and <code>diff.formula</code>) are no longer supported, and any auxiliary CBPS outputs, like the regression coefficients on the scale of the original predictors or the J-statistic for testing the over-identification conditions, are no longer returned. I doubt these are considered by most users of CBPS, so I didn’t want to spend time computing them and returning them when people just want the propensity scores and weights. If you do want these values, let me know and I’ll add them in, or just use <code>CBPS()</code>.</p>
+<p>I’m really proud of this implementation of CBPS, as it represents a culmination of my recent learning about M-estimation and generalized method of moments. There is still plenty about CBPS theory I don’t understand, but I’m happy to reduce a dependency and take charge of new advancements on the method and its implementation. I give great acknowledgement to the original authors of all papers explaining CBPS and to the developers and maintainers of the CBPS package, especially Kosuke Imai and Christian Fong, who have long supported my work and appreciated its value. I also want to thank Syd Amerikaner on CrossValidated, who <a href="https://stats.stackexchange.com/q/641993/116195">provided</a> a key insight that helped me program the over-identified estimators.</p>
+</section>
+<section id="new-weighting-method-inverse-probability-tilting-ipt" class="level2">
+<h2 class="anchored" data-anchor-id="new-weighting-method-inverse-probability-tilting-ipt">New weighting method: inverse probability tilting (IPT)</h2>
+<p>IPT is a method of estimating propensity score weights described by <span class="citation" data-cites="grahamInverseProbabilityTilting2012">Graham et al. (<a href="#ref-grahamInverseProbabilityTilting2012" role="doc-biblioref">2012</a>)</span>. It works almost identically to the just-identified CBPS: estimating equations corresponding to covariate balance are specified, and their roots, which correspond to coefficients in a generalized linear model for the propensity score, are found and used to compute the estimated propensity scores. For the ATT and ATC, the implementation is identical to the just-identified CBPS. For the ATE, IPT uses a slightly different method which estimates propensity scores for the treated and control units separately to ensure exact mean balance not just between the treatment groups but also between each group and the original sample <span class="citation" data-cites="chanGloballyEfficientNonparametric2016">(so-called “three-way balance,” <a href="#ref-chanGloballyEfficientNonparametric2016" role="doc-biblioref">Chan et al. 2016</a>)</span>. The original paper on IPT only described the method for “missing data problems”, which usually means estimating a counterfactual mean in an ATE framework, but <span class="citation" data-cites="santannaDoublyRobustDifferenceindifferences2020">Sant’Anna and Zhao (<a href="#ref-santannaDoublyRobustDifferenceindifferences2020" role="doc-biblioref">2020</a>)</span> describe a version for the ATT that is just as easy to implement. For multi-category treatments, rather than fitting a multinomial logistic regression model like CBPS does, IPT does something like fitting a logistic regression model for each category. This again guarantees three-way balance, but differs from the CBPS implementation.</p>
+<p>Previously, IPT was not available in any package in R. I wrote a <a href="https://gist.github.com/ngreifer/ef34ff2ef7b0ea8214fe2c6b5a080450">gist</a> to implement it before I really understood what it was, but now it is fully available in <em>WeightIt</em> by setting <code>method = "ipt"</code> in <code>weightit()</code>. Its only dependency is the <em>rootSolve</em> package, which quickly finds the roots of score equations. I could have just used <code>optim()</code> like I did with CBPS and entropy balancing, but <em>rootSolve</em> is quite a bit faster and often more reliable. As with CBPS, links besides the logit link are available, and all methods are compatible with M-estimation.</p>
+<p>The original authors proposed a specification test that involves testing whether the coefficients for the treated and control groups in the ATE differ from each other, and that is available in their Stata package. I didn’t put it into <em>WeightIt</em>, but it wouldn’t be crazy to implement, so, again, let me know if you’re interested.</p>
+<p>In general, I would recommend IPT over CBPS and entropy balancing for binary and multi-category treatments due to its speed and some theoretical advantages. For all estimands, IPT is doubly robust, meaning if the link function is correctly specified or the outcome model is linear in the covariates, the estimate is consistent. For the ATE, entropy balancing doesn’t retain this property, and CBPS is less protected against incidental error in the presence of heavy effect modification. Entropy balancing is best suited for continuous treatments (IPT doesn’t even have a version for continuous treatments), as the limitations of the linear model used in CBPS prevent certain important balancing conditions from being satisfied.</p>
+</section>
+<section id="fitting-weighted-regression-models" class="level2">
+<h2 class="anchored" data-anchor-id="fitting-weighted-regression-models">Fitting Weighted Regression Models</h2>
+<p>Okay, this is probably the biggest of the three biggest updates. <em>WeightIt</em> now has functionality to fit weighted outcome regression models in a way so that the uncertainty in the estimation of the weights is accounted for in the variance matrix of the estimated parameters. This is huge because all otherwise accessible methods for estimating the variance of regression parameters after weighting treat the weights as fixed, which in most cases yields inferences that are too conservative <span class="citation" data-cites="austinBootstrapVsAsymptotic2022">(i.e., inappropriately too imprecise, <a href="#ref-austinBootstrapVsAsymptotic2022" role="doc-biblioref">Austin 2022</a>)</span>, and in some cases yields inferences that are anti-conservative <span class="citation" data-cites="reifeisVarianceTreatmentEffect2022">(inappropriately too precise, <a href="#ref-reifeisVarianceTreatmentEffect2022" role="doc-biblioref">Reifeis and Hudgens 2022</a>)</span>. This functionality is facilitated through the new function <code>glm_weightit()</code> (and its wrapper, <code>lm_weightit()</code>), which are mostly wrappers around <code>glm()</code>, but estimate the variance matrix in a way that incorporates information about the estimation of the weights. This is done in a few ways, but the most notable is through M-estimation, which I briefly mentioned above.</p>
+<p>M-estimation is a way of estimating a system of estimating equations in which the parameters can have arbitrary relationships, including across models. In this case, the parameters of the weighted outcome model depend on the weights, which in turn depend on the parameters used to estimate the weights (e.g., the coefficients in the propensity score model). By combining the estimating equations for the weight models and the estimating equations for the outcome model, we can fully account for uncertainty in both models when computing the variance of the outcome model parameters. This means that when we use g-computation based on the outcome model, we get a treatment effect estimate, the standard error of which correctly accounts for uncertainty in estimation of the weights.</p>
+<p>The way this works is as follows: one uses <code>weightit()</code> or <code>weightitMSM()</code> to estimate the balancing weights, and then one fits a model using <code>glm_weightit()</code> with the output of <code>weightit()</code> or <code>weightitMSM()</code> supplied to the <code>weightit</code> argument. This fits a weighted regression model using <code>glm()</code>, and, if available, estimates the variance matrix using M-estimation. Components in the <code>weightit</code> object contain the required information to account for the uncertainty of the weights in estimation of the variance of the outcome model parameters.</p>
+<p>This is only available for methods that support M-estimation, which unfortunately does not include all of them. Only estimation of weights using GLM propensity scores, entropy balancing, IPT, and just-identified CBPS are supported. This is still a pretty good list. For the others, the default is to return the HC0 robust variance matrix, which treats the weights as fixed but is robust to heteroscedasticity or other misspecification of the outcome model likelihood (the is also true of the M-estimation variance).</p>
+<p>Currently, no other package in R lets you do this, despite many recommendations for more accurate standard error estimation in the literature <span class="citation" data-cites="reifeisVarianceTreatmentEffect2022 austinBootstrapVsAsymptotic2022 luncefordStratificationWeightingPropensity2004 williamsonVarianceReductionRandomised2014 gabrielInverseProbabilityTreatment2024">(<a href="#ref-reifeisVarianceTreatmentEffect2022" role="doc-biblioref">Reifeis and Hudgens 2022</a>; <a href="#ref-austinBootstrapVsAsymptotic2022" role="doc-biblioref">Austin 2022</a>; <a href="#ref-luncefordStratificationWeightingPropensity2004" role="doc-biblioref">Lunceford and Davidian 2004</a>; <a href="#ref-williamsonVarianceReductionRandomised2014" role="doc-biblioref">Williamson et al. 2014</a>; <a href="#ref-gabrielInverseProbabilityTreatment2024" role="doc-biblioref">Gabriel et al. 2024</a>)</span>. You would have to program this manually yourself or use the highly context-specific code provided in these articles. Other packages, in particular <em>PSweight</em>, do allow you to estimate treatment effects that account for estimation of the weights in the standard error of the treatment effect, but only for the weighted difference in means or augmented inverse probability weighting (AIPW) (i.e., not for weighted g-computation) and only for GLM-based propensity scores. Stata offers <code>teffects ipwra</code>, which provides the corrected standard error estimates for weighted g-computation-based estimates of the treatment effect, but it also only supports GLM propensity scores and a few estimands.</p>
+<p><code>glm_weightit()</code> supports another method of estimating uncertainty, and that is the bootstrap. Both the traditional bootstrap and the fractional weighted bootstrap <span class="citation" data-cites="xuApplicationsFractionalRandomWeightBootstrap2020a">(<a href="#ref-xuApplicationsFractionalRandomWeightBootstrap2020a" role="doc-biblioref">Xu et al. 2020</a>)</span> are supported. These bootstrap the original data, estimate the weights, and estimate the weighted outcome model automatically. Previously, one would have to program the bootstrap themselves, which wasn’t really that hard, but now this is done in one single function call. The bootstrap confidence intervals computed are Wald-type intervals, though, which perform worse than more advanced types like the BCa interval. Still, though, because the estimators are asymptotically normal, the Wald-type intervals should work well. I recommend using the fractional weighted bootstrap when possible rather than the traditional bootstrap. The choice of variance estimator is controlled by the <code>vcov</code> argument.</p>
+<p><em>WeightIt</em> also supports estimation of multinomial logistic regression models using <code>multinom_weightit()</code>, ordinal regression models using <code>ordinal_weightit()</code>, and Cox proportional hazards models using <code>coxph_weightit()</code>. The outcome model can be flexible, e.g., including polynomials or splines, and its output is compatible with most regression post-processing functions, including all functions in <em>marginaleffects</em>, which can be used to perform g-computation to estimate the treatment effect. <code>glm_weightit()</code> also has support for clustered covariance matrices for all variance estimation methods. My hope is to add support for fitting Cox proportional hazards models as well, though I still barely understand them. Any advice on this would be greatly appreciated.</p>
+<p>For general theory on M-estimation, I recommend <span class="citation" data-cites="stefanskiCalculusMEstimation2002">Stefanski and Boos (<a href="#ref-stefanskiCalculusMEstimation2002" role="doc-biblioref">2002</a>)</span>, and for its application to weighted regression models, I recommend <span class="citation" data-cites="gabrielInverseProbabilityTreatment2024">Gabriel et al. (<a href="#ref-gabrielInverseProbabilityTreatment2024" role="doc-biblioref">2024</a>)</span>. I also think looking at the <em>WeightIt</em> source code can be illuminating; I think I did a good job of keeping it pretty simple and providing example code that anyone could use to program their own M-estimators. It’s really a lot easier than I thought and I’m glad I took the time to learn. I know it’s a fundamental technique for many biostatisticians and econometricians, but I always used to see it as a highly advanced and arcane method that I would never come to understand, until I came to understand it (3.5 years out from my PhD).</p>
+</section>
+<section id="other-updates" class="level2">
+<h2 class="anchored" data-anchor-id="other-updates">Other updates</h2>
+<p>There are a few smaller updates to <em>WeightIt</em> that I would feel bad about omitting.</p>
+<ul>
+<li><p>First, the package documentation now uses <code>Roxygen</code>. This doesn’t affect use but might make it easier for someone reading the source code.</p></li>
+<li><p>I added a new function, <code>calibrate()</code>, which calibrates propensity scores using Platt scaling as recommended by <span class="citation" data-cites="gutmanPropensityScoreModels2022">Gutman et al. (<a href="#ref-gutmanPropensityScoreModels2022" role="doc-biblioref">2022</a>)</span>. This can slightly improve performance when a machine learning model is used to estimate the propensity score, but is unlikely to be useful otherwise.</p></li>
+<li><p>A new argument, <code>quantile</code>, can be supplied to <code>weightit()</code> for methods that also accept <code>moments</code> and <code>int</code> which can be used to balance quantiles of the covariate distribution (e.g., the median, etc.) instead of just the means and means of moments. This is based on <span class="citation" data-cites="beresewiczSurveyCalibrationCausal2023">Beręsewicz (<a href="#ref-beresewiczSurveyCalibrationCausal2023" role="doc-biblioref">2023</a>)</span>.</p></li>
+<li><p><code>trim()</code> now has a <code>drop</code> argument; setting to <code>TRUE</code> sets the weights of all trimmed units to 0 (effectively dropping or censoring them). Previously you could only “truncate” the weights, i.e., set all weights higher than a given quantile to the weight at that quantile, but weight trimming (dropping units with extreme weights) has an extensive history as well <span class="citation" data-cites="thoemmesPrimerInverseProbability2016 crumpDealingLimitedOverlap2009">(<a href="#ref-thoemmesPrimerInverseProbability2016" role="doc-biblioref">Thoemmes and Ong 2016</a>; <a href="#ref-crumpDealingLimitedOverlap2009" role="doc-biblioref">Crump et al. 2009</a>)</span>. In my opinion, it is always better to change your estimand prospectively (e.g., to the ATO) than to censor units, but the option is available.</p></li>
+<li><p>I made a small change to how g-computation is done; following <span class="citation" data-cites="gabrielInverseProbabilityTreatment2024">Gabriel et al. (<a href="#ref-gabrielInverseProbabilityTreatment2024" role="doc-biblioref">2024</a>)</span>, I no longer recommend incorporating the weights in the g-computation step beyond including them in the outcome model. An exception is made when targeting an estimand other than the ATT, ATC, or ATE or when using sampling weights. In practice, it will not make a big difference whether the weights are included or not for the ATE (which is the only estimand affected by this change), but this brings recommendations in line with those in the literature and consistent with <code>teffects ipwra</code> in Stata.</p></li>
+<li><p>For multi-category treatments, the default multinomial logistic regression propensity scores (i.e., with <code>method = "glm"</code>) require no dependencies. Other ways of estimating the propensity scores are possibly by specifying the <code>multi.method</code> argument.</p></li>
+</ul>
+</section>
+<section id="closing-thoughts" class="level2">
+<h2 class="anchored" data-anchor-id="closing-thoughts">Closing Thoughts</h2>
+<p>Thank you so much for reading and checking out <em>WeightIt</em>! I hope these new features improve your research or lead to new discoveries. Please let me know if any of my packages have helped you in your work; it makes a big difference to know that my efforts help people.</p>
+</section>
+<section id="references" class="level2">
+
+
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-austinBootstrapVsAsymptotic2022" class="csl-entry" role="listitem">
+Austin, Peter C. 2022. <span>“Bootstrap Vs Asymptotic Variance Estimation When Using Propensity Score Weighting with Continuous and Binary Outcomes.”</span> <em>Statistics in Medicine</em> 41 (22): 4426–43. <a href="https://doi.org/10.1002/sim.9519">https://doi.org/10.1002/sim.9519</a>.
+</div>
+<div id="ref-beresewiczSurveyCalibrationCausal2023" class="csl-entry" role="listitem">
+Beręsewicz, Maciej. 2023. <em>Survey Calibration for Causal Inference: A Simple Method to Balance Covariate Distributions</em>. <a href="https://doi.org/10.48550/arXiv.2310.11969">https://doi.org/10.48550/arXiv.2310.11969</a>.
+</div>
+<div id="ref-chanGloballyEfficientNonparametric2016" class="csl-entry" role="listitem">
+Chan, Kwun Chuen Gary, Sheung Chi Phillip Yam, and Zheng Zhang. 2016. <span>“Globally Efficient Non-Parametric Inference of Average Treatment Effects by Empirical Balancing Calibration Weighting.”</span> <em>Journal of the Royal Statistical Society: Series B (Statistical Methodology)</em> 78 (3): 673–700. <a href="https://doi.org/10.1111/rssb.12129">https://doi.org/10.1111/rssb.12129</a>.
+</div>
+<div id="ref-crumpDealingLimitedOverlap2009" class="csl-entry" role="listitem">
+Crump, R. K., V. J. Hotz, G. W. Imbens, and O. A. Mitnik. 2009. <span>“Dealing with Limited Overlap in Estimation of Average Treatment Effects.”</span> <em>Biometrika</em> 96 (1): 187–99. <a href="https://doi.org/10.1093/biomet/asn055">https://doi.org/10.1093/biomet/asn055</a>.
+</div>
+<div id="ref-fongCovariateBalancingPropensity2018" class="csl-entry" role="listitem">
+Fong, Christian, Chad Hazlett, and Kosuke Imai. 2018. <span>“Covariate Balancing Propensity Score for a Continuous Treatment: Application to the Efficacy of Political Advertisements.”</span> <em>The Annals of Applied Statistics</em> 12 (1): 156–77. <a href="https://doi.org/10.1214/17-AOAS1101">https://doi.org/10.1214/17-AOAS1101</a>.
+</div>
+<div id="ref-gabrielInverseProbabilityTreatment2024" class="csl-entry" role="listitem">
+Gabriel, Erin E., Michael C. Sachs, Torben Martinussen, et al. 2024. <span>“Inverse Probability of Treatment Weighting with Generalized Linear Outcome Models for Doubly Robust Estimation.”</span> <em>Statistics in Medicine</em> 43 (3): 534–47. <a href="https://doi.org/10.1002/sim.9969">https://doi.org/10.1002/sim.9969</a>.
+</div>
+<div id="ref-grahamInverseProbabilityTilting2012" class="csl-entry" role="listitem">
+Graham, Bryan S., Cristine Campos De Xavier Pinto, and Daniel Egel. 2012. <span>“Inverse Probability Tilting for Moment Condition Models with Missing Data.”</span> <em>The Review of Economic Studies</em> 79 (3): 1053–79. <a href="https://doi.org/10.1093/restud/rdr047">https://doi.org/10.1093/restud/rdr047</a>.
+</div>
+<div id="ref-gutmanPropensityScoreModels2022" class="csl-entry" role="listitem">
+Gutman, Rom, Ehud Karavani, and Yishai Shimoni. 2022. <em>Propensity Score Models Are Better When Post-Calibrated</em>.
+</div>
+<div id="ref-imai2014" class="csl-entry" role="listitem">
+Imai, Kosuke, and Marc Ratkovic. 2014. <span>“Covariate Balancing Propensity Score.”</span> <em>Journal of the Royal Statistical Society: Series B (Statistical Methodology)</em> 76 (1): 243263. <a href="https://doi.org/10.1111/rssb.12027">https://doi.org/10.1111/rssb.12027</a>.
+</div>
+<div id="ref-luncefordStratificationWeightingPropensity2004" class="csl-entry" role="listitem">
+Lunceford, Jared K., and Marie Davidian. 2004. <span>“Stratification and Weighting via the Propensity Score in Estimation of Causal Treatment Effects: A Comparative Study.”</span> <em>Statistics in Medicine</em> 23 (19): 29372960. <a href="https://doi.org/10.1002/sim.1903">https://doi.org/10.1002/sim.1903</a>.
+</div>
+<div id="ref-reifeisVarianceTreatmentEffect2022" class="csl-entry" role="listitem">
+Reifeis, Sarah A, and Michael G Hudgens. 2022. <span>“On Variance of the Treatment Effect in the Treated When Estimated by Inverse Probability Weighting.”</span> <em>American Journal of Epidemiology</em> 191 (6): 1092–97. <a href="https://doi.org/10.1093/aje/kwac014">https://doi.org/10.1093/aje/kwac014</a>.
+</div>
+<div id="ref-santannaDoublyRobustDifferenceindifferences2020" class="csl-entry" role="listitem">
+Sant’Anna, Pedro H. C., and Jun Zhao. 2020. <span>“Doubly Robust Difference-in-Differences Estimators.”</span> <em>Journal of Econometrics</em> 219 (1): 101–22. <a href="https://doi.org/10.1016/j.jeconom.2020.06.003">https://doi.org/10.1016/j.jeconom.2020.06.003</a>.
+</div>
+<div id="ref-stefanskiCalculusMEstimation2002" class="csl-entry" role="listitem">
+Stefanski, Leonard A., and Dennis D. Boos. 2002. <span>“The Calculus of m-Estimation.”</span> <em>The American Statistician</em> 56 (1): 29–38. <a href="https://doi.org/10.1198/000313002753631330">https://doi.org/10.1198/000313002753631330</a>.
+</div>
+<div id="ref-thoemmesPrimerInverseProbability2016" class="csl-entry" role="listitem">
+Thoemmes, Felix J., and Anthony D. Ong. 2016. <span>“A Primer on Inverse Probability of Treatment Weighting and Marginal Structural Models.”</span> <em>Emerging Adulthood</em> 4 (1): 40–59. <a href="https://doi.org/10.1177/2167696815621645">https://doi.org/10.1177/2167696815621645</a>.
+</div>
+<div id="ref-williamsonVarianceReductionRandomised2014" class="csl-entry" role="listitem">
+Williamson, Elizabeth J., Andrew B. Forbes, and Ian R. White. 2014. <span>“Variance Reduction in Randomised Trials by Inverse Probability Weighting Using the Propensity Score.”</span> <em>Statistics in Medicine</em> 33 (5): 721–37. <a href="https://doi.org/10.1002/sim.5991">https://doi.org/10.1002/sim.5991</a>.
+</div>
+<div id="ref-xuApplicationsFractionalRandomWeightBootstrap2020a" class="csl-entry" role="listitem">
+Xu, Li, Chris Gotwalt, Yili Hong, Caleb B. King, and William Q. Meeker. 2020. <span>“Applications of the Fractional-Random-Weight Bootstrap.”</span> <em>The American Statistician</em> 74 (4): 345–58. <a href="https://doi.org/10.1080/00031305.2020.1731599">https://doi.org/10.1080/00031305.2020.1731599</a>.
+</div>
+</div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("^(?:http:|https:)\/\/ngreifer\.github\.io\/custom");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<input type="hidden" id="giscus-base-theme" value="preferred_color_scheme">
+<input type="hidden" id="giscus-alt-theme" value="preferred_color_scheme">
+<script>
+  function loadGiscus() {
+    // Function to get the theme based on body class
+    const getTheme = () => {
+      let baseTheme = document.getElementById('giscus-base-theme').value;
+      let altTheme = document.getElementById('giscus-alt-theme').value;
+      return document.body.classList.contains('quarto-dark') ? altTheme : baseTheme;
+    };
+    const script = document.createElement("script");
+    script.src = "https://giscus.app/client.js";
+    script.async = true;
+    script.dataset.repo = "ngreifer/ngreifer.github.io";
+    script.dataset.repoId = "R_kgDOH8WJeg";
+    script.dataset.category = "Blog comments";
+    script.dataset.categoryId = "DIC_kwDOH8WJes4CkT3N";
+    script.dataset.mapping = "pathname";
+    script.dataset.reactionsEnabled = "1";
+    script.dataset.emitMetadata = "0";
+    script.dataset.inputPosition = "top";
+    script.dataset.theme = getTheme();
+    script.dataset.lang = "en";
+    script.crossOrigin = "anonymous";
+    // Append the script to the desired div instead of at the end of the body
+    document.getElementById("quarto-content").appendChild(script);
+  }
+  loadGiscus();
+</script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<a href="http://www.github.com">Noah Greifer</a> ©
+<script>document.write(new Date().getFullYear())</script>
+</div>   
+    <div class="nav-footer-center">
+<p>Build on <a href="https://github.com/drganghe/quarto-academic-website-template">Quarto Academic Website Template</a> adapted by <a href="http://drganghe.github.io">Dr.&nbsp;Gang He</a></p>
+</div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+</body></html>

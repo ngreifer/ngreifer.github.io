@@ -1,0 +1,87 @@
+project:
+  type: website
+  output-dir: _site
+  resources:
+    - software/images/
+
+# Meta
+
+website:
+  title: "Noah Greifer"
+
+  description: "Noah Greifer's website"
+
+  favicon: assets/media/icon.png
+
+  navbar:
+    background: light  # You can change the background color here
+
+    logo: assets/media/icon.png
+    logo-alt: "Noah Greifer"
+    left:
+      - text: "Home"
+        href: index.qmd
+      - text: "Blog"
+        href: blog/index.qmd
+      - text: "Software"
+        href: software/index.qmd
+      - text: "Papers"
+        href: papers/index.qmd
+    right:
+      - icon: github
+        href: https://github.com/ngreifer
+        aria-label: GitHub
+    pinned: false
+
+  page-navigation: true
+
+  page-footer:
+    left: "[Noah Greifer](http://www.github.com) &copy; <script>document.write(new Date().getFullYear())</script>"
+    center: "Build on [Quarto Academic Website Template](https://github.com/drganghe/quarto-academic-website-template) adapted by [Dr. Gang He](http://drganghe.github.io)"
+
+  search:
+    location: navbar
+    type: textbox
+
+  reader-mode: true
+
+  draft-mode: unlinked
+
+  repo-url: https://github.com/ngreifer/ngreifer.github.io
+#  repo-actions: [edit, issue, source]
+
+  open-graph: true
+
+  twitter-card: true
+#  card-style: summary
+
+  site-url: "https://ngreifer.github.io"
+
+  google-analytics:
+    tracking-id: ""  # Please delete or replace with your own tracking ID
+    anonymize-ip: true
+
+execute:
+  freeze: auto
+
+bibliography: references.bib  # Add references.bib to the root folder to enable the bibliography function
+
+format:
+  html:
+    theme: [default, styles.scss]
+    respect-user-color-scheme: true
+    css: styles.css
+    toc: true
+    toc-location: right
+    footnotes-hover: true
+    code-copy: true
+    code-link: true
+    code-overflow: wrap
+    fig-align: center
+    link-external-icon: false
+    link-external-newwindow: true
+    email-obfuscation: javascript
+    link-external-filter: '^(?:http:|https:)\/\/ngreifer\.github\.io\/custom'
+    include-in-header: "assets/includes/_academic.qmd"
+    highlight-style: github
+

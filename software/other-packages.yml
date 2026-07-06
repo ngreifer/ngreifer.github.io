@@ -1,0 +1,69 @@
+- title: "devMSMs"
+  subtitle: "Implementing Marginal Structural Models with Longitudinal Data"
+  description: >
+    Provides tools for implementing a workflow to estimate longitudinal effects of treatments using marginal structural models in developmental psychology.
+  logo: "images/devMSMs-logo.png"
+  preview: "images/devMSMs-preview.png"
+  author: "Isabella Stallworthy, Noah Greifer, Meriah DeJoseph, Emily Padrutt, Kyle Butts, Daniel Berry"
+  github: "https://github.com/istallworthy/devMSMs"
+  # cran: "https://cran.r-project.org/package=devMSMs"
+  docs: "https://istallworthy.github.io/devMSMs/"
+
+- title: "apm"
+  subtitle: "Averaged Prediction Models"
+  description: >
+    In panel data settings, specifies set of candidate models, fits them to data from pre-treatment validation periods, and selects model as average over candidate models, weighting each by posterior probability of being most robust given its differential average prediction errors in pre-treatment validation periods. Subsequent estimation and inference of causal effect's bounds accounts for both model and sampling uncertainty, and calculates the robustness changepoint value at which bounds go from excluding to including 0. The package also includes a range of diagnostic plots, such as those illustrating models' differential average prediction errors and the posterior distribution of which model is most robust.
+  preview: "images/apm-preview.png"
+  author: "Thomas Leavitt, Laura Hatfield, Noah Greifer"
+  github: "https://github.com/tl2624/apm/"
+  cran: "https://cran.r-project.org/package=apm"
+  docs: "https://tl2624.github.io/apm/"
+
+- title: "EvoPhylo"
+  subtitle: "Pre- And Postprocessing of Morphological Data from Relaxed Clock Bayesian Phylogenetics"
+  description: >
+    Performs automated morphological character partitioning for phylogenetic analyses and analyzes macroevolutionary parameter outputs from clock (time-calibrated) Bayesian inference analyses.
+  preview: "images/EvoPhylo-preview.png"
+  author: "Tiago Simões, Noah Greifer, Joelle Barido-Sottani, Stephanie Pierce"
+  github: "https://github.com/tiago-simoes/EvoPhylo"
+  cran: "https://cran.r-project.org/package=EvoPhylo"
+  docs: "https://tiago-simoes.github.io/EvoPhylo/"
+
+- title: "Morphoscape"
+  subtitle: "Computation and Visualization of Adaptive Landscapes"
+  description: >
+    Implements adaptive landscape methods for the integration, analysis and visualization of biological trait data on a phenotypic morphospace, typically defined by shape metrics.
+  preview: "images/Morphoscape-preview.png"
+  author: "Blake Dickson, Stephanie Pierce, Noah Greifer"
+  github: "https://github.com/blakedickson/Morphoscape"
+  cran: "https://cran.r-project.org/package=Morphoscape"
+  docs: "https://blakedickson.github.io/Morphoscape/"
+
+- title: "MorphoRegions"
+  subtitle: "Analysis of Regionalization Patterns in Serially Homologous Structures"
+  description: >
+    Computes the optimal number of regions (or subdivisions) and their position in serial structures without a priori assumptions and to visualize the results. After reducing data dimensionality with the built-in function for data ordination, regions are fitted as segmented linear regressions along the serial structure. Every region boundary position and increasing number of regions are iteratively fitted and the best model (number of regions and boundary positions) is selected with an information criterion.
+  preview: "images/MorphoRegions-preview.png"
+  author: "Amandine Gillet, Katrina Jones, Noah Greifer, Stephanie Pierce"
+  github: "https://github.com/aagillet/MorphoRegions"
+  cran: "https://cran.r-project.org/package=MorphoRegions"
+  docs: "https://aagillet.github.io/MorphoRegions/"
+
+- title: "sim.BA"
+  subtitle: "Simulation-Based Bias Analysis for Observational Studies"
+  description: >
+    Conducts a simulation based quantitative bias analysis using covariate structures generated with individual-level data to characterize the bias arising from unmeasured confounding. Users can specify their desired data generating mechanisms to simulate data and quantitatively summarize findings in an end-to-end application.
+  preview: "images/sim.BA-preview.png"
+  author: "Rishi Desai, Noah Greifer"
+  cran: "https://cran.r-project.org/package=sim.BA"
+
+- title: "netlit"
+  subtitle: "Augment a literature review with network analysis statistics"
+  description: >
+    Aids in performing network analysis for literature reviews by processing data sets containing directed edges and producing objects that can be readily used with <em>igraph</em> and other network graph-based tools for visualization and analysis.
+  logo: "https://judgelord.github.io/netlit/logo.png"
+  preview: "images/netlit-preview.png"
+  author: "Devin Judge-Lord, Noah Greifer"
+  github: "https://github.com/judgelord/netlit"
+  # cran: "https://cran.r-project.org/package=netlit"
+  docs: "https://judgelord.github.io/netlit"

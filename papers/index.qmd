@@ -1,0 +1,54 @@
+---
+title: "Papers"
+listing:
+  id: pub-listing
+  contents: publications.yml
+  template: publications.ejs.md
+  sort-ui: false
+  filter-ui: false
+  page-size: 100
+  fields: [title, citation, doi, link, year]
+---
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+source("build_publications.R")
+
+dois <- c(
+  "10.1080/01621459.2023.2213485",
+  "10.1086/691464",
+  "10.18637/jss.v111.i09",
+  "10.1016/j.annemergmed.2022.07.006",
+  "10.1093/chidev/aacaf024",
+  "10.1016/j.aucc.2025.101260",
+  "10.32614/RJ-2024-015",
+  "10.1053/j.jvca.2024.12.034",
+  "10.1037/edu0000888",
+  "10.1016/j.ssresearch.2024.103086",
+  "10.1371/journal.pone.0296726",
+  "10.1353/obs.2024.a946582",
+  "10.1111/2041-210X.14128",
+  "10.1214/22-SS140",
+  "10.1097/MLR.0000000000001922",
+  "10.48550/arXiv.2106.10577",
+  "10.1213/ANE.0000000000006624",
+  "10.1001/jamanetworkopen.2022.38354",
+  "10.3390/cancers13122895",
+  "10.32614/RJ-2021-073",
+  "10.1093/epirev/mxab003",
+  "10.17615/DYSS-B342", 
+  "10.1080/07418825.2025.2557333",
+  "10.48550/arXiv.2510.07076",
+  "10.1213/ANE.0000000000008198",
+  "10.17615/4gt1-9h64"
+) |>
+  unique()
+ 
+build_publications(dois)
+```
+
+Below is a list of papers I have worked on. These span applied papers, tutorial papers, methodological papers, and software papers. You can also check out my [Google Scholar page](https://scholar.google.com/citations?hl=en&user=pUqM9nkAAAAJ). Feel free to reach out if you need help accessing any of these papers.
+
+-----
+
+::: {#pub-listing}
+:::

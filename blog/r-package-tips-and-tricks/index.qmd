@@ -1,0 +1,102 @@
+---
+title: "Noah's R Package Tips and Tricks"
+author: "Noah Greifer"
+date: "2024-11-14"
+categories:
+  - R
+  - package development
+comments:
+  giscus:
+    repo: ngreifer/ngreifer.github.io
+    repo-id: R_kgDOH8WJeg
+    category: Blog comments
+    category-id: DIC_kwDOH8WJes4CkT3N
+    mapping: pathname
+    reactions-enabled: true
+    input-position: top
+    theme: preferred_color_scheme
+    language: en
+draft: true
+---
+
+```{r, include=FALSE}
+library(microbenchmark)
+```
+
+As you probably know, I love writing R packages. A list of the ones I've developed can be found here, and I have contributed to many others. I have been writing R packages since I first learned R, probably around 2016. All that time has given a lot of experience that I want to share with you.
+
+This is a "living" list of my tips and tricks, not really in any order, that you can peruse to help you in your own R package development or to help interpret my code if you happen to be reading it. I'll organize this into "principles", which are guiding principles that in theory could be implemented with arbitrary R code, and "code", which are specific blocks of code or functions I use frequently in my packages. Feel free to use any of these without crediting me (though of course I would like to know if anything here helps you).
+
+## Principles
+
+
+## Code
+
+### `is_null()` instead of `is.null()`
+
+`NULL` is often used in R code to represent an argument that hasn't been supplied or that something is absent or not given. We often check for `NULL` values using `is.null()`, which returns `TRUE` when its argument is exactly `NULL` as `FALSE` otherwise. Unfortunately, this can miss a lot of important scenarios where something like `NULL` is supplied, but it's not exactly `NULL`; in particular, other length-0 objects, like `integer(0L)` or `list()`. To test for these, using `identical(length(.), 0L)`, which I often abbreviate as `is_null()`. I often accompany it with a function `is_not_null()`, which is just the negation of `is_null()`.
+
+```{r}
+is_null <- function(x) {
+  identical(length(x), 0L)
+}
+
+is_not_null <- function(x) {
+  !is_null(x)
+}
+
+is.null(NULL)
+is_null(NULL)
+
+a <- 1:5
+is.null(which(a < 0))
+is_null(which(a < 0))
+
+b <- list(c = "D")
+is.null(b[-1])
+is_null(b[-1])
+```
+
+There is rarely a case when I want to check specifically for `NULL` instead of checking for any length-0 object.
+
+## Extracting from `...`
+
+The `...` function in R allows you not to have to name every argument in your function, which can be good for some lesser used arguments or for keeping your function simple. The basic method to extract information from `...` is to create a list object, e.g., `args <- list(...)`. Then you can access the arguments by name, like `args$foo`. However, a problem with this is that you have to evaluate every argument, even if it is irrelevant (at least for this part of the function). An alternative is to use R's `...elt()` function, which extracts objects from `...` by index. But because a user can enter the arguments in any order and instead is likely to name them, it would be nice to extract them by name. Someday R will add this, but for now we can use `...names()`, which extracts the names of supplied arguments to `...`, and find the position of a given argument name. I put all this into a function called `...get()`. Unfortunately, because of how `...` works, I also need to pass `...` to `...get()`. Below is what this function looks like:
+
+```{r}
+...get <- function(x, ...) {
+  m <- match(x, ...names(), 0L)
+
+    if (m == 0L) {
+        return(NULL)
+    }
+
+    ...elt(m)
+}
+```
+
+It returns `NULL` if the named argument isn't present. Below is how I might use it in a function to save time and memory:
+
+```{r}
+f_slow <- function() {
+  Sys.sleep(.25)
+}
+
+# Slow version
+g1 <- function(...) {
+  args <- list(...)
+
+  args$this_arg
+}
+
+# Fast version
+g2 <- function(...) {
+  ...get("this_arg", ...)
+}
+
+microbenchmark(g1 = g1(this_arg = 1, f_slow()),
+               g2 = g2(this_arg = 1, f_slow()),
+               times = 5, check = "equal")
+```
+
+Obviously this is an artificial example but I do find this helpful, especially if `...` is passed deeply into your functions and parts of it are extracted at each step. I'm not saying this is the best way to handle `...`, but it's a way I like.

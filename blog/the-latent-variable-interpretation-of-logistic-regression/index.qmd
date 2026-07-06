@@ -1,0 +1,23 @@
+---
+title: "The Latent Variable Interpretation of Logistic Regression"
+author: "Noah Greifer"
+date: "2022-11-04"
+draft: true
+categories:
+  - logistic regression
+comments:
+  giscus:
+    repo: ngreifer/ngreifer.github.io
+    repo-id: R_kgDOH8WJeg
+    category: Blog comments
+    category-id: DIC_kwDOH8WJes4CkT3N
+    mapping: pathname
+    reactions-enabled: true
+    input-position: top
+    theme: preferred_color_scheme
+    language: en
+---
+
+$$P(y = 1) = P(y^* > 0) = P(X\beta + \varepsilon^* > 0) = P(\varepsilon^*>-X\beta)$$
+
+*(This post is a draft and is not yet complete.)*

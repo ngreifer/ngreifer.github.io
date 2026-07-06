@@ -1,0 +1,16 @@
+---
+title: "Blog"
+listing:
+  contents: "*/index.qmd"
+  sort: "date desc"
+  type: default
+  categories: true
+  sort-ui: false
+  filter-ui: false
+  fields: [date, title, description, categories]
+  date-format: "MMMM D, YYYY"
+  exclude:
+    draft: true
+page-layout: full
+toc: false
+---

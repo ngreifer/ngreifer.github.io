@@ -1,0 +1,85 @@
+---
+title: "Noah Greifer"
+description: |
+  #### Statistical Consultant and Programmer
+  
+  ##### [Harvard University](https://www.harvard.edu)
+  
+  ##### [Institute for Quantitative Social Science](https://www.iq.harvard.edu/)
+
+first_name: Noah
+last_name: Greifer
+
+image: "assets/media/icon.png"
+
+page-navigation: false
+toc: false
+#sidebar: false
+page-layout: full
+
+about:
+  id: hero-heading
+  template: trestles
+  # image-width: 70%
+  image-shape: round
+  links:
+    - icon: envelope
+      text: E-mail
+      href: mailto:noah.greifer@gmail.com
+    - icon: github
+      text: GitHub
+      href: https://github.com/ngreifer
+    - icon: bluesky
+      text: BlueSky
+      href: https://bsky.app/profile/noahgreifer.bsky.social
+      target: _blank
+    - icon: linkedin
+      text: LinkedIn
+      href: https://www.linkedin.com/in/noah-greifer-470498141/
+      target: _blank
+    - text: "{{< ai orcid >}} ORCID"
+      href: https://orcid.org/0000-0003-3067-7154
+      target: _blank
+    - text: "{{< ai google-scholar >}} Google Scholar"
+      href: https://scholar.google.com/citations?user=pUqM9nkAAAAJ
+      target: _blank
+---
+
+::::: {#hero-heading}
+
+Hi! I'm **Noah Greifer** (pronounced *gree-fur*; *pronouns: [he/him](https://www.mypronouns.org/he-him)*), a statistical consultant and programmer at Harvard University. I provide statistical consulting services as a member of the Data Science Services team at the Institute for Quantitative Social Science (IQSS) at Harvard.
+
+I also develop R packages, both as part of my job and in my personal time. Some of these packages include [*MatchIt*](https://kosukeimai.github.io/MatchIt/), [*WeightIt*](https://ngreifer.github.io/WeightIt/), and [*cobalt*](https://ngreifer.github.io/cobalt/), which facilitate the use of propensity score methods. See my other packages at the [Software](/software) link above.
+
+I post on my [blog](/blog) about R programming, statistical analysis, and R package development. I am active on [Bluesky](https://bsky.app/profile/noahgreifer.bsky.social) and [CrossValidated](https://stats.stackexchange.com/users/116195/noah).
+
+I currently reside in Brooklyn, NY, but I grew up in Los Angeles, CA, and have lived in San Diego, CA, Portland, OR, Durham, NC, and Cambridge, MA.
+
+:::: {.columns}
+
+::: {.column width="40%"}
+
+## Interests
+
+- Causal inference
+- Propensity score methods
+- Optimization
+- Machine learning
+- Statistical programming
+:::
+
+::: {.column width="60%" .about-education}
+## Education
+
+- **PhD in Quantitative Psychology**, minor in Biostatistics\
+  <small>University of North Carolina at Chapel Hill, 2020</small>
+- **MA in Quantitative Psychology**\
+  <small>University of North Carolina at Chapel Hill, 2018</small>
+- **BS in Psychology**, minor in Philosophy\
+  <small>University of California San Diego, 2013</small>
+
+:::
+
+::::
+
+:::::

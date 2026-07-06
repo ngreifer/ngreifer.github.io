@@ -1,0 +1,136 @@
+- title: "cobalt"
+  subtitle: "Covariate Balance Tables and Plots"
+  description: >
+    Numerically and graphically assesses the similarity between groups in observational studies before and after matching and weighting. Includes support for the output of many R packages for matching and weighting, as well as multiply imputed, longitudinal, and nested data and multi-category and continuous treatments.
+  logo: "https://ngreifer.github.io/cobalt/logo.png"
+  preview: "images/cobalt-preview.png"
+  author: "Noah Greifer"
+  github: "https://github.com/ngreifer/cobalt"
+  cran: "https://cran.r-project.org/package=cobalt"
+  docs: "https://ngreifer.github.io/cobalt/"
+
+- title: "WeightIt"
+  subtitle: "Weighting for Covariate Balance in Observational Studies"
+  description: >
+    Estimates balancing weights for causal effect estimation in observational studies with binary, multi-category, or continuous point or longitudinal treatments. Available methods include those that rely on parametric modeling, optimization, and machine learning. Methods for estimating weighted regression models that take into account uncertainty in the estimation of the weights via M-estimation or bootstrapping are available.
+  logo: "https://ngreifer.github.io/WeightIt/logo.png"
+  # preview: "images/cobalt-preview.png"
+  author: "Noah Greifer"
+  # categories: [modelling, tidyverse]
+  github: "https://github.com/ngreifer/WeightIt"
+  cran: "https://cran.r-project.org/package=WeightIt"
+  docs: "https://ngreifer.github.io/WeightIt/"
+
+- title: "MatchIt"
+  subtitle: "Nonparametric Preprocessing for Parametric Causal Inference"
+  description: >
+    Performs matching for causal effect estimation in observational studies with binary treatments. Several matching methods are available, including nearest neighbor matching, optimal pair matching, optimal full matching, generalized full matching, genetic matching, exact matching, coarsened exact matching, cardinality matching, and subclassification, some of which rely on functions from other R packages. A variety of methods to estimate propensity scores for propensity score matching are included.
+  logo: "https://kosukeimai.github.io/MatchIt/logo.png"
+  preview: "images/MatchIt-preview.png"
+  author: "Daniel Ho, Kosuke Imai, Gary King, Elizabeth Stuart, Noah Greifer"
+  # categories: [modelling, tidyverse]
+  github: "https://github.com/ngreifer/MatchIt"
+  cran: "https://cran.r-project.org/package=MatchIt"
+  docs: "https://kosukeimai.github.io/MatchIt/"
+
+- title: "optweight"
+  subtitle: "Optimization-Based Stable Balancing Weights"
+  description: >
+    Uses optimization to estimate weights that balance covariates for binary, multi-category, continuous, and multivariate treatments. The degree of balance and the desired target moments can be specified for each covariate. In addition, sampling weights can be estimated that allow a sample to generalize to a population specified with given target moments of covariates, as in matching-adjusted indirect comparison (MAIC).
+  logo: "https://ngreifer.github.io/optweight/logo.png"
+  # preview: "images/cobalt-preview.png"
+  author: "Noah Greifer"
+  # categories: [visualization, ggplot2]
+  github: "https://github.com/ngreifer/optweight"
+  cran: "https://cran.r-project.org/package=optweight"
+  docs: "https://ngreifer.github.io/optweight/"
+
+- title: "adrftools"
+  subtitle: "Estimating, Visualizing, and Testing Average Dose-Response Functions"
+  description: >
+    Facilitates estimating, visualizing, and testing average dose-response functions (ADRFs) for characterizing the causal effect of a continuous (i.e., non-discrete) treatment or exposure. Includes support for frequentist and Bayesian regression models, analytical and bootstrap inference, and characterization of subgroup effects.
+  # logo: "https://ngreifer.github.io/cobalt/logo.png"
+  preview: "images/adrftools-preview.png"
+  author: "Noah Greifer"
+  # categories: [visualization, ggplot2]
+  github: "https://github.com/ngreifer/adrftools"
+  cran: "https://cran.r-project.org/package=adrftools"
+  docs: "https://ngreifer.github.io/adrftools/"
+
+- title: "MatchThem"
+  subtitle: "Matching and Weighting Multiply Imputed Datasets"
+  description: >
+   Contains wrapper functions for using <em>MatchIt</em> and <em>WeightIt</em> with multiply imputed datasets, including fitting models to the matched or weighted imputed data and pooling the resulting estimates according to Rubin's rules.
+  logo: "https://github.com/FarhadPishgar/MatchThem/raw/master/man/figure/logo.png"
+  # preview: "images/MatchIt-preview.png"
+  author: "Farhad Pishgar, Noah Greifer"
+  # categories: [modelling, tidyverse]
+  github: "https://github.com/FarhadPishgar/MatchThem"
+  cran: "https://cran.r-project.org/package=MatchThem"
+
+- title: "fwb"
+  subtitle: "Fractional Weighted Bootstrap"
+  description: >
+    Implements the fractional weighted bootstrap to be used as a drop-in for functions in the <em>boot</em> package. The fractional weighted bootstrap (also known as the Bayesian bootstrap) involves drawing weights randomly that are applied to the data rather than resampling units from the data.
+  # logo: "https://ngreifer.github.io/cobalt/logo.png"
+  # preview: "images/adrftools-preview.png"
+  author: "Noah Greifer"
+  # categories: [visualization, ggplot2]
+  github: "https://github.com/ngreifer/fwb"
+  cran: "https://cran.r-project.org/package=fwb"
+  docs: "https://ngreifer.github.io/fwb/"
+
+- title: "arg"
+  subtitle: "Clean and Simple Argument Checking"
+  description: >
+    Checks function arguments, ideally for use in R packages, using a simple interface and produces clean, informative error messages with <em>cli</em>.
+  # logo: "https://ngreifer.github.io/cobalt/logo.png"
+  # preview: "images/adrftools-preview.png"
+  author: "Noah Greifer"
+  # categories: [visualization, ggplot2]
+  github: "https://github.com/ngreifer/arg"
+  cran: "https://cran.r-project.org/package=arg"
+  docs: "https://ngreifer.github.io/arg/"
+
+- title: "clarify"
+  subtitle: "Simulation-Based Inference for Regression Models"
+  description: >
+    Performs simulation-based inference as an alternative to the delta method for obtaining valid confidence intervals and p-values for regression post-estimation quantities, such as average marginal effects and predictions at representative values. This framework for simulation-based inference is especially useful when the resulting quantity is not normally distributed and the delta method approximation fails.
+  # logo: "https://ngreifer.github.io/cobalt/logo.png"
+  preview: "images/clarify-preview.png"
+  author: "Noah Greifer, Steven Worthington, Stefano Iacus, Gary King"
+  # categories: [visualization, ggplot2]
+  github: "https://github.com/ngreifer/clarify"
+  cran: "https://cran.r-project.org/package=clarify"
+  docs: "https://iqss.github.io/clarify/"
+
+- title: "MatchingFrontier"
+  subtitle: "Computation of the Balance-Sample Size Frontier in Matching Methods for Causal Inference"
+  description: >
+    Returns the subset of the data with the minimum imbalance for every possible subset size, down to the data set with the minimum possible imbalance. Also includes tools for the estimation of causal effects for each subset size, functions for visualization and data export, and functions for calculating model dependence.
+  preview: "images/MatchingFrontier-preview.png"
+  author: "Gary King, Christopher Lucas, Richard Nielsen, Noah Greifer"
+  # categories: [visualization, ggplot2]
+  github: "https://github.com/IQSS/MatchingFrontier"
+  docs: "https://iqss.github.io/MatchingFrontier/"
+
+- title: "lmw"
+  subtitle: "Linear Model Weights"
+  description: >
+    Computes the implied weights of linear regression models for estimating average causal effects and provides diagnostics based on these weights to diagnose representativeness, balance, extrapolation, and influence for these models, clarifying the target population of inference. Tools are also available to simplify estimating treatment effects for specific target populations of interest.
+  preview: "images/lmw-preview.png"
+  author: "Noah Greifer"
+  # categories: [visualization, ggplot2]
+  github: "https://github.com/ngreifer/lmw"
+  cran: "https://cran.r-project.org/package=lmw"
+
+# - title: "pkgname"
+#   subtitle: "subtitle"
+#   description: >
+#     desc
+#   logo: "logo_url_or_file_path"
+#   preview: "images/pkgname-preview.png"
+#   author: "authors"
+#   github: "https://github.com/user/pkgname"
+#   cran: "https://cran.r-project.org/package=pkgname"
+#   docs: "https://user.github.io/pkgname/"

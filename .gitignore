@@ -1,8 +1,6 @@
+/.quarto/
+
+**/*.quarto_ipynb
+
+/.luarc.json
 .Rproj.user
-.Rhistory
-.RData
-.Ruserdata
-.DS_Store
-Thumbs.db
-hugo_build.lock
-.hugo_build.lock

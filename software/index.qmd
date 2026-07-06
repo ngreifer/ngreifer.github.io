@@ -1,0 +1,40 @@
+---
+title: "Software"
+page-layout: full
+listing:
+  - id: my-pkgs
+    contents: my-packages.yml
+    template: packages.ejs.md
+    sort-ui: false
+    filter-ui: false
+    fields: [title, subtitle, description, author, categories,
+             logo, preview, version, github, cran, docs]
+             
+  - id: other-pkgs
+    contents: other-packages.yml
+    template: packages.ejs.md
+    sort-ui: false
+    filter-ui: false
+    fields: [title, subtitle, description, author, categories,
+             logo, preview, version, github, cran, docs]
+---
+
+This page documents the R packages I have worked on. If you have any questions about them, please submit your question to their GitHub issues page rather than emailing me. You are also welcome to ask a question on [StackOverflow](https://stackoverflow.com/) or [CrossValidated](https://stats.stackexchange.com/), which I check often.
+
+::: {.panel-tabset}
+
+## My packages
+
+These packages are ones that I am a primary author on and have expertise on the methods implemented. I consider these packages to be "mine", at least partly, in the sense that I can speak not only on the implementation but on the methods as well.
+
+::: {#my-pkgs}
+:::
+
+## Other packages
+
+These packages are ones that I have developed as part of my job but which I don't consider "mine" in the sense that I am not the primary maintainer and I don't have expertise on the methods implemented. Please do not contact me about these packages.
+
+::: {#other-pkgs}
+:::
+
+:::

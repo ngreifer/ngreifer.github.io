@@ -1,0 +1,104 @@
+---
+title: "An Odds Ratio Paradox"
+author: "Noah Greifer"
+date: "2024-08-03"
+categories:
+  - logistic regression
+comments:
+  giscus:
+    repo: ngreifer/ngreifer.github.io
+    repo-id: R_kgDOH8WJeg
+    category: Blog comments
+    category-id: DIC_kwDOH8WJes4CkT3N
+    mapping: pathname
+    reactions-enabled: true
+    input-position: top
+    theme: preferred_color_scheme
+    language: en
+---
+
+```{r, include=F}
+n <- 50000
+A <- rep(0:1, n)
+Z <- rep(0:1, c(.2, .8) * length(A))
+
+P <- plogis(log(1/10) + log(58.2) * Z + log(4) * A)
+
+tab <- rbind(cbind(G = "Recovery", aggregate(cbind("V" = P) ~ A + Z, FUN = sum)),
+             cbind(G = "No Recovery", aggregate(cbind("V" = 1-P) ~ A + Z, FUN = sum)))
+
+tab$V <- round(tab$V)
+
+tab$Treatment <- factor(tab$A, levels = 1:0, labels = c("Treatment", "Control"))
+tab$Variant <- factor(tab$Z, levels = 0:1, labels = c("Variant", "No Variant"))
+```
+
+A patient comes into urgent care presenting with an unpleasant rash on his arm.
+
+"Fortunately, we have a treatment," says the doctor, "but it is expensive, has unpleasant side effects, and isn't guaranteed to work. Do you want it?"
+
+"Well, I only want a treatment that has increases my odds of recovery by a large amount. Otherwise I might be going into medical debt for nothing," says the patient.
+
+"Odds of recovery..." muses the doctor. "So you appreciate odds ratios?"
+
+"Of course!" says the patient "The odds ratio is the ideal treatment effect measure. It's the only one that can be invariant to the baseline odds, can be validly estimated in case-control studies, and is the natural parameter in my favorite regression model, logistic regression! Plus thinking in terms of odds rather than probability just feels natural to me. Doesn't everyone feel that way?"
+
+"Great! Well, according to a recent trial, the odds of recovery for those taking the drug are...twice the odds of those who take a placebo," says the doctor, pulling up the trial result on her phone.
+
+"Only twice?" says the patient, disappointed. "That doesn't seem like a very big effect. If I have to go into medical debt and experience side effects I'd want to know the effect was larger than an odds ratio of 2."
+
+"Actually, the trial also reports the odds ratio for patient subgroups by the presence of a genetic variant in their bRAT365 gene," says the doctor, squinting at her phone. She spins to her computer, and pulls up the results of the patient's gene sequencing analysis. "And it looks like you have the genetic variant! For those with the genetic variant, the odds of recovery are 4 times higher than the odds for those who take a placebo."
+
+"That's amazing!" exclaims the patient. "And definitely a large enough odds ratio for me to take the treatment confidently. Good thing I have the genetic variant!"
+
+The doctor takes out a giant needle as the patient looks on nervously. The doctor sterilizes the point on the patient's arm where she prepares to deliver the injection. The patient closes his eyes and turns away, bracing for pain.
+
+"Out of curiosity," says the patient, hoping to delay the injection, "what was the odds ratio for those without the genetic variant?"
+
+The doctor pauses, puts down the needle, and turns back to the study.
+
+"The odds ratio for those without the genetic variant was also 4."
+
+"Wait, you're telling me that without knowing whether I have the genetic variant, the odds ratio is 2, but whether I have the genetic variant or not, the odds ratio is 4? How does that make any sense?" the patient asks angrily.
+
+"That's just what the trial report says," the doctor replies. "So do you want the shot or not?"
+
+"Well, maybe it's due to Simpson Paradox," muses the patient, "or Berkson's bias, you know, the effect of conditioning on a confounder or inadvertently conditioning on a collider. Like loss to follow-up, or sample selection bias, or failing to satisfy the backdoor criterion. Or it's a case-control study and they selected patients based on the outcome."
+
+"No," says the doctor, "this was a prospective randomized trial with double-blinding and no loss to follow-up. There wasn't any confounding and no post-treatment variables were conditioned on."
+
+"Well, maybe it's due to model misspecification. Did they assume linear and additive effects? Did they correct for bias in the logistic regression estimates using Firth's correction? There are a lot of ways a model can be incorrectly specified to yield biased results."
+
+"There was no model," said the doctor. "The odds ratios were computed directly from the contingency tables. And this was a massive trial of 50,000 participants with a common outcome, so there isn't any small-sample or rare-events bias."
+
+"Let me see those contingency tables!" demands the patient. He scans them intensely, trying to figure out why learning no information seems to change the study results in such a large way. He sees the following contingency tables:
+
+```{r, echo = FALSE}
+library(knitr)
+library(kableExtra)
+
+
+kable(xtabs(V ~ Treatment + G, data = tab) |>
+        addmargins(2, c("Total" = sum))) |>
+  add_header_above(c("Overall" = 4)) |>
+  kable_styling(full_width = FALSE)
+
+kables(list(
+  kable(xtabs(V ~ Treatment + G, data = tab, subset = Z == 1) |>
+          addmargins(2, c("Total" = sum))) |>
+    add_header_above(c("No Variant" = 4)) |>
+  kable_styling(full_width = FALSE),
+  kable(xtabs(V ~ Treatment + G, data = tab, subset = Z == 0) |>
+          addmargins(2, c("Total" = sum))) |>
+    add_header_above(c("Variant" = 4)) |>
+  kable_styling(full_width = FALSE)
+))
+```
+
+He does the math and all the numbers check out. The overall odds ratio was $\frac{41210}{8790} / \frac{35044}{14956} \approx 2$, and the odds ratios for those without and with the genetic variant were $\frac{38353}{1647} / \frac{34135}{5865} \approx 4$ and $\frac{2857}{7143} / \frac{909}{9091} \approx 4$, respectively. The overall and subgroup odds ratios are what the doctor said they were, and the subgroup cell totals match the overall totals. He sits flabbergasted.
+
+"So do you want the shot or not?"
+
+---
+
+*This story was inspired by a lecture given by Dr. Michael Hudgens at UNC when I took his course in causal inference. It stuck with me for a long time and for whatever reason I was recently inspired to write this little vignette about it. A similar paradox is described in [Greenland (1987)](https://doi.org/10.1093/oxfordjournals.aje.a114593), which I recommend reading for a clear description of the issue.*

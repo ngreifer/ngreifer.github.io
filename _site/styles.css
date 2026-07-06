@@ -1,0 +1,42 @@
+/* css styles */
+
+.about-education ul li::marker {
+  content: "\F6FD";           /* Bootstrap Icons mortarboard-fill */
+  font-family: "bootstrap-icons";
+  font-size: 1.1em;
+}
+
+.about-education ul li {
+  padding-left: 0.5em;      /* Adjust this value to get more/less space */
+}
+
+.pkg-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.25rem;
+  margin: 1.5rem 0;
+}
+
+.pkg-card {
+  border: 1px solid var(--bs-border-color);  /* Quarto uses Bootstrap vars */
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.pkg-logo   { width: 52px; height: 52px; object-fit: contain; border-radius: 6px; }
+.pkg-name   { font-family: var(--bs-font-monospace); font-weight: 500; font-size: 1.05rem; margin: 0; }
+.pkg-tagline { font-size: 0.85rem; color: var(--bs-secondary); margin: 0; }
+.pkg-preview { width: 100%; border-radius: 6px; border: 1px solid var(--bs-border-color); }
+.pkg-authors { font-size: 0.8rem; color: var(--bs-secondary); }
+.pkg-links  { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; padding-top: 0.75rem;
+              border-top: 1px solid var(--bs-border-color); }
+
+.pkg-badge  { display: inline-flex; align-items: center; gap: 4px; font-size: 0.75rem;
+              padding: 3px 10px; border-radius: 4px; border: 1px solid; text-decoration: none; }
+.badge-cran   { background: #dbeafe; color: #1e40af; border-color: #bfdbfe; }
+.badge-gh     { background: #f3f4f6; color: #374151; border-color: #d1d5db; }
+.badge-docs   { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
+.badge-paper  { background: #ede9fe; color: #5b21b6; border-color: #ddd6fe; }

@@ -1,0 +1,66 @@
+---
+title: "Some Notes on Double Robustness"
+author: "Noah Greifer"
+date: "2023-12-11"
+categories:
+  - propensity-scores
+bibliography: references.bib
+draft: true
+comments:
+  giscus:
+    repo: ngreifer/ngreifer.github.io
+    repo-id: R_kgDOH8WJeg
+    category: Blog comments
+    category-id: DIC_kwDOH8WJes4CkT3N
+    mapping: pathname
+    reactions-enabled: true
+    input-position: top
+    theme: preferred_color_scheme
+    language: en
+---
+
+This is quick post in which I reflect on double robustness. **Double robustness** is a property of an *estimator* (i.e., a method of estimating a quantity). In this case, I want to talk briefly about doubly robust estimators of the causal effect of a binary treatment.
+
+For nice introductions to double robustness, I recommend @danielDoubleRobustness2018 and @kangDemystifyingDoubleRobustness2007. Basically, there are a few ways double robustness is described in the literature: 1) for an estimator to be doubly robust is for it to be *consistent* (i.e., converges to the truth) if the model for the treatment or the model for the outcome is correctly specified, and 2) the converge rate of a doubly robust estimator is the product of the convergence rates of the estimators of the treatment probabilities and the outcome predictions, so if both converge at $o(n^{-1/4})$ or greater the estimator converges at $o(n^{-1/2})$, which enables normal-theory inference. The first definition is a simplified version of the second, but it is the one most people understand if they are casual users of causal inference methods.
+
+## Examples of singly and doubly robust estimators
+
+Before we describe doubly-robust estimators, it's maybe worth describing some singly robust estimators. The classic ones are inverse probability weighting (IPW, also known as propensity score weighting) and g-computation (also known as outcome modeling).
+
+With IPW, you model selection into treatment (the propensity score), compute weights from the predicted probabilities, and estimate the treatment effect as a weighted difference in means. It is singly robust because there is one model, the treatment model, and the estimator is consistent only if the treatment model is correct (or, more precisely, converges at an appropriate rate). Propensity score matching and its variants (e.g., full matching, matching with replacement, subclassification) are also singly robust estimators (though they may be robust in another sense, which is that the propensity score model can be incorrect and still yield a consistent estimator, especially when optimizing for balance; matching is just a robust version of weighting after all.
+
+With g-computation, you model the outcome, generate predictions for each individual under each treatment, and compute the treatment effect as the difference in the predicted (potential outcome) means. It is singly robust because, again, there is one model, the outcome model, and the estimator is consistent only if the outcome model is correct. (Everything is so much more complicated than I just said, but that is a basic understanding that is good enough to move forward with.)
+
+Classic examples of doubly robust estimators are those that involve both a treatment model and an outcome model. Among these include weighted-computation, which is like regular g-computation except the outcome model is weighted by IPW weights, augmented inverse probability weighting (AIPW), which is like g-computation but with a correction term that is a function of the treatment probabilities, and targeted minimum loss-based estimation (TMLE), which I would describe exactly like how I described AIPW but it's slightly different somehow (don't ask me how).
+
+Putting aside weighted g-computation, AIPW and TMLE have a really nice property that I will argue is the their primary benefit over singly robust estimators: the estimators are normally distributed and the expression for the variance only involves the predicted treatment probabilities and estimated potential outcomes. This property is so nice because it means you can get normal theory inference even when using machine learning to estimated the propensity scores and potential outcomes. This is absolutely massive because the only hope of finding consistent estimators of the treatment probabilities or outcome predictions is to use a flexible machine learning method (or an ensemble thereof), but usually we can't validly do standard inference when we use machine learning models.
+
+However, there are a few more doubly robust estimators that follow a different formulation. You might have come across @zhaoEntropyBalancingDoubly2017 ("Entropy balancing is doubly robust") or a possibly even more surprising quote in @robinsCommentPerformanceDoubleRobust2007: "[ordinary least squares] is itself a doubly robust estimator". How could these methods, which seem nothing like AIPW and TMLE, be doubly robust, when entropy balancing involves fitting a single set of weights and ordinary least squares is just fitting a linear model for the outcome?
+
+## Two Types of Doubly Robust Estimators
+
+There really are two types of doubly-robust estimators, those that are like AIPW and TMLE (model chasers) and those that are like entropy balancing and ordinary least squares (model hopers). I call AIPW and TMLE "model chasers" because they involve the analyst attempting to chase down the correct models using flexible machine learning methods that ideally converge to the truth at the required rate.
+
+### Model Chasers: Seeking the Correct Model
+
+To use them correctly and achieve the asymptotic properties they guarantee, you typically need to use SuperLearner, which is a stacking algorithm that generates a single set of predictions from a library of candidate models and converges to the truth at least as fast as the fastest-converging model included in the library. Ideally, a theoretically superior model called "highly adaptive lasso" is included in the library, as HAL alone achieves the guaranteed convergence rates under weak conditions (which can be made weaker by tweaking the estimator) and therefore guarantees adequate convergence of the overall treatment effect estimator.
+
+There is the sense that the SuperLearner library should include many models, at least one of which might converge to the truth more quickly than the others, even when HAL is included. For example, if it's possible the treatment model is an additive logistic regression model, it is a good idea to include such a model in the SuperLearner library along with more flexible models, as the resulting predictions combined by the SuperLearner will do no worse (asymptotically) than the best model included. By choosing from many candidate models in the SuperLearner library, one is "chasing" the correct model.
+
+### Model Hopers: Hoping the True Model Coincides with the Given Model
+
+The other type of doubly robust estimators are model "hopers", in the sense that they are doubly robust if the true models happen to be compatible with the estimator, and one can only hope that is the case (i.e., rather than chasing the true models). A classic example of a model hoper is entropy balancing for the ATT. Entropy balancing is doubly robust in the following sense: if the true treatment model is an additive logistic regression model or if the true potential outcome model under control is a linear model, the entropy balancing weighted difference in outcome means is consistent. It is doubly robust in the sense that there are two chances to get something right, but rather than adjusting the estimation of the weights to attempt to approximate the true models, a user simply estimates the weights and hopes that the true outcome or treatment models correspond to those that make the estimator consistent. This is a far weaker version of double-robustness, bordering on useless, because it requires extremely strict assumptions on the outcome and treatment models. Instead of a one-in-infinity chance of getting the model right, you have a two-in-infinity chance. Incredible odds.
+
+Another surprising finding is that linear regression, that is, just fitting a linear model for the outcome, is itself doubly robust. It's obvious the estimator is consistent if the true outcome model is linear, but under what other condition is it consistent? It turns out that fitting a linear regression for the outcome is equivalent to estimating a weighted difference in means, where the weights have a special formula that is a function only of the covariates and treatment. This perspective is described in detail by @chattopadhyayImpliedWeightsLinear2022a, and the weights themselves can be estimated using our `lmw` package in R. It turns out that the weights are equivalent to those computed from fitting an inverse linear model for the propensity score, meaning that if the true propensity score model is inverse linear, the linear regression estimator is consistent, regardless of the true outcome model. Pretty wild.
+
+## Weighted G-Computation
+
+At last, I want to talk about weighted g-computation. Although it deserves to be the most popular estimator for reasons I'll explain below, it doesn't fit so neatly into the categories above. It would seem to share characteristics with model chasers, in that you are indeed fitting two models (one for the treatment and one for the outcome), and characteristics with model hopers, in that the outcome must be a generalized linear model, which is not flexible enough to guarantee any convergence to the truth. In fact, there is an asymmetry: the treatment model can be fit as flexible as possible (or the weights can be estimated flexibly without an explicit model, e.g., using energy balancing [@hulingEnergyBalancingCovariate2022] or kernel balancing [@wongKernelbasedCovariateFunctional2018]), and the outcome model is inflexibly a single generalized linear model.
+
+I claim this is a good thing, because it creates a division of labor that allows one to retain the [epistemic benefits](https://stats.stackexchange.com/a/544958/116195) of pre-processing (i.e., the ability to assess and present balance as a critical and useful diagnostic) while increasing the precision over weighting alone. That is, the main benefit of weighted g-computation is not its doubly robust nature; it is the increase in precision at essentially no cost over an otherwise well-performing balancing method.
+
+## What Do We Want from an Estimator?
+
+There are two "standards" one can use to convince one's audience that the estimate can be trusted: one is the asymptotic guarantee of a consistent doubly-robust estimator (achieving asymptotically normal inference), like with AIPW or TMLE with HAL and other models as candidates in a SuperLearner library, and the other is proof that bias due to the covariates has been eliminated because balance has been achieved by the weights. While the former may provide some confidence in the abstract (i.e., it refers to confidence in an estimator), the latter provides confidence in the specific instance the estimator is applied. In my previously linked post, I argue that the epistemic advantage of pre-processing is often undervalued in the literature, and that it represents a compelling reason to use design-based methods even when their statistical properties are not uniformly superior to analysis-based methods.
+
+## References
