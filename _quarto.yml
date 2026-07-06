@@ -11,7 +11,7 @@ website:
 
   description: "Noah Greifer's website"
 
-  favicon: assets/media/icon.png
+  favicon: assets/media/favicon.ico
 
   navbar:
     background: light  # You can change the background color here
