@@ -16,7 +16,7 @@ website:
   navbar:
     background: light  # You can change the background color here
 
-    logo: assets/media/icon.png
+    logo: assets/media/icon_smaller.png
     logo-alt: "Noah Greifer"
     left:
       - text: "Home"

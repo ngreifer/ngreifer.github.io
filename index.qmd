@@ -10,7 +10,7 @@ description: |
 first_name: Noah
 last_name: Greifer
 
-image: "assets/media/icon.png"
+image: "assets/media/icon_smaller.png"
 
 page-navigation: false
 toc: false
