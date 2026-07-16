@@ -84,7 +84,7 @@
   subtitle: "Clean and Simple Argument Checking"
   description: >
     Checks function arguments, ideally for use in R packages, using a simple interface and produces clean, informative error messages with <em>cli</em>.
-  # logo: "https://ngreifer.github.io/cobalt/logo.png"
+  logo: "https://ngreifer.github.io/arg/logo.png"
   # preview: "images/adrftools-preview.png"
   author: "Noah Greifer"
   # categories: [visualization, ggplot2]
