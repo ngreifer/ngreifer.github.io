@@ -1,55 +1,55 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://ngreifer.github.io/index.html</loc>
-    <lastmod>2026-07-16T02:33:19.657Z</lastmod>
-  </url>
-  <url>
-    <loc>https://ngreifer.github.io/software/index.html</loc>
-    <lastmod>2026-07-16T02:33:19.661Z</lastmod>
-  </url>
-  <url>
-    <loc>https://ngreifer.github.io/blog/index.html</loc>
-    <lastmod>2026-07-16T02:33:19.655Z</lastmod>
-  </url>
-  <url>
-    <loc>https://ngreifer.github.io/blog/subgroup-analysis-psm/index.html</loc>
-    <lastmod>2026-07-16T02:33:19.656Z</lastmod>
-  </url>
-  <url>
     <loc>https://ngreifer.github.io/blog/an-odds-ratio-paradox/index.html</loc>
-    <lastmod>2026-07-16T02:33:19.655Z</lastmod>
+    <lastmod>2026-08-21T19:23:06.826Z</lastmod>
   </url>
   <url>
     <loc>https://ngreifer.github.io/blog/logistic-regression-cbps-overlap-weights/index.html</loc>
-    <lastmod>2026-07-16T02:33:19.655Z</lastmod>
+    <lastmod>2026-08-21T19:23:06.827Z</lastmod>
   </url>
   <url>
-    <loc>https://ngreifer.github.io/blog/treatment-effects-mi/index.html</loc>
-    <lastmod>2026-07-16T02:33:19.656Z</lastmod>
+    <loc>https://ngreifer.github.io/blog/subgroup-analysis-psm/index.html</loc>
+    <lastmod>2026-08-21T19:23:06.827Z</lastmod>
   </url>
   <url>
-    <loc>https://ngreifer.github.io/papers/index.html</loc>
-    <lastmod>2026-07-16T02:33:19.657Z</lastmod>
-  </url>
-  <url>
-    <loc>https://ngreifer.github.io/papers/publications.ejs.html</loc>
-    <lastmod>2026-07-16T02:33:19.657Z</lastmod>
-  </url>
-  <url>
-    <loc>https://ngreifer.github.io/blog/what-s-new-in-weightit-version-1-0-0/index.html</loc>
-    <lastmod>2026-07-16T02:33:19.657Z</lastmod>
-  </url>
-  <url>
-    <loc>https://ngreifer.github.io/blog/genetic-matching/index.html</loc>
-    <lastmod>2026-07-16T02:33:19.655Z</lastmod>
+    <loc>https://ngreifer.github.io/blog/index.html</loc>
+    <lastmod>2026-08-21T19:23:06.827Z</lastmod>
   </url>
   <url>
     <loc>https://ngreifer.github.io/blog/matching-weights/index.html</loc>
-    <lastmod>2026-07-16T02:33:19.656Z</lastmod>
+    <lastmod>2026-08-21T19:23:06.827Z</lastmod>
+  </url>
+  <url>
+    <loc>https://ngreifer.github.io/index.html</loc>
+    <lastmod>2026-08-21T19:23:06.828Z</lastmod>
+  </url>
+  <url>
+    <loc>https://ngreifer.github.io/papers/index.html</loc>
+    <lastmod>2026-08-21T19:23:06.828Z</lastmod>
+  </url>
+  <url>
+    <loc>https://ngreifer.github.io/software/index.html</loc>
+    <lastmod>2026-08-21T19:23:06.832Z</lastmod>
   </url>
   <url>
     <loc>https://ngreifer.github.io/software/packages.ejs.html</loc>
-    <lastmod>2026-07-16T02:33:19.662Z</lastmod>
+    <lastmod>2026-08-21T19:23:06.832Z</lastmod>
+  </url>
+  <url>
+    <loc>https://ngreifer.github.io/papers/publications.ejs.html</loc>
+    <lastmod>2026-08-21T19:23:06.828Z</lastmod>
+  </url>
+  <url>
+    <loc>https://ngreifer.github.io/blog/genetic-matching/index.html</loc>
+    <lastmod>2026-08-21T19:23:06.827Z</lastmod>
+  </url>
+  <url>
+    <loc>https://ngreifer.github.io/blog/treatment-effects-mi/index.html</loc>
+    <lastmod>2026-08-21T19:23:06.828Z</lastmod>
+  </url>
+  <url>
+    <loc>https://ngreifer.github.io/blog/what-s-new-in-weightit-version-1-0-0/index.html</loc>
+    <lastmod>2026-08-21T19:23:06.828Z</lastmod>
   </url>
 </urlset>
