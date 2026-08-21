@@ -72,7 +72,7 @@
   subtitle: "Fractional Weighted Bootstrap"
   description: >
     Implements the fractional weighted bootstrap to be used as a drop-in for functions in the <em>boot</em> package. The fractional weighted bootstrap (also known as the Bayesian bootstrap) involves drawing weights randomly that are applied to the data rather than resampling units from the data.
-  # logo: "https://ngreifer.github.io/cobalt/logo.png"
+  logo: "https://ngreifer.github.io/fwb/logo.png"
   # preview: "images/adrftools-preview.png"
   author: "Noah Greifer"
   # categories: [visualization, ggplot2]
