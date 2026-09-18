@@ -1,3 +1,10 @@
+- title: 10.21105/joss.08880
+  citation: '<strong>Greifer, N.</strong> (2026). fwb: An R package for the fractional
+    weighted bootstrap. <em>Journal of Open Source Software</em>, <em>11</em>(124),
+    8880.'
+  doi: 10.21105/joss.08880
+  link: https://doi.org/10.21105/joss.08880
+  year: 2026
 - title: 10.1213/ANE.0000000000008198
   citation: 'Perry, L. A., Peiris, S., <strong>Greifer, N.</strong>, Karamesinis,
     A., Rong, L. Q., Gaudino, M., Smith, J. A., Silvers, A., Bennetts, J., Segal,
