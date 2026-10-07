@@ -1,9 +1,11 @@
 {
-  "hash": "c0d6c54f49d489ce096b7273f148e82c",
+  "hash": "11725358cf4fcec22b7d696e1611bdd7",
   "result": {
     "engine": "knitr",
     "markdown": "---\ntitle: \"Papers\"\nlisting:\n  id: pub-listing\n  contents: publications.yml\n  template: publications.ejs.md\n  sort-ui: false\n  filter-ui: false\n  page-size: 100\n  fields: [title, citation, doi, link, year]\n---\n\n\n::: {.cell}\n\n:::\n\n\nBelow is a list of papers I have worked on. These span applied papers, tutorial papers, methodological papers, and software papers. You can also check out my [Google Scholar page](https://scholar.google.com/citations?hl=en&user=pUqM9nkAAAAJ). Feel free to reach out if you need help accessing any of these papers.\n\n-----\n\n::: {#pub-listing}\n:::\n",
-    "supporting": [],
+    "supporting": [
+      "index_files"
+    ],
     "filters": [
       "rmarkdown/pagebreak.lua"
     ],
