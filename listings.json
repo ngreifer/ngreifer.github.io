@@ -1,5 +1,9 @@
 [
   {
+    "listing": "/software/index.html",
+    "items": []
+  },
+  {
     "listing": "/blog/index.html",
     "items": [
       "/blog/an-odds-ratio-paradox/index.html",
@@ -13,10 +17,6 @@
   },
   {
     "listing": "/papers/index.html",
-    "items": []
-  },
-  {
-    "listing": "/software/index.html",
     "items": []
   }
 ]
