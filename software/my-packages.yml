@@ -92,6 +92,17 @@
   cran: "https://cran.r-project.org/package=arg"
   docs: "https://ngreifer.github.io/arg/"
 
+- title: "bartisan"
+  subtitle: "Generalized Bayesian Additive Regression Trees"
+  description: >
+    Fits Bayesian additive regression trees (BART) models for likelihoods outside the conditionally conjugate Gaussian case, using the Laplace-approximation reversible-jump sampler of Linero (2025). Supported response families include Gaussian, binomial, Poisson, negative binomial, gamma, beta, ordered beta, ordinal, multinomial, zero-inflated counts, Tweedie, survival, location-scale, and Dirichlet process mixture models. Decision rules may be hard, as in standard BART, or soft, as in SoftBart. The interface follows that of <code>glm()</code>.
+  # logo: "https://ngreifer.github.io/bartisan/logo.png"
+  preview: "images/bartisan-preview.png"
+  author: "Noah Greifer"
+  github: "https://github.com/ngreifer/bartisan"
+  cran: "https://cran.r-project.org/package=bartisan"
+  docs: "https://ngreifer.github.io/bartisan/"
+
 - title: "clarify"
   subtitle: "Simulation-Based Inference for Regression Models"
   description: >
