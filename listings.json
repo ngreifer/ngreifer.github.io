@@ -1,5 +1,9 @@
 [
   {
+    "listing": "/papers/index.html",
+    "items": []
+  },
+  {
     "listing": "/software/index.html",
     "items": []
   },
@@ -14,9 +18,5 @@
       "/blog/genetic-matching/index.html",
       "/blog/subgroup-analysis-psm/index.html"
     ]
-  },
-  {
-    "listing": "/papers/index.html",
-    "items": []
   }
 ]
